@@ -1,4 +1,4 @@
-import type { PlanetPosition, Language } from '../types/astrology';
+import type { PlanetPosition } from '../types/astrology';
 import { calculateJulianDay, calculateLahiriAyanamsa, calculatePlanetaryPositions } from './astronomy';
 
 export interface TransitInfo {
@@ -27,8 +27,7 @@ export interface TransitAnalysis {
 
 export function calculateCurrentTransits(
   natalPlanets: PlanetPosition[],
-  natalLagnaId: number,
-  language: Language
+  natalLagnaId: number
 ): TransitAnalysis {
   const now = new Date();
   const dobStr = now.toISOString().split('T')[0];

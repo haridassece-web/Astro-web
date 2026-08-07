@@ -60,8 +60,8 @@ export function App() {
   }, [birthData]);
 
   const transitData = useMemo(() => {
-    return calculateCurrentTransits(horoscope.planets, horoscope.lagnaSignId, language);
-  }, [horoscope, language]);
+    return calculateCurrentTransits(horoscope.planets, horoscope.lagnaSignId);
+  }, [horoscope]);
 
   const activeDivisionalChart = horoscope.divisionalCharts[activeChartId] || horoscope.divisionalCharts['D1'];
 
