@@ -19,6 +19,7 @@ const PLANET_SHORT_TA: Record<string, string> = {
   Saturn: 'சனி',
   Rahu: 'ரா',
   Ketu: 'கே',
+  Mandhi: 'மாந்',
 };
 
 const PLANET_SHORT_EN: Record<string, string> = {
@@ -32,6 +33,7 @@ const PLANET_SHORT_EN: Record<string, string> = {
   Saturn: 'Sa',
   Rahu: 'Ra',
   Ketu: 'Ke',
+  Mandhi: 'Md',
 };
 
 export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ chart, format, language, compact = false }) => {
@@ -123,15 +125,18 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ chart, format, l
                 <div className="flex flex-wrap gap-0.5 my-auto items-center">
                   {house.planets.map((p) => {
                     const shortName = language === 'ta' ? PLANET_SHORT_TA[p.name] || p.nameTa.slice(0, 2) : PLANET_SHORT_EN[p.name] || p.name.slice(0, 2);
-
-                    const textSize = planetCount >= 4 ? 'text-[8.5px] px-1 py-0' : planetCount === 3 ? 'text-[9px] px-1 py-0.2' : 'text-[9.5px] px-1.5 py-0.5';
+                    const degLabel = p.signDegree !== undefined ? `${Math.floor(p.signDegree)}°` : '';
+                    const textSize = planetCount >= 5 ? 'text-[7.5px] px-0.5 py-0' : planetCount >= 3 ? 'text-[8.5px] px-1 py-0.2' : 'text-[9px] px-1.5 py-0.5';
 
                     return (
                       <span
                         key={p.name}
+                        title={`${language === 'ta' ? p.nameTa : p.name}: ${Math.floor(p.signDegree || 0)}° ${Math.floor(((p.signDegree || 0) % 1) * 60)}'`}
                         className={`${textSize} font-bold rounded flex items-center gap-0.5 leading-tight ${
                           p.name === 'Lagna'
                             ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
+                            : p.name === 'Mandhi'
+                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30 font-black'
                             : p.dignityEn === 'Exalted'
                             ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
                             : p.dignityEn === 'Debilitated'
@@ -140,6 +145,7 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ chart, format, l
                         }`}
                       >
                         <span>{shortName}</span>
+                        {degLabel && <span className="opacity-80 text-[7.5px] font-mono">{degLabel}</span>}
                         {p.isRetrograde && p.name !== 'Rahu' && p.name !== 'Ketu' && (
                           <span className="text-amber-400 font-extrabold text-[9px] leading-none" title="Retrograde (வக்ரம்)">*</span>
                         )}
@@ -179,11 +185,16 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ chart, format, l
             <div key={house.houseNum} className="flex flex-col items-center justify-center p-1">
               <span className="text-[10px] text-amber-400 font-mono font-bold">H{house.houseNum}</span>
               <div className="flex flex-wrap justify-center gap-0.5 mt-0.5">
-                {house.planets.map((p) => (
-                  <span key={p.name} className="text-[9px] bg-indigo-900/80 text-amber-200 px-1 rounded font-bold">
-                    {language === 'ta' ? PLANET_SHORT_TA[p.name] || p.nameTa.slice(0, 2) : PLANET_SHORT_EN[p.name] || p.name.slice(0, 2)}
-                  </span>
-                ))}
+                {house.planets.map((p) => {
+                  const shortName = language === 'ta' ? PLANET_SHORT_TA[p.name] || p.nameTa.slice(0, 2) : PLANET_SHORT_EN[p.name] || p.name.slice(0, 2);
+                  const degLabel = p.signDegree !== undefined ? `${Math.floor(p.signDegree)}°` : '';
+                  return (
+                    <span key={p.name} className="text-[8.5px] bg-indigo-900/80 text-amber-200 px-1 py-0.5 rounded font-bold flex items-center gap-0.5">
+                      <span>{shortName}</span>
+                      {degLabel && <span className="text-[7.5px] opacity-80 font-mono">{degLabel}</span>}
+                    </span>
+                  );
+                })}
               </div>
             </div>
           ))}

@@ -18,7 +18,7 @@ export function calculateFullHoroscope(birth: BirthInput): CalculatedHoroscope {
 
   const divisionalCharts = computeAllDivisionalCharts(planets, lagnaSignId);
 
-  const dasaPeriods = calculateVimshottariDasa(birth.dob, planets);
+  const { dasaPeriods, startingDasaInfo, presentDasaInfo } = calculateVimshottariDasa(birth.dob, planets);
 
   const yogasMatched = evaluateAstrologyRules(planets, lagnaSignId);
 
@@ -40,6 +40,8 @@ export function calculateFullHoroscope(birth: BirthInput): CalculatedHoroscope {
     panchanga,
     divisionalCharts,
     dasaPeriods,
+    startingDasaInfo,
+    presentDasaInfo,
     yogasMatched,
     domainPredictions,
     remedies,

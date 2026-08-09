@@ -161,6 +161,7 @@ export function calculatePlanetaryPositions(
     Rahu: normalize360(rahuTropical - ayanamsa),
     Ketu: normalize360(ketuTropical - ayanamsa),
     Lagna: 0,
+    Mandhi: 0,
   };
 
   // 9. Ascendant (Lagna) Thirukkanitha Standard
@@ -177,6 +178,10 @@ export function calculatePlanetaryPositions(
   const siderealLagna = normalize360(ascDeg - ayanamsa);
   siderealLongitudes['Lagna'] = siderealLagna;
 
+  // 10. Mandhi (Gulika) Longitude Calculation
+  const siderealMandhi = calculateMandhiLongitude(birth, jd, ayanamsa, eps);
+  siderealLongitudes['Mandhi'] = siderealMandhi;
+
   const lagnaSignId = Math.floor(siderealLagna / 30);
 
   // Apparent Speeds
@@ -191,9 +196,10 @@ export function calculatePlanetaryPositions(
     Rahu: -0.052,
     Ketu: -0.052,
     Lagna: 360 / 24,
+    Mandhi: 0,
   };
 
-  const planetOrder: PlanetName[] = ['Lagna', 'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu'];
+  const planetOrder: PlanetName[] = ['Lagna', 'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu', 'Mandhi'];
 
   const planets: PlanetPosition[] = planetOrder.map((name) => {
     const long = siderealLongitudes[name];
@@ -235,8 +241,74 @@ export function calculatePlanetaryPositions(
   return { planets, lagnaSignId };
 }
 
+export function calculateMandhiLongitude(
+  birth: BirthInput,
+  jd: number,
+  ayanamsa: number,
+  eps: number
+): number {
+  const safeLng = !isNaN(birth.lng) && birth.lng !== 0 ? birth.lng : 80.2707;
+  const safeLat = !isNaN(birth.lat) && birth.lat !== 0 ? birth.lat : 13.0827;
+
+  const safeDob = (birth.dob && birth.dob.trim()) || '1992-04-14';
+  const partsDob = safeDob.split('-').map(Number);
+  const year = partsDob[0] || 1992;
+  const month = partsDob[1] || 4;
+  const day = partsDob[2] || 14;
+  const dateObj = new Date(year, month - 1, day);
+  const dayOfWeek = dateObj.getDay();
+
+  const safeTob = (birth.tob && birth.tob.trim()) || '08:30:00';
+  const partsTob = safeTob.split(':').map(Number);
+  const hrs = partsTob[0] || 8;
+  const mins = partsTob[1] || 30;
+  const secs = partsTob[2] || 0;
+  const birthHrs = hrs + mins / 60 + secs / 3600;
+
+  // Daytime Mandhi Ghatikas from Sunrise (Sun=26, Mon=22, Tue=18, Wed=14, Thu=10, Fri=6, Sat=2)
+  const dayGhatikas = [26, 22, 18, 14, 10, 6, 2];
+  // Nighttime Mandhi Ghatikas from Sunset (Sun=10, Mon=6, Tue=26, Wed=22, Thu=18, Fri=14, Sat=14.5)
+  const nightGhatikas = [10, 6, 26, 22, 18, 14, 14.5];
+
+  const sunriseHrs = 6.0;
+  const sunsetHrs = 18.0;
+  const dayLengthHrs = sunsetHrs - sunriseHrs;
+  const nightLengthHrs = 24.0 - dayLengthHrs;
+
+  const isDaytime = birthHrs >= sunriseHrs && birthHrs < sunsetHrs;
+  let mandhiTimeLocalHrs = 0;
+
+  if (isDaytime) {
+    const ghat = dayGhatikas[dayOfWeek];
+    mandhiTimeLocalHrs = sunriseHrs + (ghat / 30.0) * dayLengthHrs;
+  } else {
+    let effectiveDay = dayOfWeek;
+    let baseHrs = sunsetHrs;
+    if (birthHrs < sunriseHrs) {
+      effectiveDay = (dayOfWeek + 6) % 7;
+      baseHrs = sunsetHrs - 24.0;
+    }
+    const ghat = nightGhatikas[effectiveDay];
+    mandhiTimeLocalHrs = baseHrs + (ghat / 30.0) * nightLengthHrs;
+  }
+
+  const diffHours = mandhiTimeLocalHrs - birthHrs;
+
+  const jdMandhi = jd + diffHours / 24.0;
+  const t_m = (jdMandhi - 2451545.0) / 36525.0;
+
+  const gmst_m = normalize360(280.46061837 + 360.98564736629 * (jdMandhi - 2451545.0) + 0.000387933 * t_m * t_m);
+  const lst_m = normalize360(gmst_m + safeLng);
+
+  const y_asc_m = Math.cos(lst_m * d2r);
+  const x_asc_m = -Math.sin(lst_m * d2r) * Math.cos(eps * d2r) - Math.tan(safeLat * d2r) * Math.sin(eps * d2r);
+  const ascDegMandhi = normalize360(Math.atan2(y_asc_m, x_asc_m) * r2d);
+
+  return normalize360(ascDegMandhi - ayanamsa);
+}
+
 function getDignity(planet: PlanetName, signId: number): { en: PlanetPosition['dignityEn']; ta: string } {
-  if (planet === 'Lagna') return { en: 'Neutral', ta: 'சமம்' };
+  if (planet === 'Lagna' || planet === 'Mandhi') return { en: 'Neutral', ta: 'சமம்' };
 
   const exaltationMap: Partial<Record<PlanetName, { signId: number; maxDeg: number }>> = {
     Sun: { signId: 0, maxDeg: 10 },

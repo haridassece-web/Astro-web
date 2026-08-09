@@ -237,4 +237,5 @@ export const PLANET_TA: Record<PlanetName, string> = {
   Saturn: 'சனி',
   Rahu: 'ராகு',
   Ketu: 'கேது',
+  Mandhi: 'மாந்தி',
 };

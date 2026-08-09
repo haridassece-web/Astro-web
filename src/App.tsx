@@ -403,7 +403,12 @@ export function App() {
         )}
 
         {activeTab === 'dasa' && (
-          <DasaTimeline dasaPeriods={horoscope.dasaPeriods} language={language} />
+          <DasaTimeline
+            dasaPeriods={horoscope.dasaPeriods}
+            startingDasaInfo={horoscope.startingDasaInfo}
+            presentDasaInfo={horoscope.presentDasaInfo}
+            language={language}
+          />
         )}
 
         {activeTab === 'transit' && (

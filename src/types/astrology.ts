@@ -36,7 +36,7 @@ export interface SignInfo {
 
 export type PlanetName =
   | 'Sun' | 'Moon' | 'Mars' | 'Mercury'
-  | 'Jupiter' | 'Venus' | 'Saturn' | 'Rahu' | 'Ketu' | 'Lagna';
+  | 'Jupiter' | 'Venus' | 'Saturn' | 'Rahu' | 'Ketu' | 'Lagna' | 'Mandhi';
 
 export interface PlanetPosition {
   name: PlanetName;
@@ -106,7 +106,39 @@ export interface DasaPeriod {
   endYear?: number;
   durationYears: number;
   isCurrent: boolean;
+  isStartingAtBirth?: boolean;
+  isFuture?: boolean;
   subDasas?: DasaPeriod[];
+  pratyantarDasas?: DasaPeriod[];
+  daysRemaining?: number;
+  progressPercent?: number;
+}
+
+export interface StartingDasaInfo {
+  mahadasa: PlanetName;
+  mahadasaTa: string;
+  puthi: PlanetName;
+  puthiTa: string;
+  balanceYears: number;
+  balanceMonths: number;
+  balanceDays: number;
+  startDate: string;
+  endDate: string;
+}
+
+export interface PresentDasaInfo {
+  mahadasa: PlanetName;
+  mahadasaTa: string;
+  puthi: PlanetName;
+  puthiTa: string;
+  pratyantara?: PlanetName;
+  pratyantaraTa?: string;
+  startDate: string;
+  endDate: string;
+  puthiStartDate: string;
+  puthiEndDate: string;
+  daysRemainingInPuthi: number;
+  progressPercent: number;
 }
 
 export interface AstrologyRule {
@@ -217,6 +249,8 @@ export interface CalculatedHoroscope {
   panchanga: Panchanga;
   divisionalCharts: { [key: string]: DivisionalChart };
   dasaPeriods: DasaPeriod[];
+  startingDasaInfo?: StartingDasaInfo;
+  presentDasaInfo?: PresentDasaInfo;
   yogasMatched: AstrologyRule[];
   domainPredictions: DomainPrediction[];
   remedies: Remedy[];
