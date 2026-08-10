@@ -67,11 +67,14 @@ export const BirthDetailsForm: React.FC<BirthDetailsFormProps> = ({ initialValue
     setSelectedPreset(profile.locationName || '');
   };
 
-  const filteredPresets = LOCATION_PRESETS.filter(
-    (loc) =>
-      loc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      loc.nameTa.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPresets = LOCATION_PRESETS.filter((loc) => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return true;
+    const matchEn = loc.name.toLowerCase().includes(query);
+    const matchTa = loc.nameTa.toLowerCase().includes(query);
+    const matchAlias = loc.aliases?.some((a) => a.toLowerCase().includes(query));
+    return matchEn || matchTa || matchAlias;
+  });
 
   // Extract DD, MM, YYYY from formData.dob (YYYY-MM-DD)
   const dobParts = formData.dob.split('-');
@@ -103,7 +106,9 @@ export const BirthDetailsForm: React.FC<BirthDetailsFormProps> = ({ initialValue
 
   const handlePresetChange = (presetName: string) => {
     setSelectedPreset(presetName);
-    const found = LOCATION_PRESETS.find((p) => p.name === presetName);
+    const found = LOCATION_PRESETS.find(
+      (p) => p.name === presetName || p.nameTa === presetName
+    );
     if (found) {
       updateAndSubmit({
         locationName: found.name,
@@ -112,7 +117,7 @@ export const BirthDetailsForm: React.FC<BirthDetailsFormProps> = ({ initialValue
         timezone: found.timezone,
       });
     } else {
-      updateAndSubmit({ locationName: '' });
+      updateAndSubmit({ locationName: presetName });
     }
   };
 
@@ -532,20 +537,63 @@ export const BirthDetailsForm: React.FC<BirthDetailsFormProps> = ({ initialValue
                 </span>
               </div>
 
-              <div className="space-y-2">
-                {/* Search Bar */}
+              <div className="space-y-2 relative">
+                {/* Search Bar with Live Autocomplete */}
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder={language === 'ta' ? 'தேடுக...' : 'Search city...'}
+                    placeholder={language === 'ta' ? 'தேடுக (எ.கா: சென்னை, Madurai, Kovai)...' : 'Search city (e.g. Trichy, Chennai, Madurai)...'}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-slate-900/90 border border-slate-800 focus:border-amber-500/70 rounded-xl px-2.5 py-1.5 text-xs text-amber-200 pl-8 outline-none transition-all placeholder:text-slate-600"
+                    className="w-full bg-slate-900/90 border border-slate-800 focus:border-amber-500/70 rounded-xl px-2.5 py-1.5 text-xs text-amber-200 pl-8 pr-7 outline-none transition-all placeholder:text-slate-600"
                   />
                   <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 top-2.5" />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-2 top-2 text-slate-500 hover:text-slate-300 text-xs font-bold"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
 
-                {/* Preset Selector */}
+                {/* Floating Live Autocomplete Dropdown List */}
+                {searchTerm.trim().length > 0 && (
+                  <div className="absolute left-0 right-0 top-9 z-50 bg-slate-950 border border-amber-500/40 rounded-xl shadow-2xl max-h-48 overflow-y-auto divide-y divide-slate-800/80 backdrop-blur-xl">
+                    {filteredPresets.length > 0 ? (
+                      filteredPresets.map((loc) => (
+                        <div
+                          key={loc.name}
+                          onClick={() => {
+                            handlePresetChange(loc.name);
+                            setSearchTerm('');
+                          }}
+                          className="p-2 hover:bg-amber-500/15 cursor-pointer transition-colors flex items-center justify-between group"
+                        >
+                          <div>
+                            <span className="text-xs font-bold text-slate-100 group-hover:text-amber-300 block">
+                              {language === 'ta' ? loc.nameTa : loc.name}
+                            </span>
+                            <span className="text-[10px] text-slate-400 font-mono block">
+                              {language === 'ta' ? loc.name : loc.nameTa}
+                            </span>
+                          </div>
+                          <span className="text-[9px] font-mono text-amber-400/80 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                            {loc.lat > 0 ? `${loc.lat}°N` : `${Math.abs(loc.lat)}°S`}, {loc.lng > 0 ? `${loc.lng}°E` : `${Math.abs(loc.lng)}°W`}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="p-3 text-xs text-slate-400 text-center">
+                        {language === 'ta' ? 'நகரம் வரவில்லை. கீழே பாகை/ரேகை நேரடி தட்டச்சு செய்யவும்.' : 'No matching city found. Use manual Lat/Lng below.'}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Preset Dropdown Selector */}
                 <div className="relative">
                   <select
                     value={selectedPreset}

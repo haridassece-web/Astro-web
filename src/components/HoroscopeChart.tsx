@@ -127,11 +127,12 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ chart, format, l
                     const shortName = language === 'ta' ? PLANET_SHORT_TA[p.name] || p.nameTa.slice(0, 2) : PLANET_SHORT_EN[p.name] || p.name.slice(0, 2);
                     const degLabel = p.signDegree !== undefined ? `${Math.floor(p.signDegree)}°` : '';
                     const textSize = planetCount >= 5 ? 'text-[7.5px] px-0.5 py-0' : planetCount >= 3 ? 'text-[8.5px] px-1 py-0.2' : 'text-[9px] px-1.5 py-0.5';
+                    const isRetro = p.isRetrograde && p.name !== 'Lagna' && p.name !== 'Mandhi';
 
                     return (
                       <span
                         key={p.name}
-                        title={`${language === 'ta' ? p.nameTa : p.name}: ${Math.floor(p.signDegree || 0)}° ${Math.floor(((p.signDegree || 0) % 1) * 60)}'`}
+                        title={`${language === 'ta' ? p.nameTa : p.name}${isRetro ? (language === 'ta' ? ' (வக்ரம்)' : ' (Retrograde)') : ''}: ${Math.floor(p.signDegree || 0)}° ${Math.floor(((p.signDegree || 0) % 1) * 60)}'`}
                         className={`${textSize} font-bold rounded flex items-center gap-0.5 leading-tight ${
                           p.name === 'Lagna'
                             ? 'bg-amber-500 text-slate-950 font-black shadow-sm'
@@ -145,10 +146,12 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ chart, format, l
                         }`}
                       >
                         <span>{shortName}</span>
-                        {degLabel && <span className="opacity-80 text-[7.5px] font-mono">{degLabel}</span>}
-                        {p.isRetrograde && p.name !== 'Rahu' && p.name !== 'Ketu' && (
-                          <span className="text-amber-400 font-extrabold text-[9px] leading-none" title="Retrograde (வக்ரம்)">*</span>
+                        {isRetro && (
+                          <span className="text-amber-300 font-black text-[8px] bg-amber-500/30 px-0.5 rounded border border-amber-400/40">
+                            {language === 'ta' ? '(வ)' : '(R)'}
+                          </span>
                         )}
+                        {degLabel && <span className="opacity-80 text-[7.5px] font-mono">{degLabel}</span>}
                       </span>
                     );
                   })}
@@ -156,6 +159,22 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ chart, format, l
               </div>
             );
           })}
+        </div>
+
+        {/* Legend Bar */}
+        <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 font-mono px-1">
+          <span className="flex items-center gap-1.5">
+            <span className="text-amber-300 font-bold px-1 rounded bg-amber-500/20 border border-amber-500/40 text-[9px]">
+              {language === 'ta' ? '(வ)' : '(R)'}
+            </span>
+            <span>{language === 'ta' ? '= கிரக வக்ரம் (Graha Vakram)' : '= Retrograde Planet'}</span>
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="text-purple-300 font-bold px-1 rounded bg-purple-500/20 border border-purple-500/30 text-[9px]">
+              {language === 'ta' ? 'மாந்' : 'Md'}
+            </span>
+            <span>{language === 'ta' ? '= மாந்தி (Gulika)' : '= Mandhi / Gulika'}</span>
+          </span>
         </div>
       </div>
     );
@@ -188,9 +207,16 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ chart, format, l
                 {house.planets.map((p) => {
                   const shortName = language === 'ta' ? PLANET_SHORT_TA[p.name] || p.nameTa.slice(0, 2) : PLANET_SHORT_EN[p.name] || p.name.slice(0, 2);
                   const degLabel = p.signDegree !== undefined ? `${Math.floor(p.signDegree)}°` : '';
+                  const isRetro = p.isRetrograde && p.name !== 'Lagna' && p.name !== 'Mandhi';
+
                   return (
                     <span key={p.name} className="text-[8.5px] bg-indigo-900/80 text-amber-200 px-1 py-0.5 rounded font-bold flex items-center gap-0.5">
                       <span>{shortName}</span>
+                      {isRetro && (
+                        <span className="text-amber-300 font-black text-[7.5px]">
+                          {language === 'ta' ? '(வ)' : '(R)'}
+                        </span>
+                      )}
                       {degLabel && <span className="text-[7.5px] opacity-80 font-mono">{degLabel}</span>}
                     </span>
                   );
@@ -199,6 +225,22 @@ export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ chart, format, l
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Legend Bar */}
+      <div className="mt-2.5 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] text-slate-400 font-mono px-1">
+        <span className="flex items-center gap-1.5">
+          <span className="text-amber-300 font-bold px-1 rounded bg-amber-500/20 border border-amber-500/40 text-[9px]">
+            {language === 'ta' ? '(வ)' : '(R)'}
+          </span>
+          <span>{language === 'ta' ? '= கிரக வக்ரம் (Graha Vakram)' : '= Retrograde Planet'}</span>
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="text-purple-300 font-bold px-1 rounded bg-purple-500/20 border border-purple-500/30 text-[9px]">
+            {language === 'ta' ? 'மாந்' : 'Md'}
+          </span>
+          <span>{language === 'ta' ? '= மாந்தி (Gulika)' : '= Mandhi / Gulika'}</span>
+        </span>
       </div>
     </div>
   );

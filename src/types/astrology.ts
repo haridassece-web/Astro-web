@@ -6,6 +6,7 @@ export interface LocationPreset {
   lat: number;
   lng: number;
   timezone: number; // offset in hours e.g. +5.5
+  aliases?: string[];
 }
 
 export interface BirthInput {

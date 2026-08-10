@@ -56,10 +56,15 @@ export const PlanetaryTable: React.FC<PlanetaryTableProps> = ({ planets, languag
                           : 'bg-indigo-400'
                       }`}
                     ></span>
-                    <span className="font-bold text-slate-100 flex items-center gap-1">
+                    <span className="font-bold text-slate-100 flex items-center gap-1.5">
                       <span>{language === 'ta' ? p.nameTa : p.name}</span>
-                      {p.isRetrograde && p.name !== 'Rahu' && p.name !== 'Ketu' && (
-                        <span className="text-amber-400 font-extrabold text-sm leading-none">*</span>
+                      {p.isRetrograde && p.name !== 'Lagna' && p.name !== 'Mandhi' && (
+                        <span
+                          className="text-amber-300 font-bold text-[10px] bg-amber-500/25 px-1 py-0.2 rounded border border-amber-400/40"
+                          title={language === 'ta' ? 'கிரக வக்ரம் (Graha Vakram / Retrograde)' : 'Graha Vakram (Retrograde)'}
+                        >
+                          {language === 'ta' ? '(வ)' : '(R)'}
+                        </span>
                       )}
                     </span>
                   </td>
@@ -95,9 +100,10 @@ export const PlanetaryTable: React.FC<PlanetaryTableProps> = ({ planets, languag
                   </td>
 
                   <td className="p-2.5 text-center font-mono font-bold">
-                    {p.isRetrograde && p.name !== 'Rahu' && p.name !== 'Ketu' ? (
-                      <span className="bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30">
-                        {language === 'ta' ? '*வக்ரம்' : '*Retro'}
+                    {p.isRetrograde && p.name !== 'Lagna' && p.name !== 'Mandhi' ? (
+                      <span className="bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-md border border-amber-500/40 inline-flex items-center gap-1 text-[11px]">
+                        <span className="text-amber-400">↺</span>
+                        <span>{language === 'ta' ? 'வக்ரம் (Vakram)' : 'Retrograde (R)'}</span>
                       </span>
                     ) : (
                       <span className="text-slate-600">-</span>

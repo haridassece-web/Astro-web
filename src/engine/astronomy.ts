@@ -53,15 +53,7 @@ export function calculateLahiriAyanamsa(jd: number): number {
   return ayanamsa;
 }
 
-// High Precision Thirukkanitha Planetary Calculation Engine
-export function calculatePlanetaryPositions(
-  birth: BirthInput,
-  jd: number,
-  ayanamsa: number
-): { planets: PlanetPosition[]; lagnaSignId: number } {
-  const t = (jd - 2451545.0) / 36525.0;
-
-  // 1. Sun (Thirukkanitha True Position)
+function computeRawTropicals(t: number) {
   const L0_Sun = normalize360(280.46646 + 36000.76983 * t + 0.0003032 * t * t);
   const M_Sun = normalize360(357.52911 + 35999.05029 * t - 0.0001537 * t * t);
   const C_Sun =
@@ -70,11 +62,9 @@ export function calculatePlanetaryPositions(
     0.000289 * Math.sin(3 * M_Sun * d2r);
   const sunTropical = normalize360(L0_Sun + C_Sun);
 
-  // Earth Distance & Tropical Longitude for Geocentric Conversions
   const R_Earth = 1.00014 - 0.01671 * Math.cos(M_Sun * d2r) - 0.00014 * Math.cos(2 * M_Sun * d2r);
   const L_Earth = normalize360(sunTropical + 180);
 
-  // 2. Moon (Thirukkanitha Perturbed True Longitude)
   const L_Moon = normalize360(218.3164477 + 481267.88123421 * t - 0.0015786 * t * t);
   const D_Moon = normalize360(297.8501921 + 445267.1114034 * t - 0.0018819 * t * t);
   const M_Moon = normalize360(134.9633964 + 477198.8675055 * t + 0.0087414 * t * t);
@@ -97,7 +87,6 @@ export function calculatePlanetaryPositions(
 
   const moonTropical = normalize360(L_Moon + moonPerturbations);
 
-  // 3. Mercury (Heliocentric -> Geocentric)
   const L_Merc = normalize360(252.2509 + 149472.6747 * t);
   const M_Merc = normalize360(174.7948 + 149472.5153 * t);
   const l_Merc = normalize360(L_Merc + 23.44 * Math.sin(M_Merc * d2r) + 2.98 * Math.sin(2 * M_Merc * d2r));
@@ -106,7 +95,6 @@ export function calculatePlanetaryPositions(
   const y_Merc = r_Merc * Math.sin(l_Merc * d2r) - R_Earth * Math.sin(L_Earth * d2r);
   const mercuryTropical = normalize360(Math.atan2(y_Merc, x_Merc) * r2d);
 
-  // 4. Venus (Heliocentric -> Geocentric)
   const L_Ven = normalize360(181.9798 + 58517.8156 * t);
   const M_Ven = normalize360(50.4082 + 58517.8039 * t);
   const l_Ven = normalize360(L_Ven + 0.7758 * Math.sin(M_Ven * d2r));
@@ -115,7 +103,6 @@ export function calculatePlanetaryPositions(
   const y_Ven = r_Ven * Math.sin(l_Ven * d2r) - R_Earth * Math.sin(L_Earth * d2r);
   const venusTropical = normalize360(Math.atan2(y_Ven, x_Ven) * r2d);
 
-  // 5. Mars (Heliocentric -> Geocentric)
   const L_Mars = normalize360(355.433 + 19140.2993 * t);
   const M_Mars = normalize360(19.373 + 19140.2993 * t);
   const l_Mars = normalize360(L_Mars + 10.691 * Math.sin(M_Mars * d2r) + 0.623 * Math.sin(2 * M_Mars * d2r));
@@ -124,7 +111,6 @@ export function calculatePlanetaryPositions(
   const y_Mars = r_Mars * Math.sin(l_Mars * d2r) - R_Earth * Math.sin(L_Earth * d2r);
   const marsTropical = normalize360(Math.atan2(y_Mars, x_Mars) * r2d);
 
-  // 6. Jupiter (Heliocentric -> Geocentric)
   const L_Jup = normalize360(34.3515 + 3034.9057 * t);
   const M_Jup = normalize360(20.0202 + 3034.6057 * t);
   const l_Jup = normalize360(L_Jup + 5.555 * Math.sin(M_Jup * d2r) + 0.168 * Math.sin(2 * M_Jup * d2r));
@@ -133,7 +119,6 @@ export function calculatePlanetaryPositions(
   const y_Jup = r_Jup * Math.sin(l_Jup * d2r) - R_Earth * Math.sin(L_Earth * d2r);
   const jupiterTropical = normalize360(Math.atan2(y_Jup, x_Jup) * r2d);
 
-  // 7. Saturn (Heliocentric -> Geocentric + Great Inequality)
   const L_Sat = normalize360(50.0774 + 1222.1138 * t);
   const M_Sat = normalize360(317.0207 + 1221.5515 * t);
   const satInequality = 0.8 * Math.sin((2 * M_Jup - 5 * M_Sat - 67.6) * d2r);
@@ -143,24 +128,69 @@ export function calculatePlanetaryPositions(
   const y_Sat = r_Sat * Math.sin(l_Sat * d2r) - R_Earth * Math.sin(L_Earth * d2r);
   const saturnTropical = normalize360(Math.atan2(y_Sat, x_Sat) * r2d);
 
-  // 8. Rahu (True Node Thirukkanitha)
   const rahuMean = normalize360(125.04452 - 1934.136261 * t + 0.0020708 * t * t);
   const rahuPerturb = -0.028 * Math.sin((2 * D_Moon - 2 * F_Moon) * d2r) - 0.0247 * Math.sin((2 * D_Moon - M_Sun - 2 * F_Moon) * d2r);
   const rahuTropical = normalize360(rahuMean + rahuPerturb);
   const ketuTropical = normalize360(rahuTropical + 180);
 
-  // Apply Thirukkanitha Ayanamsa Adjustment
+  return {
+    Sun: sunTropical,
+    Moon: moonTropical,
+    Mars: marsTropical,
+    Mercury: mercuryTropical,
+    Jupiter: jupiterTropical,
+    Venus: venusTropical,
+    Saturn: saturnTropical,
+    Rahu: rahuTropical,
+    Ketu: ketuTropical,
+  };
+}
+
+function normalize180(deg: number): number {
+  let val = deg % 360;
+  if (val > 180) val -= 360;
+  if (val < -180) val += 360;
+  return val;
+}
+
+// High Precision Thirukkanitha Planetary Calculation Engine
+export function calculatePlanetaryPositions(
+  birth: BirthInput,
+  jd: number,
+  ayanamsa: number
+): { planets: PlanetPosition[]; lagnaSignId: number } {
+  const t = (jd - 2451545.0) / 36525.0;
+  const dt = 0.05 / 36525.0;
+  const tNext = t + dt;
+
+  const tropCurr = computeRawTropicals(t);
+  const tropNext = computeRawTropicals(tNext);
+
   const siderealLongitudes: Record<PlanetName, number> = {
-    Sun: normalize360(sunTropical - ayanamsa),
-    Moon: normalize360(moonTropical - ayanamsa),
-    Mars: normalize360(marsTropical - ayanamsa),
-    Mercury: normalize360(mercuryTropical - ayanamsa),
-    Jupiter: normalize360(jupiterTropical - ayanamsa),
-    Venus: normalize360(venusTropical - ayanamsa),
-    Saturn: normalize360(saturnTropical - ayanamsa),
-    Rahu: normalize360(rahuTropical - ayanamsa),
-    Ketu: normalize360(ketuTropical - ayanamsa),
+    Sun: normalize360(tropCurr.Sun - ayanamsa),
+    Moon: normalize360(tropCurr.Moon - ayanamsa),
+    Mars: normalize360(tropCurr.Mars - ayanamsa),
+    Mercury: normalize360(tropCurr.Mercury - ayanamsa),
+    Jupiter: normalize360(tropCurr.Jupiter - ayanamsa),
+    Venus: normalize360(tropCurr.Venus - ayanamsa),
+    Saturn: normalize360(tropCurr.Saturn - ayanamsa),
+    Rahu: normalize360(tropCurr.Rahu - ayanamsa),
+    Ketu: normalize360(tropCurr.Ketu - ayanamsa),
     Lagna: 0,
+    Mandhi: 0,
+  };
+
+  const speeds: Record<PlanetName, number> = {
+    Sun: Number((normalize180(tropNext.Sun - tropCurr.Sun) / 0.05).toFixed(4)),
+    Moon: Number((normalize180(tropNext.Moon - tropCurr.Moon) / 0.05).toFixed(4)),
+    Mars: Number((normalize180(tropNext.Mars - tropCurr.Mars) / 0.05).toFixed(4)),
+    Mercury: Number((normalize180(tropNext.Mercury - tropCurr.Mercury) / 0.05).toFixed(4)),
+    Jupiter: Number((normalize180(tropNext.Jupiter - tropCurr.Jupiter) / 0.05).toFixed(4)),
+    Venus: Number((normalize180(tropNext.Venus - tropCurr.Venus) / 0.05).toFixed(4)),
+    Saturn: Number((normalize180(tropNext.Saturn - tropCurr.Saturn) / 0.05).toFixed(4)),
+    Rahu: Number((normalize180(tropNext.Rahu - tropCurr.Rahu) / 0.05).toFixed(4)),
+    Ketu: Number((normalize180(tropNext.Ketu - tropCurr.Ketu) / 0.05).toFixed(4)),
+    Lagna: 360 / 24,
     Mandhi: 0,
   };
 
@@ -184,21 +214,6 @@ export function calculatePlanetaryPositions(
 
   const lagnaSignId = Math.floor(siderealLagna / 30);
 
-  // Apparent Speeds
-  const speeds: Record<PlanetName, number> = {
-    Sun: 0.9856,
-    Moon: 13.176,
-    Mars: 0.524,
-    Mercury: 1.2,
-    Jupiter: 0.083,
-    Venus: 1.6,
-    Saturn: 0.033,
-    Rahu: -0.052,
-    Ketu: -0.052,
-    Lagna: 360 / 24,
-    Mandhi: 0,
-  };
-
   const planetOrder: PlanetName[] = ['Lagna', 'Sun', 'Moon', 'Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn', 'Rahu', 'Ketu', 'Mandhi'];
 
   const planets: PlanetPosition[] = planetOrder.map((name) => {
@@ -217,6 +232,12 @@ export function calculatePlanetaryPositions(
 
     const dignityInfo = getDignity(name, signId);
 
+    // Speed < 0 means Retrograde (Vakram) for non-luminary planets
+    const isRetro =
+      name === 'Rahu' ||
+      name === 'Ketu' ||
+      (['Mars', 'Mercury', 'Jupiter', 'Venus', 'Saturn'].includes(name) && speeds[name] < 0);
+
     return {
       name,
       nameTa: PLANET_TA[name],
@@ -231,7 +252,7 @@ export function calculatePlanetaryPositions(
       nakshatraTa: nak.nameTa,
       pada,
       lord: nak.lord,
-      isRetrograde: name === 'Rahu' || name === 'Ketu',
+      isRetrograde: isRetro,
       dignityEn: dignityInfo.en,
       dignityTa: dignityInfo.ta,
       speed: speeds[name],
@@ -239,6 +260,52 @@ export function calculatePlanetaryPositions(
   });
 
   return { planets, lagnaSignId };
+}
+
+export function calculateSunriseSunset(
+  jd: number,
+  lat: number,
+  lng: number,
+  timezone: number
+): { sunriseHrs: number; sunsetHrs: number } {
+  const jd0 = Math.floor(jd - 0.5) + 0.5;
+  const t0 = (jd0 - 2451545.0) / 36525.0;
+
+  const M_Sun = normalize360(357.52911 + 35999.05029 * t0);
+  const L0_Sun = normalize360(280.46646 + 36000.76983 * t0);
+  const C_Sun = (1.914602 - 0.004817 * t0) * Math.sin(M_Sun * d2r) + 0.019993 * Math.sin(2 * M_Sun * d2r);
+  const sunGeocentric = normalize360(L0_Sun + C_Sun);
+
+  const epsRad = (23.439291 - 0.0130042 * t0) * d2r;
+
+  const sinL = Math.sin(sunGeocentric * d2r);
+  const cosL = Math.cos(sunGeocentric * d2r);
+  const ra = normalize360(Math.atan2(Math.cos(epsRad) * sinL, cosL) * r2d);
+  const dec = Math.asin(Math.sin(epsRad) * sinL);
+
+  let eot = (L0_Sun - ra) / 15.0;
+  if (eot > 12) eot -= 24;
+  if (eot < -12) eot += 24;
+
+  const solarNoonLocal = 12.0 - lng / 15.0 + timezone - eot;
+
+  const latRad = lat * d2r;
+  const cosH0 = (Math.sin(-0.8333 * d2r) - Math.sin(latRad) * Math.sin(dec)) / (Math.cos(latRad) * Math.cos(dec));
+
+  let h0Deg = 90.0;
+  if (cosH0 >= 1) {
+    h0Deg = 0.0;
+  } else if (cosH0 <= -1) {
+    h0Deg = 180.0;
+  } else {
+    h0Deg = Math.acos(cosH0) * r2d;
+  }
+
+  const h0Hours = h0Deg / 15.0;
+  const sunriseHrs = solarNoonLocal - h0Hours;
+  const sunsetHrs = solarNoonLocal + h0Hours;
+
+  return { sunriseHrs, sunsetHrs };
 }
 
 export function calculateMandhiLongitude(
@@ -249,6 +316,7 @@ export function calculateMandhiLongitude(
 ): number {
   const safeLng = !isNaN(birth.lng) && birth.lng !== 0 ? birth.lng : 80.2707;
   const safeLat = !isNaN(birth.lat) && birth.lat !== 0 ? birth.lat : 13.0827;
+  const safeTz = isNaN(birth.timezone) || birth.timezone === undefined ? 5.5 : birth.timezone;
 
   const safeDob = (birth.dob && birth.dob.trim()) || '1992-04-14';
   const partsDob = safeDob.split('-').map(Number);
@@ -256,7 +324,7 @@ export function calculateMandhiLongitude(
   const month = partsDob[1] || 4;
   const day = partsDob[2] || 14;
   const dateObj = new Date(year, month - 1, day);
-  const dayOfWeek = dateObj.getDay();
+  const dayOfWeek = dateObj.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
 
   const safeTob = (birth.tob && birth.tob.trim()) || '08:30:00';
   const partsTob = safeTob.split(':').map(Number);
@@ -265,31 +333,33 @@ export function calculateMandhiLongitude(
   const secs = partsTob[2] || 0;
   const birthHrs = hrs + mins / 60 + secs / 3600;
 
+  // Astronomical Sunrise & Sunset for location
+  const { sunriseHrs, sunsetHrs } = calculateSunriseSunset(jd, safeLat, safeLng, safeTz);
+
   // Daytime Mandhi Ghatikas from Sunrise (Sun=26, Mon=22, Tue=18, Wed=14, Thu=10, Fri=6, Sat=2)
   const dayGhatikas = [26, 22, 18, 14, 10, 6, 2];
-  // Nighttime Mandhi Ghatikas from Sunset (Sun=10, Mon=6, Tue=26, Wed=22, Thu=18, Fri=14, Sat=14.5)
-  const nightGhatikas = [10, 6, 26, 22, 18, 14, 14.5];
+  // Nighttime Mandhi Ghatikas from Sunset (Sun=10, Mon=6, Tue=26, Wed=22, Thu=18, Fri=14, Sat=15.5)
+  const nightGhatikas = [10, 6, 26, 22, 18, 14, 15.5];
 
-  const sunriseHrs = 6.0;
-  const sunsetHrs = 18.0;
   const dayLengthHrs = sunsetHrs - sunriseHrs;
   const nightLengthHrs = 24.0 - dayLengthHrs;
 
-  const isDaytime = birthHrs >= sunriseHrs && birthHrs < sunsetHrs;
   let mandhiTimeLocalHrs = 0;
 
-  if (isDaytime) {
+  if (birthHrs >= sunriseHrs && birthHrs < sunsetHrs) {
+    // Daytime birth
     const ghat = dayGhatikas[dayOfWeek];
     mandhiTimeLocalHrs = sunriseHrs + (ghat / 30.0) * dayLengthHrs;
+  } else if (birthHrs >= sunsetHrs) {
+    // Post-sunset birth (night of current date)
+    const ghat = nightGhatikas[dayOfWeek];
+    mandhiTimeLocalHrs = sunsetHrs + (ghat / 30.0) * nightLengthHrs;
   } else {
-    let effectiveDay = dayOfWeek;
-    let baseHrs = sunsetHrs;
-    if (birthHrs < sunriseHrs) {
-      effectiveDay = (dayOfWeek + 6) % 7;
-      baseHrs = sunsetHrs - 24.0;
-    }
+    // Pre-dawn birth (night of previous astrological day)
+    const effectiveDay = (dayOfWeek + 6) % 7;
     const ghat = nightGhatikas[effectiveDay];
-    mandhiTimeLocalHrs = baseHrs + (ghat / 30.0) * nightLengthHrs;
+    const prevSunsetHrs = sunsetHrs - 24.0;
+    mandhiTimeLocalHrs = prevSunsetHrs + (ghat / 30.0) * nightLengthHrs;
   }
 
   const diffHours = mandhiTimeLocalHrs - birthHrs;
