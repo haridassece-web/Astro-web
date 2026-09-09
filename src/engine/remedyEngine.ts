@@ -1,5 +1,8 @@
 import type { Panchanga, PlanetPosition, DasaPeriod, TempleRemedy, TraditionalPariharaReport, TraditionalPariharaItem } from '../types/astrology';
 import { NAKSHATRA_TEMPLES_DB, LAGNA_TEMPLES_DB } from '../data/templeMasterData';
+import { TITHI_TEMPLES_DB } from '../data/tithiTemplesData';
+import { getKaranaTempleRemedy } from '../data/karanaTemplesData';
+import { getYogaTempleRemedy } from '../data/yogaTemplesData';
 import { TEMPLE_REMEDIES_DATABASE } from '../data/templeRemedies';
 import {
   TITHI_PARIHARA_MAP,
@@ -236,75 +239,22 @@ export function generatePersonalizedTempleRemedies(
     });
   }
 
-  // 3. DYNAMIC TITHI TEMPLE
-  if (panchanga.tithiIndex === 30 || panchanga.tithiTa.includes('அமாவாசை')) {
-    const rameswaram = TEMPLE_REMEDIES_DATABASE.find((t) => t.id === 'TPL-TITHI-001');
-    if (rameswaram) addRemedy(rameswaram);
-  } else if (panchanga.tithiIndex === 15 || panchanga.tithiTa.includes('பௌர்ணமி')) {
-    const annamalai = TEMPLE_REMEDIES_DATABASE.find((t) => t.id === 'TPL-TITHI-002');
-    if (annamalai) addRemedy(annamalai);
-  } else if (panchanga.tithiTa.includes('சதுர்த்தி')) {
-    const pillayarpatti = TEMPLE_REMEDIES_DATABASE.find((t) => t.id === 'TPL-TITHI-003');
-    if (pillayarpatti) addRemedy(pillayarpatti);
-  } else {
-    addRemedy({
-      id: `TPL-TITHI-DYN-${panchanga.tithiIndex}`,
-      category: 'Tithi',
-      sub_category: panchanga.tithiEn,
-      condition: `Birth Tithi is ${panchanga.tithiTa}`,
-      temple_name: `Sri Ranganathaswamy Temple (${panchanga.tithiTa} Sthalam)`,
-      deity: 'Lord Vishnu / Shiva (Tithi Adhi Devata)',
-      district: 'Tiruchirappalli',
-      state: 'Tamil Nadu',
-      latitude: 10.8621,
-      longitude: 78.6890,
-      google_map_url: `https://maps.google.com/?q=${encodeURIComponent(panchanga.tithiEn)}+Tithi+Temple`,
-      opening_hours: '06:00 AM - 01:00 PM, 03:30 PM - 09:00 PM',
-      auspicious_day_ta: `${panchanga.tithiTa} திதி நாள்`,
-      auspicious_day_en: `${panchanga.tithiEn} Tithi Day`,
-      related_tithi: panchanga.tithiEn,
-      worship_method_ta: `${panchanga.tithiTa} திதியில் பெருமாளுக்கு துளசி சாற்றி விளக்கேற்றி வழிபடுதல்.`,
-      worship_method_en: `Offering Tulsi garlands and lighting lamps on ${panchanga.tithiEn} tithi.`,
-      mantra: 'Om Namo Narayanaya Namaha',
-      offerings: 'Tulsi, Sweet Rice, Butter',
-      description_ta: `${panchanga.tithiTa} திதியில் பிறந்தவர்கள் இத்தலத்தில் வழிபட காரியத் தடைகள் விலகி செல்வம் பெருகும்.`,
-      description_en: `${panchanga.tithiEn} born natives praying here clear relationship and financial delays.`,
-      source: 'Tithi Nitya Sthala Mahatmyam',
-    });
+  // 3. DYNAMIC TITHI TEMPLE (Exact classical temple from 30 Tithis Master Database)
+  const tithiTemple = TITHI_TEMPLES_DB[panchanga.tithiIndex];
+  if (tithiTemple) {
+    addRemedy(tithiTemple);
   }
 
-  // 4. DYNAMIC KARANA TEMPLE
-  if (panchanga.karanaEn.includes('Vanija') || panchanga.karanaTa.includes('வணிஜை')) {
-    const vanija = TEMPLE_REMEDIES_DATABASE.find((t) => t.id === 'TPL-KARANA-001');
-    if (vanija) addRemedy(vanija);
-  } else if (panchanga.karanaEn.includes('Vishti') || panchanga.karanaTa.includes('பத்ரை')) {
-    const vishti = TEMPLE_REMEDIES_DATABASE.find((t) => t.id === 'TPL-KARANA-002');
-    if (vishti) addRemedy(vishti);
-  } else {
-    addRemedy({
-      id: `TPL-KARANA-DYN-${panchanga.karanaIndex}`,
-      category: 'Karana',
-      sub_category: `${panchanga.karanaEn} (${panchanga.karanaTa})`,
-      condition: `Birth Karana is ${panchanga.karanaTa}`,
-      temple_name: `Sri Ekambareswarar Temple (${panchanga.karanaTa} Sthalam)`,
-      deity: 'Lord Shiva & Goddess Kamakshi',
-      district: 'Kanchipuram',
-      state: 'Tamil Nadu',
-      latitude: 12.8421,
-      longitude: 79.7020,
-      google_map_url: `https://maps.google.com/?q=${encodeURIComponent(panchanga.karanaEn)}+Karana+Temple`,
-      opening_hours: '06:00 AM - 12:30 PM, 04:00 PM - 08:30 PM',
-      auspicious_day_ta: 'திங்கட்கிழமை & கரண நட்சத்திர நாள்',
-      auspicious_day_en: 'Mondays & Karana Days',
-      related_karana: panchanga.karanaEn,
-      worship_method_ta: `${panchanga.karanaTa} கரண தோஷம் தீர சுவாமிக்கு நெய்தீபம் ஏற்றி அர்ச்சனை செய்தல்.`,
-      worship_method_en: `Lighting Ghee lamps and performing Archana to clear ${panchanga.karanaEn} karana blocks.`,
-      mantra: 'Om Ekambareswaraya Namaha',
-      offerings: 'Ghee lamps, Bilva leaves, Honey',
-      description_ta: `${panchanga.karanaTa} கரணத்தில் பிறந்தவர்கள் காஞ்சிபுரம் கோயிலில் வழிபட தொழில் விருத்தியும் குடும்ப சுபமும் கூடும்.`,
-      description_en: `${panchanga.karanaEn} Karana natives worshipping here attain commercial success and peace.`,
-      source: 'Karana Agama Sthala Puranam',
-    });
+  // 4. DYNAMIC KARANA TEMPLE (Exact classical temple from 11 Karanas Master Database)
+  const karanaTemple = getKaranaTempleRemedy(panchanga.karanaEn, panchanga.karanaTa);
+  if (karanaTemple) {
+    addRemedy(karanaTemple);
+  }
+
+  // 5. DYNAMIC NITYA YOGA TEMPLE (Exact Yogi temple from 27 Yogas Master Database)
+  const yogaTemple = getYogaTempleRemedy(panchanga.yogaIndex, panchanga.yogaEn, panchanga.yogaTa);
+  if (yogaTemple) {
+    addRemedy(yogaTemple);
   }
 
   // 5. DYNAMIC DASA LORD TEMPLE (Active Vimshottari Dasa)
