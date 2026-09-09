@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Calendar, Clock, MapPin, User, Sparkles, Compass, Search,
   Sliders, Navigation, CheckCircle2, ChevronDown, RefreshCw,
@@ -16,6 +16,13 @@ interface BirthDetailsFormProps {
 export const BirthDetailsForm: React.FC<BirthDetailsFormProps> = ({ initialValues, onSubmit, language }) => {
   const [formData, setFormData] = useState<BirthInput>(initialValues);
   const [selectedPreset, setSelectedPreset] = useState<string>(initialValues.locationName || '');
+
+  useEffect(() => {
+    setFormData(initialValues);
+    if (initialValues.locationName) {
+      setSelectedPreset(initialValues.locationName);
+    }
+  }, [initialValues]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [isManualMode, setIsManualMode] = useState<'dropdown' | 'direct' | 'native'>('dropdown');
   const [showAdvancedGeo, setShowAdvancedGeo] = useState<boolean>(false);

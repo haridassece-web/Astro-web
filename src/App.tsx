@@ -24,6 +24,21 @@ import {
   Brain, ChevronRight, HelpCircle
 } from 'lucide-react';
 
+function getCurrentDateTime() {
+  const now = new Date();
+  const yyyy = String(now.getFullYear());
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const hh = String(now.getHours()).padStart(2, '0');
+  const min = String(now.getMinutes()).padStart(2, '0');
+  const ss = String(now.getSeconds()).padStart(2, '0');
+
+  return {
+    dob: `${yyyy}-${mm}-${dd}`,
+    tob: `${hh}:${min}:${ss}`,
+  };
+}
+
 export function App() {
   const [language, setLanguage] = useState<Language>('ta');
   const [chartFormat, setChartFormat] = useState<'south' | 'north'>('south');
@@ -44,15 +59,18 @@ export function App() {
     }
   });
 
-  const [birthData, setBirthData] = useState<BirthInput>({
-    name: '',
-    gender: 'male',
-    dob: '1992-04-14',
-    tob: '08:30:00',
-    lat: LOCATION_PRESETS[0].lat,
-    lng: LOCATION_PRESETS[0].lng,
-    timezone: LOCATION_PRESETS[0].timezone,
-    locationName: '',
+  const [birthData, setBirthData] = useState<BirthInput>(() => {
+    const currentDT = getCurrentDateTime();
+    return {
+      name: '',
+      gender: 'male',
+      dob: currentDT.dob,
+      tob: currentDT.tob,
+      lat: LOCATION_PRESETS[0].lat,
+      lng: LOCATION_PRESETS[0].lng,
+      timezone: LOCATION_PRESETS[0].timezone,
+      locationName: LOCATION_PRESETS[0].nameTa || LOCATION_PRESETS[0].name,
+    };
   });
 
   const horoscope: CalculatedHoroscope = useMemo(() => {
@@ -457,7 +475,16 @@ export function App() {
         <AuthModal
           language={language}
           onClose={() => setShowAuthModal(false)}
-          onLoginSuccess={(user) => setCurrentUser(user)}
+          onLoginSuccess={(user) => {
+            setCurrentUser(user);
+            const currentDT = getCurrentDateTime();
+            setBirthData((prev) => ({
+              ...prev,
+              name: user.name || prev.name,
+              dob: currentDT.dob,
+              tob: currentDT.tob,
+            }));
+          }}
         />
       )}
 
