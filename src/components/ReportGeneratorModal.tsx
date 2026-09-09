@@ -31,9 +31,12 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
     printIframe.style.position = 'fixed';
     printIframe.style.right = '0';
     printIframe.style.bottom = '0';
-    printIframe.style.width = '0';
-    printIframe.style.height = '0';
+    printIframe.style.width = '100%';
+    printIframe.style.height = '100%';
     printIframe.style.border = '0';
+    printIframe.style.opacity = '0';
+    printIframe.style.pointerEvents = 'none';
+    printIframe.style.zIndex = '-9999';
     document.body.appendChild(printIframe);
 
     const doc = printIframe.contentWindow?.document;
@@ -59,13 +62,29 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
               size: A4 portrait;
               margin: 8mm 6mm;
             }
+            * {
+              visibility: visible !important;
+              box-sizing: border-box !important;
+              -webkit-print-color-adjust: exact !important;
+              print-color-adjust: exact !important;
+            }
             html, body {
+              visibility: visible !important;
               background: #ffffff !important;
               color: #0f172a !important;
               margin: 0 !important;
               padding: 0 !important;
               overflow: visible !important;
               height: auto !important;
+            }
+            body, body * {
+              visibility: visible !important;
+            }
+            .printable-page,
+            .printable-page *,
+            .report-page-block,
+            .report-page-block * {
+              visibility: visible !important;
             }
             .report-page-block {
               page-break-after: always !important;
@@ -87,13 +106,18 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
           </style>
         </head>
         <body class="bg-white text-slate-900 p-0 m-0">
-          ${reportRef.current.innerHTML}
+          <div class="printable-page">
+            ${reportRef.current.innerHTML}
+          </div>
         </body>
       </html>
     `);
     doc.close();
 
-    setTimeout(() => {
+    let isPrinted = false;
+    const triggerPrint = () => {
+      if (isPrinted) return;
+      isPrinted = true;
       try {
         printIframe.contentWindow?.focus();
         printIframe.contentWindow?.print();
@@ -104,9 +128,16 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
           if (document.body.contains(printIframe)) {
             document.body.removeChild(printIframe);
           }
-        }, 2000);
+        }, 3000);
       }
-    }, 400);
+    };
+
+    printIframe.onload = () => {
+      setTimeout(triggerPrint, 300);
+    };
+
+    // Fallback timeout in case onload event does not fire on doc.write
+    setTimeout(triggerPrint, 600);
   };
 
   const handleDownloadPDF = async () => {

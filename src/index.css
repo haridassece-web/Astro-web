@@ -74,7 +74,9 @@
   }
 
   .printable-page,
-  .printable-page * {
+  .printable-page *,
+  .report-page-block,
+  .report-page-block * {
     visibility: visible !important;
   }
 
