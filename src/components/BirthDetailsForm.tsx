@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Calendar, Clock, MapPin, User, Sparkles, Compass, Search,
   Sliders, Navigation, CheckCircle2, ChevronDown, RefreshCw,
-  Bookmark, Trash2, FolderHeart
+  Bookmark, Trash2, FolderHeart, FileText
 } from 'lucide-react';
 import type { BirthInput, Language } from '../types/astrology';
 import { LOCATION_PRESETS } from '../data/constants';
@@ -11,9 +11,10 @@ interface BirthDetailsFormProps {
   initialValues: BirthInput;
   onSubmit: (data: BirthInput) => void;
   language: Language;
+  onOpenReport?: () => void;
 }
 
-export const BirthDetailsForm: React.FC<BirthDetailsFormProps> = ({ initialValues, onSubmit, language }) => {
+export const BirthDetailsForm: React.FC<BirthDetailsFormProps> = ({ initialValues, onSubmit, language, onOpenReport }) => {
   const [formData, setFormData] = useState<BirthInput>(initialValues);
   const [selectedPreset, setSelectedPreset] = useState<string>(initialValues.locationName || '');
 
@@ -779,6 +780,20 @@ export const BirthDetailsForm: React.FC<BirthDetailsFormProps> = ({ initialValue
             <Bookmark className="w-4 h-4 text-amber-400" />
             <span>{language === 'ta' ? 'ஜாதகத்தைச் சேமி' : 'Save Data'}</span>
           </button>
+
+          {onOpenReport && (
+            <button
+              type="button"
+              onClick={() => {
+                onSubmit(formData);
+                onOpenReport();
+              }}
+              className="bg-gradient-to-r from-indigo-600 via-indigo-500 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3.5 px-5 rounded-2xl shadow-lg shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 active:scale-95 flex items-center justify-center space-x-2 text-xs uppercase cursor-pointer whitespace-nowrap"
+            >
+              <FileText className="w-4 h-4 text-amber-300" />
+              <span>{language === 'ta' ? '📄 PDF ஜாதக அறிக்கை' : '📄 PDF Horoscope'}</span>
+            </button>
+          )}
         </div>
 
         {saveToast && (

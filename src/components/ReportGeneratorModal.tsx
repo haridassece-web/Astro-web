@@ -21,7 +21,92 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
   );
 
   const handlePrint = () => {
-    window.print();
+    if (!reportRef.current) {
+      window.print();
+      return;
+    }
+
+    // Create isolated print iframe to ensure every single page prints without modal clipping
+    const printIframe = document.createElement('iframe');
+    printIframe.style.position = 'fixed';
+    printIframe.style.right = '0';
+    printIframe.style.bottom = '0';
+    printIframe.style.width = '0';
+    printIframe.style.height = '0';
+    printIframe.style.border = '0';
+    document.body.appendChild(printIframe);
+
+    const doc = printIframe.contentWindow?.document;
+    if (!doc) {
+      window.print();
+      return;
+    }
+
+    const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+      .map((s) => s.outerHTML)
+      .join('\n');
+
+    doc.open();
+    doc.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8" />
+          <title>${horoscope.birthDetails.name || 'ஜாதக அறிக்கை'} - Horoscope Report</title>
+          ${styles}
+          <style>
+            @page {
+              size: A4 portrait;
+              margin: 8mm 6mm;
+            }
+            html, body {
+              background: #ffffff !important;
+              color: #0f172a !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              overflow: visible !important;
+              height: auto !important;
+            }
+            .report-page-block {
+              page-break-after: always !important;
+              break-after: page !important;
+              page-break-inside: avoid !important;
+              break-inside: avoid !important;
+              margin-bottom: 0 !important;
+              border: none !important;
+              box-shadow: none !important;
+              padding: 6mm !important;
+            }
+            .report-page-block:last-child {
+              page-break-after: auto !important;
+              break-after: auto !important;
+            }
+            .no-print {
+              display: none !important;
+            }
+          </style>
+        </head>
+        <body class="bg-white text-slate-900 p-0 m-0">
+          ${reportRef.current.innerHTML}
+        </body>
+      </html>
+    `);
+    doc.close();
+
+    setTimeout(() => {
+      try {
+        printIframe.contentWindow?.focus();
+        printIframe.contentWindow?.print();
+      } catch {
+        window.print();
+      } finally {
+        setTimeout(() => {
+          if (document.body.contains(printIframe)) {
+            document.body.removeChild(printIframe);
+          }
+        }, 2000);
+      }
+    }, 400);
   };
 
   const handleDownloadPDF = async () => {
@@ -29,7 +114,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
     setIsExporting(true);
 
     try {
-      const sheets = reportRef.current.querySelectorAll<HTMLElement>('.a4-sheet');
+      const pageBlocks = reportRef.current.querySelectorAll<HTMLElement>('.report-page-block');
       const pdf = new jsPDF({
         orientation: 'p',
         unit: 'mm',
@@ -40,27 +125,41 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
       const pdfWidth = pdf.internal.pageSize.getWidth(); // 210mm
       const pdfHeight = pdf.internal.pageSize.getHeight(); // 297mm
 
-      for (let i = 0; i < sheets.length; i++) {
-        const sheet = sheets[i];
-        const canvas = await html2canvas(sheet, {
+      for (let i = 0; i < pageBlocks.length; i++) {
+        const block = pageBlocks[i];
+        const canvas = await html2canvas(block, {
           scale: 2,
           useCORS: true,
           backgroundColor: '#ffffff',
           logging: false,
+          windowWidth: 1200,
         });
 
         const imgData = canvas.toDataURL('image/jpeg', 0.95);
+        let renderWidth = pdfWidth;
+        let renderHeight = (canvas.height * pdfWidth) / canvas.width;
+        let xOffset = 0;
+        let yOffset = 0;
+
+        if (renderHeight > pdfHeight) {
+          const scale = (pdfHeight - 8) / renderHeight;
+          renderWidth = pdfWidth * scale;
+          renderHeight = renderHeight * scale;
+          xOffset = (pdfWidth - renderWidth) / 2;
+          yOffset = 4;
+        }
+
         if (i > 0) {
           pdf.addPage();
         }
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+        pdf.addImage(imgData, 'JPEG', xOffset, yOffset, renderWidth, renderHeight, undefined, 'FAST');
       }
 
       const safeName = (horoscope.birthDetails.name || 'Jathagam').trim().replace(/\s+/g, '_');
-      pdf.save(`Jathaga_Arikkai_${safeName}_A4.pdf`);
+      pdf.save(`Jathaga_Arikkai_${safeName}.pdf`);
     } catch (err) {
       console.error('PDF Export Error:', err);
-      window.print();
+      handlePrint();
     } finally {
       setIsExporting(false);
     }
@@ -106,8 +205,8 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-      <div className="bg-slate-900 border border-amber-500/30 rounded-2xl w-full max-w-5xl max-h-[96vh] flex flex-col shadow-2xl overflow-hidden">
+    <div className="report-modal-backdrop fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+      <div className="report-modal-dialog bg-slate-900 border border-amber-500/30 rounded-2xl w-full max-w-5xl max-h-[96vh] flex flex-col shadow-2xl overflow-hidden">
         {/* Top Control Bar (Non-Printable) */}
         <div className="p-3.5 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 bg-slate-950 no-print">
           <div className="flex items-center space-x-2.5">
@@ -116,10 +215,10 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
             </div>
             <div>
               <h3 className="text-sm font-bold text-amber-200 font-serif">
-                {language === 'ta' ? 'ஜாதக அறிக்கை (A4 White Background Print / PDF)' : 'Horoscope Report (A4 White Background Print / PDF)'}
+                {language === 'ta' ? 'ஸ்ரீ மகா ஜாதக அறிக்கை (Horoscope Report)' : 'Horoscope Report (Print & PDF)'}
               </h3>
               <p className="text-[11px] text-slate-400">
-                {language === 'ta' ? '5 முக்கிய பகுதிகள் மட்டும் கொண்ட சுத்தமான வெள்ளை பின்னணி A4 அறிக்கை' : '5-Section Clean White A4 Printable & PDF Horoscope Report'}
+                {language === 'ta' ? '5 முக்கிய பகுதிகள் கொண்ட முழுமையான ஜோதிட அறிக்கை' : '5-Section Comprehensive Astrological Report'}
               </p>
             </div>
           </div>
@@ -135,7 +234,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                2-பக்க A4 வடிவம்
+                {language === 'ta' ? 'சுருக்க அறிக்கை' : 'Standard Report'}
               </button>
               <button
                 onClick={() => setViewScope('full')}
@@ -145,7 +244,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
-                விரிவான தசா-புக்தி புத்தகம்
+                {language === 'ta' ? 'முழு தசா-புக்தி புத்தகம்' : 'Full Dasa Book'}
               </button>
             </div>
 
@@ -163,7 +262,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
               className="flex items-center space-x-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold px-4 py-1.5 rounded-lg text-xs shadow-lg shadow-amber-500/20 transition-all disabled:opacity-50"
             >
               <Download className="w-4 h-4" />
-              <span>{isExporting ? 'உருவாகிறது...' : 'PDF பதிவிறக்கு (A4 White)'}</span>
+              <span>{isExporting ? (language === 'ta' ? 'உருவாகிறது...' : 'Generating...') : (language === 'ta' ? 'PDF பதிவிறக்கு' : 'Download PDF')}</span>
             </button>
 
             <button
@@ -176,13 +275,13 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
         </div>
 
         {/* Modal Scrollable Container */}
-        <div className="flex-1 p-3 sm:p-6 overflow-y-auto bg-slate-950 flex flex-col items-center">
-          {/* PRINTABLE CONTAINER (Pure White Background for A4 Print/PDF) */}
+        <div className="report-modal-body flex-1 p-3 sm:p-6 overflow-y-auto bg-slate-950 flex flex-col items-center">
+          {/* PRINTABLE CONTAINER */}
           <div ref={reportRef} className="printable-page w-full flex flex-col items-center space-y-6">
             {/* =========================================================================
                 PAGE 1: 1. பிறப்பு விவரங்கள் | 2. ராசி கட்டம் | 3. நவாம்ச கட்டம் | 4. கிரக நிலைகள்
                 ========================================================================= */}
-            <div className="a4-sheet w-full max-w-[794px] min-h-[1123px] bg-white text-slate-900 font-sans p-6 sm:p-8 flex flex-col justify-between border border-slate-300 shadow-2xl rounded-sm box-border relative">
+            <div className="report-page-block w-full max-w-4xl bg-white text-slate-900 font-sans p-6 sm:p-8 flex flex-col justify-between rounded-xl shadow-lg border border-slate-200 box-border relative">
               <div className="space-y-3.5">
                 {/* Header & Divine Invocation */}
                 <div className="border-b-2 border-amber-700/60 pb-2 text-center relative">
@@ -435,7 +534,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
 
               {/* Page 1 Footer */}
               <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono mt-2">
-                <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு அறிக்கை • ஜோதிடர்: Jayanthi M • பக்கம் 1 / {viewScope === 'standard' ? '2' : 'பல பக்கங்கள்'}</span>
+                <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு அறிக்கை • ஜோதிடர்: Jayanthi M • பக்கம் 1 / {viewScope === 'standard' ? '2' : '10'}</span>
                 <span>AstroEngine Enterprise Pro • Thirukkanitham Ephemeris</span>
               </div>
             </div>
@@ -443,7 +542,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
             {/* =========================================================================
                 PAGE 2: 5. விம்சோத்தரி தசா–புத்தி – தொடக்கம், முடிவு மற்றும் பலன்களுடன்
                 ========================================================================= */}
-            <div className="a4-sheet w-full max-w-[794px] min-h-[1123px] bg-white text-slate-900 font-sans p-6 sm:p-8 flex flex-col justify-between border border-slate-300 shadow-2xl rounded-sm box-border relative">
+            <div className="report-page-block w-full max-w-4xl bg-white text-slate-900 font-sans p-6 sm:p-8 flex flex-col justify-between rounded-xl shadow-lg border border-slate-200 box-border relative">
               <div className="space-y-3.5">
                 {/* Section 5 Header */}
                 <div className="border-b-2 border-amber-700/60 pb-2 flex items-center justify-between">
@@ -700,7 +799,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
 
               {/* Page 2 Footer */}
               <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono mt-2">
-                <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு அறிக்கை • கணித்தவர்: ஜோதிடர் Jayanthi M • பக்கம் 2 / {viewScope === 'standard' ? '2' : 'பல பக்கங்கள்'}</span>
+                <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு அறிக்கை • கணித்தவர்: ஜோதிடர் Jayanthi M • பக்கம் 2 / {viewScope === 'standard' ? '2' : '10'}</span>
                 <span>AstroEngine Enterprise Pro • Thirukkanitham Ephemeris</span>
               </div>
             </div>
@@ -715,7 +814,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                   .map((dasa, dasaIndex) => (
                     <div
                       key={dasa.planet}
-                      className="a4-sheet w-full max-w-[794px] min-h-[1123px] bg-white text-slate-900 font-sans p-6 sm:p-8 flex flex-col justify-between border border-slate-300 shadow-2xl rounded-sm box-border relative"
+                      className="report-page-block w-full max-w-4xl bg-white text-slate-900 font-sans p-6 sm:p-8 flex flex-col justify-between rounded-xl shadow-lg border border-slate-200 box-border relative"
                     >
                       <div className="space-y-4">
                         <div className="border-b-2 border-amber-700/60 pb-2 flex items-center justify-between">

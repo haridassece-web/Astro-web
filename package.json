@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "postinstall": "node scripts/patch-html2canvas.cjs",
     "lint": "oxlint",
     "preview": "vite preview"
   },
