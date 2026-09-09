@@ -241,6 +241,48 @@ export interface TraditionalPariharaReport {
   mudakkuParihara: TraditionalPariharaItem;
 }
 
+export interface RasiPindamItem {
+  signIndex: number;
+  signNameTa: string;
+  signNameEn: string;
+  gunakaram: number;
+  shodhitaBindus: number;
+  subtotal: number;
+}
+
+export interface GrahaPindamItem {
+  planetNameEn: string;
+  planetNameTa: string;
+  occupiedSignIndex: number;
+  occupiedSignTa: string;
+  occupiedSignEn: string;
+  gunakaram: number;
+  shodhitaBindus: number;
+  subtotal: number;
+}
+
+export interface PlanetAshtakavargaData {
+  planetNameEn: string;
+  planetNameTa: string;
+  rawBindus: number[]; // 12 signs: index 0 (Aries) to 11 (Pisces)
+  rawTotal: number;
+  trikonaBindus: number[];
+  trikonaTotal: number;
+  ekadhipatyaBindus: number[];
+  ekadhipatyaTotal: number;
+  rasiPindamItems: RasiPindamItem[];
+  rasiPindamTotal: number;
+  grahaPindamItems: GrahaPindamItem[];
+  grahaPindamTotal: number;
+  sodhyaPindam: number;
+}
+
+export interface AshtakavargaReport {
+  planetsData: { [planetName: string]: PlanetAshtakavargaData };
+  sarvashtakavarga: number[];
+  sarvashtakavargaTotal: number;
+}
+
 export interface CalculatedHoroscope {
   birthDetails: BirthInput;
   julianDay: number;
@@ -257,6 +299,7 @@ export interface CalculatedHoroscope {
   remedies: Remedy[];
   templeRemedies: TempleRemedy[];
   traditionalParihara: TraditionalPariharaReport;
+  ashtakavarga: AshtakavargaReport;
   overallScore: number;
 }
 

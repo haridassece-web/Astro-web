@@ -6,6 +6,7 @@ import { calculateVimshottariDasa } from './dasaEngine';
 import { evaluateAstrologyRules } from './ruleEngine';
 import { generateDomainPredictions, generateRemedies } from './predictionEngine';
 import { generatePersonalizedTempleRemedies, calculateTraditionalPariharaReport } from './remedyEngine';
+import { calculateAshtakavargaReport } from './ashtakavargaEngine';
 
 export function calculateFullHoroscope(birth: BirthInput): CalculatedHoroscope {
   const julianDay = calculateJulianDay(birth.dob, birth.tob, birth.timezone);
@@ -26,6 +27,7 @@ export function calculateFullHoroscope(birth: BirthInput): CalculatedHoroscope {
   const remedies = generateRemedies();
   const templeRemedies = generatePersonalizedTempleRemedies(panchanga, planets, lagnaSignId, dasaPeriods);
   const traditionalParihara = calculateTraditionalPariharaReport(panchanga, planets, lagnaSignId);
+  const ashtakavarga = calculateAshtakavargaReport(planets, lagnaSignId);
 
   const yogaScores = yogasMatched.map((y) => y.score);
   const avgYogaScore = yogaScores.length > 0 ? yogaScores.reduce((a, b) => a + b, 0) / yogaScores.length : 70;
@@ -47,6 +49,7 @@ export function calculateFullHoroscope(birth: BirthInput): CalculatedHoroscope {
     remedies,
     templeRemedies,
     traditionalParihara,
+    ashtakavarga,
     overallScore: Math.min(99, Math.max(65, overallScore)),
   };
 }
