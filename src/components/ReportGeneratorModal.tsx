@@ -39,6 +39,21 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
     printIframe.style.zIndex = '-9999';
     document.body.appendChild(printIframe);
 
+    let allExtractedStyles = '';
+    try {
+      Array.from(document.styleSheets).forEach((sheet) => {
+        try {
+          Array.from(sheet.cssRules || []).forEach((rule) => {
+            allExtractedStyles += rule.cssText + '\n';
+          });
+        } catch {
+          // cross-origin protection fallback
+        }
+      });
+    } catch {
+      // ignore
+    }
+
     const doc = printIframe.contentWindow?.document;
     if (!doc) {
       window.print();
@@ -55,8 +70,12 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
       <html>
         <head>
           <meta charset="utf-8" />
+          <base href="${window.location.origin}/" />
           <title>${horoscope.birthDetails.name || 'ஜாதக அறிக்கை'} - Horoscope Report</title>
           ${styles}
+          <style>
+            ${allExtractedStyles}
+          </style>
           <style>
             @page {
               size: A4 portrait;
@@ -76,6 +95,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
               padding: 0 !important;
               overflow: visible !important;
               height: auto !important;
+              font-family: 'Noto Sans Tamil', 'Noto Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
             }
             body, body * {
               visibility: visible !important;
@@ -87,6 +107,8 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
               visibility: visible !important;
             }
             .report-page-block {
+              width: 100% !important;
+              max-width: 100% !important;
               page-break-after: always !important;
               break-after: page !important;
               page-break-inside: avoid !important;
@@ -95,6 +117,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
               border: none !important;
               box-shadow: none !important;
               padding: 6mm !important;
+              background: #ffffff !important;
             }
             .report-page-block:last-child {
               page-break-after: auto !important;
@@ -102,6 +125,47 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
             }
             .no-print {
               display: none !important;
+            }
+            /* Explicit layout guarantees for print */
+            .grid { display: grid !important; }
+            .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+            .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+            .grid-rows-4 { grid-template-rows: repeat(4, minmax(0, 1fr)) !important; }
+            .col-span-2 { grid-column: span 2 / span 2 !important; }
+            .row-span-2 { grid-row: span 2 / span 2 !important; }
+            .aspect-square { aspect-ratio: 1 / 1 !important; width: 100% !important; }
+            .flex { display: flex !important; }
+            .flex-col { flex-direction: column !important; }
+            .flex-row { flex-direction: row !important; }
+            .items-center { align-items: center !important; }
+            .justify-between { justify-content: space-between !important; }
+            .justify-center { justify-content: center !important; }
+            .text-center { text-align: center !important; }
+            .border { border: 1px solid #cbd5e1 !important; }
+            .border-2 { border: 2px solid #b45309 !important; }
+            .border-b { border-bottom: 1px solid #cbd5e1 !important; }
+            .border-b-2 { border-bottom: 2px solid #b45309 !important; }
+            .border-t { border-top: 1px solid #cbd5e1 !important; }
+            .border-r { border-right: 1px solid #cbd5e1 !important; }
+            .border-amber-600\\/40, .border-amber-600\\/30 { border-color: rgba(217, 119, 6, 0.4) !important; }
+            .border-amber-700\\/60, .border-amber-700\\/30 { border-color: rgba(180, 83, 9, 0.5) !important; }
+            .border-slate-200 { border-color: #e2e8f0 !important; }
+            .border-slate-300 { border-color: #cbd5e1 !important; }
+            .bg-amber-50\\/20, .bg-amber-50\\/40, .bg-amber-50 { background-color: #fffbeb !important; }
+            .bg-amber-100\\/70, .bg-amber-100\\/60, .bg-amber-100 { background-color: #fef3c7 !important; }
+            .bg-slate-50\\/40, .bg-slate-50 { background-color: #f8fafc !important; }
+            .bg-slate-100 { background-color: #f1f5f9 !important; }
+            .bg-white { background-color: #ffffff !important; }
+            .rounded-lg { border-radius: 8px !important; }
+            .rounded-xl { border-radius: 12px !important; }
+            .rounded-2xl { border-radius: 16px !important; }
+            table { width: 100% !important; border-collapse: collapse !important; }
+            th, td { border: 1px solid #cbd5e1 !important; padding: 4px 6px !important; }
+            /* South Indian chart layout guarantee */
+            .grid.grid-cols-4.grid-rows-4 > div {
+              min-height: 55px !important;
+              border: 1px solid #cbd5e1 !important;
+              background-color: #ffffff !important;
             }
           </style>
         </head>
