@@ -302,7 +302,96 @@ export interface CalculatedHoroscope {
   templeRemedies: TempleRemedy[];
   traditionalParihara: TraditionalPariharaReport;
   ashtakavarga: AshtakavargaReport;
+  mudakkuPrediction: MudakkuIndividualPrediction;
   overallScore: number;
+}
+
+export interface MudakkuBhavaData {
+  bhava: number;
+  nameTa: string;
+  nameEn: string;
+  themeTa: string;
+  themeEn: string;
+  corePredictionsTa: string[];
+  corePredictionsEn: string[];
+  doAndDontsTa: {
+    dos: string[];
+    donts: string[];
+  };
+  doAndDontsEn: {
+    dos: string[];
+    donts: string[];
+  };
+  careerFinanceTa: string[];
+  careerFinanceEn: string[];
+  familyRelationshipsTa: string[];
+  familyRelationshipsEn: string[];
+  doshaAlertsTa: string[];
+  doshaAlertsEn: string[];
+  pariharamTa: string;
+  pariharamEn: string;
+}
+
+export interface MudakkuGeneralRule {
+  id: string;
+  titleTa: string;
+  titleEn: string;
+  instructionTa: string;
+  instructionEn: string;
+  severity: 'high' | 'medium' | 'info';
+}
+
+export interface MudakkuIndividualPrediction {
+  sunStarId: number;
+  sunStarTa: string;
+  sunStarEn: string;
+  mudakkuStarTa: string;
+  mudakkuStarEn: string;
+  mudakkuSignId: number;
+  mudakkuSignNameTa: string;
+  mudakkuSignNameEn: string;
+  mudakkuBhava: number;
+  mudakkuBhavaTitleTa: string;
+  mudakkuBhavaTitleEn: string;
+  mudakkuLordNameTa: string;
+  mudakkuLordNameEn: string;
+  mudakkuLordPlacementHouse: number;
+  mudakkuLordPlacementSignTa: string;
+  mudakkuLordPlacementSignEn: string;
+  mudakkuLordDignityEn?: string;
+  planetsInMudakkuSign: {
+    nameEn: string;
+    nameTa: string;
+    isChhaya: boolean;
+  }[];
+  bornInMudakkuDasa: boolean;
+  bornInMudakkuDasaDetailsTa?: string;
+  bornInMudakkuDasaDetailsEn?: string;
+  runningMudakkuDasa: boolean;
+  runningMudakkuDasaDetailsTa?: string;
+  runningMudakkuDasaDetailsEn?: string;
+  sunInRohini: boolean;
+  sunInRohiniDetailsTa?: string;
+  sunInRohiniDetailsEn?: string;
+  hasSaturnRahuAssociation: boolean;
+  hasSaturnRahuDetailsTa?: string;
+  hasSaturnRahuDetailsEn?: string;
+  hasPunarphooDosha: boolean;
+  hasPunarphooDetailsTa?: string;
+  hasPunarphooDetailsEn?: string;
+  hasLoveFailureCaution: boolean;
+  hasLoveFailureDetailsTa?: string;
+  hasLoveFailureDetailsEn?: string;
+  hasJalliyaDoshaCaution: boolean;
+  hasJalliyaDoshaDetailsTa?: string;
+  hasJalliyaDoshaDetailsEn?: string;
+  nativeBhavaData: MudakkuBhavaData;
+  allBhavas: Record<number, MudakkuBhavaData>;
+  generalRules: MudakkuGeneralRule[];
+  recommendedTempleTa: string;
+  recommendedTempleEn: string;
+  recommendedDeityTa: string;
+  recommendedDeityEn: string;
 }
 
 export interface UserUser {

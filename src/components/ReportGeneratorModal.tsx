@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import type { CalculatedHoroscope, Language, PlanetName } from '../types/astrology';
-import { X, Printer, Download, Sparkles, FileText, CheckCircle2 } from 'lucide-react';
+import { X, Printer, Download, Sparkles, FileText, CheckCircle2, Compass, Flame } from 'lucide-react';
 import { HoroscopeChart } from './HoroscopeChart';
 import { NAKSHATRAS, PLANET_TA } from '../data/constants';
 import jsPDF from 'jspdf';
@@ -894,7 +894,157 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
 
               {/* Page 2 Footer */}
               <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono mt-2">
-                <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு அறிக்கை • கணித்தவர்: ஜோதிடர் Jayanthi M • பக்கம் 2 / {viewScope === 'standard' ? '2' : '10'}</span>
+                <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு அறிக்கை • கணித்தவர்: ஜோதிடர் Jayanthi M • பக்கம் 2 / {viewScope === 'standard' ? '3' : '11'}</span>
+                <span>AstroEngine Enterprise Pro • Thirukkanitham Ephemeris</span>
+              </div>
+            </div>
+
+            {/* =========================================================================
+                PAGE 3: தனிநபர் முடக்கு பாவக பலன்கள் & ஏட்டுச் சுவடி பரிகாரங்கள்
+                ========================================================================= */}
+            <div className="report-page-block w-full max-w-4xl bg-white text-slate-900 font-sans p-6 sm:p-8 flex flex-col justify-between rounded-xl shadow-lg border border-slate-200 box-border relative">
+              <div className="space-y-3.5">
+                {/* Header */}
+                <div className="border-b-2 border-amber-700/60 pb-2 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-base font-bold font-serif text-amber-950 flex items-center gap-2">
+                      <Compass className="w-4 h-4 text-amber-700" />
+                      <span>3. தனிநபர் முடக்கு பாவகப் பலன்கள் & ஏட்டுச் சுவடி ஆய்வுகள்</span>
+                    </h2>
+                    <p className="text-[11px] text-slate-600 font-mono">
+                      சூரிய பாதசாரம் ➔ முடக்கு ராசி ➔ லக்ன பாவகப் பலன்கள் & திருப்பூர் தணிகாசலம் ஏட்டுச் சுவடி ஆய்வு • ஜோதிடர்: Jayanthi M
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded">
+                    பக்கம் 3 / {viewScope === 'standard' ? '3' : '11'}
+                  </span>
+                </div>
+
+                {/* 1. Mudakku Individual Matrix */}
+                <div className="border border-amber-600/40 rounded-lg overflow-hidden bg-amber-50/20">
+                  <div className="bg-amber-100/70 px-3 py-1 border-b border-amber-600/30 flex items-center justify-between">
+                    <span className="text-xs font-bold font-serif text-amber-950">
+                      ஜாதகரின் பிரத்யேக முடக்கு கட்டமைப்பு (Native Mudakku Matrix)
+                    </span>
+                    <span className="text-[10px] font-mono text-amber-900 font-bold">
+                      {horoscope.mudakkuPrediction.mudakkuBhavaTitleTa}
+                    </span>
+                  </div>
+
+                  <div className="p-2.5 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <div className="border-r border-slate-200 pr-2">
+                      <span className="text-[10px] text-slate-500 block">சூரியன் ➔ முடக்கு நட்சத்திரம்:</span>
+                      <strong className="text-amber-950 block text-[11px]">
+                        {horoscope.mudakkuPrediction.sunStarTa} ➔ {horoscope.mudakkuPrediction.mudakkuStarTa}
+                      </strong>
+                    </div>
+                    <div className="border-r border-slate-200 pr-2">
+                      <span className="text-[10px] text-slate-500 block">முடக்கு ராசி & பாவம்:</span>
+                      <strong className="text-amber-950 block text-[11px]">
+                        {horoscope.mudakkuPrediction.mudakkuSignNameTa} ({horoscope.mudakkuPrediction.mudakkuBhava}-ஆம் பாவம்)
+                      </strong>
+                    </div>
+                    <div className="border-r border-slate-200 pr-2">
+                      <span className="text-[10px] text-slate-500 block">முடக்கு அதிபதி & நின்ற இடம்:</span>
+                      <strong className="text-amber-950 block text-[11px]">
+                        {horoscope.mudakkuPrediction.mudakkuLordNameTa} ({horoscope.mudakkuPrediction.mudakkuLordPlacementHouse}-ல் அமர்வு)
+                      </strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-slate-500 block">முடக்கு ராசியில் நின்ற கிரகம்:</span>
+                      <strong className="text-amber-950 block text-[11px]">
+                        {horoscope.mudakkuPrediction.planetsInMudakkuSign.length > 0
+                          ? horoscope.mudakkuPrediction.planetsInMudakkuSign.map((p) => p.nameTa).join(', ')
+                          : 'கிரகங்கள் இல்லை (சுத்த ராசி)'}
+                      </strong>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Direct Manuscript Declarations for Native's Bhava */}
+                <div className="border border-slate-300 rounded-lg p-3 bg-white space-y-1.5">
+                  <span className="text-xs font-bold font-serif text-slate-900 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-700" />
+                    <span>{horoscope.mudakkuPrediction.nativeBhavaData.nameTa} – ஏட்டுச் சுவடியின் நேரடிப் பலன்கள்:</span>
+                  </span>
+                  <ul className="space-y-1 text-[11px] text-slate-800 leading-relaxed pl-1">
+                    {horoscope.mudakkuPrediction.nativeBhavaData.corePredictionsTa.map((item, idx) => (
+                      <li key={idx} className="flex items-start gap-1.5">
+                        <span className="text-amber-700 font-bold">◆</span>
+                        <span>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* 3. Do's & Don'ts Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                  <div className="border border-emerald-300 rounded-lg p-2.5 bg-emerald-50/40">
+                    <span className="font-bold text-emerald-900 block mb-1 text-[11px]">
+                      ✓ கண்டிப்பாக செய்ய வேண்டியவை (Do’s):
+                    </span>
+                    <ul className="space-y-1 text-[10.5px] text-emerald-950 leading-relaxed">
+                      {horoscope.mudakkuPrediction.nativeBhavaData.doAndDontsTa.dos.map((item, idx) => (
+                        <li key={idx}>• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="border border-rose-300 rounded-lg p-2.5 bg-rose-50/40">
+                    <span className="font-bold text-rose-900 block mb-1 text-[11px]">
+                      ✗ அறவே செய்யக் கூடாதவை (Don’ts):
+                    </span>
+                    <ul className="space-y-1 text-[10.5px] text-rose-950 leading-relaxed">
+                      {horoscope.mudakkuPrediction.nativeBhavaData.doAndDontsTa.donts.map((item, idx) => (
+                        <li key={idx}>• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+
+                {/* 4. Shastra Dosha & Transit Cautions */}
+                <div className="border border-amber-300 rounded-lg p-2.5 bg-amber-50/30 text-[11px] text-slate-800 space-y-1">
+                  <span className="font-bold text-amber-950 block">
+                    சுவடி சாஸ்திர சஞ்சார & விசேஷ எச்சரிக்கைகள் (Timing & Transit Rules):
+                  </span>
+                  <p className="leading-relaxed">
+                    • <strong>ஆனி மாத விதி:</strong> ஆனி மாதத்தில் மிதுன ராசியில் சூரியன் பயணிக்கும் போது சுபகாரியங்கள் செய்வதைத் தவிர்க்கவும்; குலதெய்வத்திற்கு நெய் பூமியில் படும் வழிபாடு உன்னதமானது.
+                  </p>
+                  <p className="leading-relaxed">
+                    • <strong>பங்குனி யமசூத்திரம்:</strong> பங்குனி மாதம் யமசூத்திரம் என்பதால் புதிய நற்காரியங்கள் தொடங்குவதைத் தவிர்க்கவும்.
+                  </p>
+                  {horoscope.mudakkuPrediction.bornInMudakkuDasa && (
+                    <p className="text-red-900 font-semibold leading-relaxed">
+                      • <strong>பிறப்பு தசை எச்சரிக்கை:</strong> ஜாதகர் பிறக்கும் போது முடக்கு அதிபதி திசையில் பிறந்திருப்பதால் பால பருவ கர்ம தோஷ நிவர்த்தி வழிபாடு அவசியம்.
+                    </p>
+                  )}
+                  {horoscope.mudakkuPrediction.hasLoveFailureCaution && (
+                    <p className="text-rose-900 font-semibold leading-relaxed">
+                      • <strong>12-ஆம் பாவம் / செவ்வாய் முடக்கு:</strong> காதல் விவகாரங்களில் அவசரப்படாமல், திருமணப் பொருத்தத்தை மிகத் துல்லியமாக அமைப்பது அவசியம்.
+                    </p>
+                  )}
+                </div>
+
+                {/* 5. Recommended Temple Pariharam */}
+                <div className="border border-amber-500/50 rounded-lg p-2.5 bg-amber-100/50 flex items-start gap-2.5">
+                  <Flame className="w-4 h-4 text-amber-800 shrink-0 mt-0.5" />
+                  <div className="text-[11px]">
+                    <span className="font-bold text-amber-950 block">
+                      உன்னதமான முடக்கு நிவர்த்தி பரிகாரத் திருத்தலம்:
+                    </span>
+                    <strong className="text-amber-900 text-xs font-serif block mt-0.5">
+                      {horoscope.mudakkuPrediction.recommendedTempleTa}
+                    </strong>
+                    <p className="text-slate-700 text-[10.5px] mt-0.5">
+                      பிரதான தெய்வம்: {horoscope.mudakkuPrediction.recommendedDeityTa} • நெய்தீபமேற்றி அர்ச்சனை செய்வதும், ஏழை எளியோருக்கு அன்னதானம் வழங்குவதும் சகல முடக்கு தோஷங்களையும் நீக்கும்.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Page 3 Footer */}
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono mt-2">
+                <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு அறிக்கை • கணித்தவர்: ஜோதிடர் Jayanthi M • பக்கம் 3 / {viewScope === 'standard' ? '3' : '11'}</span>
                 <span>AstroEngine Enterprise Pro • Thirukkanitham Ephemeris</span>
               </div>
             </div>
@@ -925,7 +1075,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                             </p>
                           </div>
                           <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-800 border border-slate-300 px-2 py-0.5 rounded">
-                            பக்கம் {dasaIndex + 3}
+                            பக்கம் {dasaIndex + 4}
                           </span>
                         </div>
 
@@ -983,7 +1133,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
 
                       {/* Footer */}
                       <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono mt-2">
-                        <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு அறிக்கை • கணித்தவர்: ஜோதிடர் Jayanthi M • பக்கம் {dasaIndex + 3}</span>
+                        <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு அறிக்கை • கணித்தவர்: ஜோதிடர் Jayanthi M • பக்கம் {dasaIndex + 4}</span>
                         <span>AstroEngine Enterprise Pro • Thirukkanitham Ephemeris</span>
                       </div>
                     </div>

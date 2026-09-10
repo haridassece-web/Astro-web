@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import type { DomainPrediction, Language } from '../types/astrology';
+import type { DomainPrediction, Language, MudakkuIndividualPrediction } from '../types/astrology';
 import {
   GraduationCap, Briefcase, Coins, Heart, Baby,
-  Activity, Globe, Home, Sparkles, ShieldCheck, Star
+  Activity, Globe, Home, Sparkles, ShieldCheck, Star, Compass, ArrowRight
 } from 'lucide-react';
 
 interface PredictionsViewProps {
   predictions: DomainPrediction[];
+  mudakkuPrediction?: MudakkuIndividualPrediction;
+  onNavigateToMudakku?: () => void;
   language: Language;
 }
 
@@ -23,7 +25,12 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
   ShieldCheck,
 };
 
-export const PredictionsView: React.FC<PredictionsViewProps> = ({ predictions, language }) => {
+export const PredictionsView: React.FC<PredictionsViewProps> = ({
+  predictions,
+  mudakkuPrediction,
+  onNavigateToMudakku,
+  language,
+}) => {
   const [selectedDomain, setSelectedDomain] = useState<string>('all');
 
   const filtered = selectedDomain === 'all'
@@ -31,8 +38,43 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({ predictions, l
     : predictions.filter((p) => p.domainKey === selectedDomain);
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-2xl backdrop-blur-md">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 border-b border-slate-800 pb-3">
+    <div className="space-y-4">
+      {/* Individual Native Mudakku Highlight Banner */}
+      {mudakkuPrediction && (
+        <div className="bg-gradient-to-r from-amber-950/80 via-slate-900/95 to-slate-950 border border-amber-500/40 rounded-2xl p-4 md:p-5 shadow-xl backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono font-bold text-amber-400 bg-amber-500/10 px-2.5 py-0.5 rounded-full border border-amber-500/20 uppercase tracking-wide">
+                தனிநபர் முடக்கு பாவக ஆய்வு • Palm-leaf Shastra
+              </span>
+            </div>
+            <h4 className="text-sm md:text-base font-bold text-amber-200 font-serif flex items-center gap-2">
+              <Compass className="w-4 h-4 text-amber-400" />
+              {language === 'ta'
+                ? `உங்கள் ஜாதக முடக்கு: ${mudakkuPrediction.mudakkuBhavaTitleTa} – அதிபதி: ${mudakkuPrediction.mudakkuLordNameTa}`
+                : `Your Native Mudakku: ${mudakkuPrediction.mudakkuBhavaTitleEn} – Lord: ${mudakkuPrediction.mudakkuLordNameEn}`}
+            </h4>
+            <p className="text-xs text-slate-300">
+              {language === 'ta'
+                ? `சூரியன் நின்ற ${mudakkuPrediction.sunStarTa} நட்சத்திரத்திற்குரிய முடக்கு நட்சத்திரங்கள்: ${mudakkuPrediction.mudakkuStarTa}. 12 பாவக முழுமையான சுவடிப் பலன்கள் தயாராக உள்ளன.`
+                : `Sun is in ${mudakkuPrediction.sunStarEn} yielding Mudakku stars ${mudakkuPrediction.mudakkuStarEn}. Detailed manuscript declarations and cautions ready.`}
+            </p>
+          </div>
+
+          {onNavigateToMudakku && (
+            <button
+              onClick={onNavigateToMudakku}
+              className="shrink-0 bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all flex items-center gap-1.5 shadow-md group"
+            >
+              <span>{language === 'ta' ? 'முடக்கு பலன்களைப் பார்க்க' : 'View Mudakku Report'}</span>
+              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+            </button>
+          )}
+        </div>
+      )}
+
+      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-2xl backdrop-blur-md">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-5 border-b border-slate-800 pb-3">
         <div>
           <h3 className="text-base font-bold text-amber-300 font-serif flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-amber-400" />
@@ -132,5 +174,6 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({ predictions, l
         })}
       </div>
     </div>
+  </div>
   );
 };

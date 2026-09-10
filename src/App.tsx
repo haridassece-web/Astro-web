@@ -15,6 +15,7 @@ import { PredictionsView } from './components/PredictionsView';
 import { RemediesView } from './components/RemediesView';
 import { TransitView } from './components/TransitView';
 import { AshtakavargaView } from './components/AshtakavargaView';
+import { MudakkuPredictionView } from './components/MudakkuPredictionView';
 import { ReportGeneratorModal } from './components/ReportGeneratorModal';
 import { ResearchComparisonModal } from './components/ResearchComparisonModal';
 import { AuthModal } from './components/AuthModal';
@@ -42,7 +43,7 @@ function getCurrentDateTime() {
 export function App() {
   const [language, setLanguage] = useState<Language>('ta');
   const [chartFormat, setChartFormat] = useState<'south' | 'north'>('south');
-  const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'panchanga' | 'dasa' | 'transit' | 'ashtakavarga' | 'yogas' | 'predictions' | 'remedies'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'panchanga' | 'dasa' | 'transit' | 'ashtakavarga' | 'yogas' | 'predictions' | 'mudakku' | 'remedies'>('overview');
 
   const [activeChartId, setActiveChartId] = useState<string>('D1');
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
@@ -306,6 +307,18 @@ export function App() {
           </button>
 
           <button
+            onClick={() => setActiveTab('mudakku')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              activeTab === 'mudakku'
+                ? 'bg-amber-500 text-slate-950 shadow-md font-semibold'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Compass className="w-4 h-4 text-amber-400" />
+            <span>{language === 'ta' ? 'முடக்கு ஜாதக பலன்' : 'Mudakku Predictions'}</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('remedies')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
               activeTab === 'remedies'
@@ -450,7 +463,19 @@ export function App() {
         )}
 
         {activeTab === 'predictions' && (
-          <PredictionsView predictions={horoscope.domainPredictions} language={language} />
+          <PredictionsView
+            predictions={horoscope.domainPredictions}
+            mudakkuPrediction={horoscope.mudakkuPrediction}
+            onNavigateToMudakku={() => setActiveTab('mudakku')}
+            language={language}
+          />
+        )}
+
+        {activeTab === 'mudakku' && (
+          <MudakkuPredictionView
+            mudakkuPrediction={horoscope.mudakkuPrediction}
+            language={language}
+          />
         )}
 
         {activeTab === 'remedies' && (
