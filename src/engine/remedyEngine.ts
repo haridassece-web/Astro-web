@@ -126,8 +126,8 @@ export function calculateTraditionalPariharaReport(
   const mudakkuSignId = suryaStarInfo.mudakkuSignId;
 
   let mudakkuBhava = ((mudakkuSignId - lagnaSignId + 12) % 12) + 1;
-  if (mudakkuBhava < 2 || mudakkuBhava > 12) {
-    mudakkuBhava = (sun.house && sun.house >= 2 && sun.house <= 12) ? sun.house : 9;
+  if (mudakkuBhava < 1 || mudakkuBhava > 12) {
+    mudakkuBhava = 1;
   }
 
   // Determine Mudakku Rasi Group Key (treatise categorizes by the Zodiac sign of the Mudakku Rasi itself)
