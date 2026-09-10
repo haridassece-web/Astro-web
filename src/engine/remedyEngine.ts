@@ -11,6 +11,8 @@ import {
   VAINASIKA_STAR_MAP,
   SURYA_MUDAKKU_STAR_TABLE,
   MUDAKKU_LAGNA_BHAVA_MAP,
+  MANDI_DOSHA_STAR_MAP,
+  BHAVA_MUDAKKU_RAHU_KETU_MAP,
 } from '../data/traditionalPariharaData';
 
 export function calculateTraditionalPariharaReport(
@@ -29,18 +31,25 @@ export function calculateTraditionalPariharaReport(
   const pakshaLabelTa = isShukla ? 'வளர்பிறை' : 'தேய்பிறை';
   const pakshaLabelEn = isShukla ? 'Shukla Paksha' : 'Krishna Paksha';
 
+  const tithiCleanTa = panchanga.tithiTa.includes(pakshaLabelTa)
+    ? panchanga.tithiTa
+    : `${pakshaLabelTa} ${panchanga.tithiTa}`;
+  const tithiCleanEn = panchanga.tithiEn.includes('Shukla') || panchanga.tithiEn.includes('Krishna')
+    ? panchanga.tithiEn
+    : `${pakshaLabelEn} ${panchanga.tithiEn}`;
+
   const tithiItem: TraditionalPariharaItem = {
-    typeEn: `Tithi Parihara (${pakshaLabelEn} ${panchanga.tithiEn})`,
-    typeTa: `திதி பரிகாரம் (${pakshaLabelTa} ${panchanga.tithiTa})`,
-    nameEn: `${pakshaLabelEn} ${panchanga.tithiEn}`,
-    nameTa: `${pakshaLabelTa} ${panchanga.tithiTa}`,
+    typeEn: `Tithi Parihara (${tithiCleanEn})`,
+    typeTa: `திதி பரிகாரம் (${tithiCleanTa})`,
+    nameEn: tithiCleanEn,
+    nameTa: tithiCleanTa,
     templeNameEn: isShukla ? tithiData.shuklaTempleEn : tithiData.krishnaTempleEn,
     templeNameTa: isShukla ? tithiData.shuklaTempleTa : tithiData.krishnaTempleTa,
     deityEn: isShukla ? tithiData.shuklaDeityEn : tithiData.krishnaDeityEn,
     deityTa: isShukla ? tithiData.shuklaDeityTa : tithiData.krishnaDeityTa,
     googleMapUrl: `https://maps.google.com/?q=${encodeURIComponent(isShukla ? tithiData.shuklaTempleEn : tithiData.krishnaTempleEn)}`,
-    detailsTa: `${pakshaLabelTa} ${panchanga.tithiTa} திதியில் பிறந்தவர்கள் இத்தலத்தில் வழிபாடு செய்ய திதி சூன்ய தோஷங்கள் நீங்கி வம்ச அபிவிருத்தி உண்டாகும்.`,
-    detailsEn: `Worshipping at this ${pakshaLabelEn} temple removes Tithi Sunya afflictions and grants family lineage prosperity.`,
+    detailsTa: `${tithiCleanTa} திதியில் பிறந்தவர்கள் இத்தலத்தில் வழிபாடு செய்ய திதி சூன்ய தோஷங்கள் நீங்கி வம்ச அபிவிருத்தி உண்டாகும்.`,
+    detailsEn: `Worshipping at this ${tithiCleanEn} temple removes Tithi Sunya afflictions and grants family lineage prosperity.`,
   };
 
   // 2. Karana Parihara Temple (கரண பரிகார கோவில் - Exact 11 Karana Name Matching)
@@ -121,18 +130,18 @@ export function calculateTraditionalPariharaReport(
     mudakkuBhava = (sun.house && sun.house >= 2 && sun.house <= 12) ? sun.house : 9;
   }
 
-  // Determine Lagna Group Key
-  let groupKey = 'Sagittarius_Pisces';
-  if (lagnaSignId === 0 || lagnaSignId === 7) groupKey = 'Aries_Scorpio';
-  else if (lagnaSignId === 1 || lagnaSignId === 6) groupKey = 'Taurus_Libra';
-  else if (lagnaSignId === 2 || lagnaSignId === 5) groupKey = 'Gemini_Virgo';
-  else if (lagnaSignId === 3) groupKey = 'Cancer';
-  else if (lagnaSignId === 4) groupKey = 'Leo';
-  else if (lagnaSignId === 8 || lagnaSignId === 11) groupKey = 'Sagittarius_Pisces';
-  else if (lagnaSignId === 9 || lagnaSignId === 10) groupKey = 'Capricorn_Aquarius';
+  // Determine Mudakku Rasi Group Key (treatise categorizes by the Zodiac sign of the Mudakku Rasi itself)
+  let groupKey = 'Capricorn_Aquarius';
+  if (mudakkuSignId === 0 || mudakkuSignId === 7) groupKey = 'Aries_Scorpio';
+  else if (mudakkuSignId === 1 || mudakkuSignId === 6) groupKey = 'Taurus_Libra';
+  else if (mudakkuSignId === 2 || mudakkuSignId === 5) groupKey = 'Gemini_Virgo';
+  else if (mudakkuSignId === 3) groupKey = 'Cancer';
+  else if (mudakkuSignId === 4) groupKey = 'Leo';
+  else if (mudakkuSignId === 8 || mudakkuSignId === 11) groupKey = 'Sagittarius_Pisces';
+  else if (mudakkuSignId === 9 || mudakkuSignId === 10) groupKey = 'Capricorn_Aquarius';
 
-  const groupMatrix = MUDAKKU_LAGNA_BHAVA_MAP[groupKey] || MUDAKKU_LAGNA_BHAVA_MAP['Sagittarius_Pisces'];
-  const mudakkuData = groupMatrix[mudakkuBhava] || groupMatrix[9] || groupMatrix[3] || MUDAKKU_LAGNA_BHAVA_MAP['Sagittarius_Pisces'][9];
+  const groupMatrix = MUDAKKU_LAGNA_BHAVA_MAP[groupKey] || MUDAKKU_LAGNA_BHAVA_MAP['Capricorn_Aquarius'];
+  const mudakkuData = groupMatrix[mudakkuBhava] || groupMatrix[9] || groupMatrix[3] || MUDAKKU_LAGNA_BHAVA_MAP['Capricorn_Aquarius'][12];
 
   const mudakkuItem: TraditionalPariharaItem = {
     typeEn: `Mudakku Star Parihara (Sun: ${suryaStarInfo.sunStarEn} ➔ Mudakku: ${suryaStarInfo.mudakkuStarEn}, ${mudakkuBhava}th House)`,
@@ -148,6 +157,69 @@ export function calculateTraditionalPariharaReport(
     detailsEn: `Sun is in ${suryaStarInfo.sunStarEn} star whose Mudakku stars are ${suryaStarInfo.mudakkuStarEn} (${mudakkuBhava}th House from Lagna). Worshipping at ${mudakkuData.templeEn} dissolves this Mudakku affliction.`,
   };
 
+  // 7. Mandi Dosha Nivarana Temple (PDF 1 Pages 7-9)
+  const birthStarIdx = panchanga.nakshatraIndex >= 1 && panchanga.nakshatraIndex <= 27
+    ? panchanga.nakshatraIndex - 1
+    : moon.nakshatraId;
+  const mandiStarData = MANDI_DOSHA_STAR_MAP[birthStarIdx] || MANDI_DOSHA_STAR_MAP[0];
+  const mandiItem: TraditionalPariharaItem = {
+    typeEn: `Mandi Dosha Nivarana (${mandiStarData.starEn})`,
+    typeTa: `மாந்தி தோஷ நிவர்த்தி (${mandiStarData.starTa})`,
+    nameEn: mandiStarData.starEn,
+    nameTa: mandiStarData.starTa,
+    templeNameEn: mandiStarData.templeEn,
+    templeNameTa: mandiStarData.templeTa,
+    deityEn: 'Shiva / Perumal / Murugan (Mandi Nivarthi)',
+    deityTa: 'மாந்தி தோஷ நிவர்த்தி மூர்த்தி',
+    googleMapUrl: `https://maps.google.com/?q=${encodeURIComponent(mandiStarData.templeEn)}`,
+    detailsTa: `${mandiStarData.starTa} நட்சத்திரத்தில் பிறந்தவர்களுக்கு மாந்தி தோஷம், மரண பயம், தீராத உடல் உபாதைகள் மற்றும் தடைகள் விலக ${mandiStarData.templeTa} தலத்தில் வழிபாடு செய்வது உன்னதமான பலன் தரும்.`,
+    detailsEn: `For natives born in ${mandiStarData.starEn} star, worshipping at ${mandiStarData.templeEn} dissolves Mandi dosha, acute anxieties, and health obstacles.`,
+  };
+
+  // 8. Chhaya Graha (Rahu / Ketu) in Mudakku Bhava (Tiruppur Thanikasalam Treatise)
+  const rahu = planets.find((p) => p.name === 'Rahu');
+  const ketu = planets.find((p) => p.name === 'Ketu');
+  const rahuHouse = rahu?.house;
+  const ketuHouse = ketu?.house;
+
+  let chhayaTempleTa = '';
+  let chhayaTempleEn = '';
+  let chhayaGrahaTa = '';
+  let chhayaGrahaEn = '';
+
+  const bhavaRahuKetu = BHAVA_MUDAKKU_RAHU_KETU_MAP[mudakkuBhava] || BHAVA_MUDAKKU_RAHU_KETU_MAP[1];
+
+  if (rahuHouse === mudakkuBhava) {
+    chhayaGrahaTa = 'முடக்கு வீட்டில் ராகு';
+    chhayaGrahaEn = 'Rahu in Mudakku Bhava';
+    chhayaTempleTa = bhavaRahuKetu.rahuTempleTa;
+    chhayaTempleEn = bhavaRahuKetu.rahuTempleEn;
+  } else if (ketuHouse === mudakkuBhava) {
+    chhayaGrahaTa = 'முடக்கு வீட்டில் கேது';
+    chhayaGrahaEn = 'Ketu in Mudakku Bhava';
+    chhayaTempleTa = bhavaRahuKetu.ketuTempleTa;
+    chhayaTempleEn = bhavaRahuKetu.ketuTempleEn;
+  } else {
+    chhayaGrahaTa = `${mudakkuBhava}-ஆம் முடக்கு பாவக ராகு/கேது ஸ்தலம்`;
+    chhayaGrahaEn = `House ${mudakkuBhava} Mudakku Node Sthalam`;
+    chhayaTempleTa = `${bhavaRahuKetu.rahuTempleTa} / ${bhavaRahuKetu.ketuTempleTa}`;
+    chhayaTempleEn = `${bhavaRahuKetu.rahuTempleEn} / ${bhavaRahuKetu.ketuTempleEn}`;
+  }
+
+  const mudakkuChhayaItem: TraditionalPariharaItem = {
+    typeEn: `Mudakku Chhaya Node Sthalam (${chhayaGrahaEn})`,
+    typeTa: `முடக்கு சாயாகிரக நிவர்த்தி (${chhayaGrahaTa})`,
+    nameEn: chhayaGrahaEn,
+    nameTa: chhayaGrahaTa,
+    templeNameEn: chhayaTempleEn,
+    templeNameTa: chhayaTempleTa,
+    deityEn: 'Rahu / Ketu / Vinayagar / Shiva',
+    deityTa: 'ராகு / கேது / விநாயகர் / சிவன்',
+    googleMapUrl: `https://maps.google.com/?q=${encodeURIComponent(chhayaTempleEn.split('/')[0].trim())}`,
+    detailsTa: `முடக்கு ஸ்தானமான ${mudakkuBhava}-ஆம் பாவத்தில் சாயாகிரகங்கள் (ராகு/கேது) அமைந்தால் ஏற்படும் தீவிர முடக்கு தோஷ நிவர்த்திக்கான சிறப்பு தலம்.`,
+    detailsEn: `Special remedy temple prescribed by researcher Tiruppur Thanikasalam when shadow planets (Rahu/Ketu) occupy the Mudakku Bhava.`,
+  };
+
   return {
     tithiParihara: tithiItem,
     karanaParihara: karanaItem,
@@ -155,6 +227,8 @@ export function calculateTraditionalPariharaReport(
     avayogiParihara: avayogiItem,
     vainasikaParihara: vainasikaItem,
     mudakkuParihara: mudakkuItem,
+    mandiParihara: mandiItem,
+    mudakkuChhayaParihara: mudakkuChhayaItem,
   };
 }
 

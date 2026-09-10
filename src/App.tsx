@@ -264,8 +264,8 @@ export function App() {
                 : 'text-slate-400 hover:text-slate-200'
             }`}
           >
-            <Compass className="w-4 h-4" />
-            <span>{language === 'ta' ? 'கோசாரப் பலன்கள்' : 'Transit Engine (Gochara)'}</span>
+            <Compass className="w-4 h-4 text-purple-400" />
+            <span>{language === 'ta' ? 'கோசாரம் & கோள்சார ராகு' : 'Transits & Gochara Rahu'}</span>
           </button>
 
           <button

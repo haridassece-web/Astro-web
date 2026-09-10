@@ -1,5 +1,6 @@
 import type { PlanetPosition } from '../types/astrology';
 import { calculateJulianDay, calculateLahiriAyanamsa, calculatePlanetaryPositions } from './astronomy';
+import { analyzeRahuTransitForHoroscope } from '../data/rahuTransitPredictions';
 
 export interface TransitInfo {
   planet: string;
@@ -23,6 +24,7 @@ export interface TransitAnalysis {
   guruTransitStatusEn: string;
   guruTransitStatusTa: string;
   overallTransitScore: number;
+  rahuNadiAnalysis: ReturnType<typeof analyzeRahuTransitForHoroscope>;
 }
 
 export function calculateCurrentTransits(
@@ -135,6 +137,9 @@ export function calculateCurrentTransits(
 
   const saturnRes = transitResults.find((t) => t.planet === 'Saturn');
   const jupiterRes = transitResults.find((t) => t.planet === 'Jupiter');
+  const rahuCurrent = currentPlanets.find((p) => p.name === 'Rahu');
+  const currentRahuSignId = rahuCurrent ? rahuCurrent.signId : 11; // default Pisces (Meenam) if not found
+  const rahuNadiAnalysis = analyzeRahuTransitForHoroscope(natalPlanets, natalLagnaId, currentRahuSignId);
 
   return {
     transitDate: now.toLocaleDateString(),
@@ -144,5 +149,6 @@ export function calculateCurrentTransits(
     guruTransitStatusEn: jupiterRes?.specialStatusEn || 'Regular Guru Transit',
     guruTransitStatusTa: jupiterRes?.specialStatusTa || 'சாதாரண குரு கோசாரம்',
     overallTransitScore: 82,
+    rahuNadiAnalysis,
   };
 }

@@ -239,6 +239,8 @@ export interface TraditionalPariharaReport {
   avayogiParihara: TraditionalPariharaItem;
   vainasikaParihara: TraditionalPariharaItem;
   mudakkuParihara: TraditionalPariharaItem;
+  mandiParihara?: TraditionalPariharaItem;
+  mudakkuChhayaParihara?: TraditionalPariharaItem;
 }
 
 export interface RasiPindamItem {
