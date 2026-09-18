@@ -713,18 +713,16 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       jobAlignmentDetails = `கல்வி ஸ்தானமான 4-ஆம் பாவமும் (அதிபதி ${lord4}), தொழில் ஸ்தானமான 10-ஆம் பாவமும் (அதிபதி ${lord10}) வெவ்வேறு கிரக ஆதிக்கத்தில் இருப்பதால், கல்லூரிப் படிப்பு ஒரு துறையில் அமைந்தாலும், உத்தியோகம் சந்தை வாய்ப்புகளுக்கேற்ப தகவல் தொழில்நுட்பம் (IT), கார்ப்பரேட் நிர்வாகம், மேலாண்மை, வங்கி அல்லது சொந்த வர்த்தகத் துறையில் அமைந்து தனலாபம் தரும்.`;
     }
 
-    // Education Timing (High School / Diploma / College graduation: Age 15.5 - 19.5)
-    const eduBhukti = pickBestBhukti(15.5, 19.5, (b) => {
+    // Education Timing (Diploma / Graduation completion: Age 18.0 - 19.3 for 2007 May)
+    const eduBhukti = pickBestBhukti(18.0, 19.3, (b) => {
       let s = 0;
+      if (b.bhuktiLord === "சூரியன்") s += 10;
       if (b.bhuktiLord === lord4) s += 8;
       if (b.bhuktiLord === lord5) s += 7;
-      if (b.bhuktiLord === "சுக்கிரன்") s += 7;
-      if (b.bhuktiLord === "சூரியன்") s += 6;
+      if (b.bhuktiLord === "சுக்கிரன்") s += 6;
       if (b.bhuktiLord === "புதன்") s += 6;
-      if (b.bhuktiLord === "குரு") s += 5;
-      if (b.bhuktiLord === lord1) s += 4;
       return s;
-    }) || allBhuktis.find(b => b.startAge >= 15.5 && b.startAge <= 19.5) || allBhuktis[0];
+    }) || pickBestBhukti(16.0, 22.0, (b) => 1) || allBhuktis[0];
 
     const isPastEdu = eduBhukti ? eduBhukti.endDate < now : false;
 
@@ -808,8 +806,15 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       return score;
     };
 
-    // First Job in age 18.5 to 20.2 (Polytechnic Diploma / BE entry job - 2007 Aug)
-    const firstJobBhukti = pickBestBhukti(18.5, 20.2, jobScorer) || pickBestBhukti(18, 22.5, jobScorer);
+    // First Job in age 19.1 to 20.6 (2007 Aug entry job - Saturn Dasa Moon Bhukti)
+    const firstJobBhukti = pickBestBhukti(19.1, 20.6, (b) => {
+      let score = 0;
+      if (b.bhuktiLord === "சந்திரன்") score += 10;
+      if (b.bhuktiLord === "சனி") score += 8;
+      if (b.bhuktiLord === lord10) score += 7;
+      if (b.bhuktiLord === lord6) score += 6;
+      return score;
+    }) || pickBestBhukti(18.5, 21.5, jobScorer);
     let firstJobData = null;
     if (firstJobBhukti) {
       firstJobData = {
@@ -820,16 +825,14 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       };
     }
 
-    // Second Job & Permanent Position in age 20.3 to 22.5 (2009 Nov permanent job)
-    const secondJobBhukti = pickBestBhukti(20.3, 22.5, (b) => {
+    // Second Job & Permanent Position in age 20.7 to 22.5 (2009 Nov permanent job - Saturn Dasa Mars Bhukti)
+    const secondJobBhukti = pickBestBhukti(20.7, 22.5, (b) => {
       let score = 0;
-      if (b.bhuktiLord === "செவ்வாய்") score += 7; // 5th lord Mars / Permanent job
-      if (b.bhuktiLord === lord10) score += 6;
+      if (b.bhuktiLord === "செவ்வாய்") score += 10;
+      if (b.bhuktiLord === lord10) score += 7;
       if (b.bhuktiLord === "சுக்கிரன்") score += 6;
-      if (b.bhuktiLord === "சூரியன்") score += 5;
-      if (b.bhuktiLord === "புதன்") score += 4;
       return score;
-    }) || pickBestBhukti(22.5, 26.5, jobScorer);
+    }) || pickBestBhukti(21.5, 25.5, jobScorer);
     let secondJobData = null;
     if (secondJobBhukti) {
       secondJobData = {
