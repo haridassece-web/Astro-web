@@ -1441,7 +1441,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
     if (lord7Data && guruData) {
       if (lord7Data.rasiId === guruData.rasiId) {
         arrangedScore += 7;
-        arrangedReasons.push(`7-ஆம் அதிபதி ${lord7} குருவுடன் சேர்ந்து தெய்விக சுப முகூர்த்த சீர்மணம் தருதல்`);
+        arrangedReasons.push(`7-ஆம் அதிபதி ${lord7} குருவுடன் சேர்ந்து தெய்விக சுப முகூர்த்த திருமணம் தருதல்`);
       } else {
         const trine7G = ((guruData.rasiId - lord7Data.rasiId + 12) % 12) + 1;
         if ([5, 9, 7].includes(trine7G)) {
@@ -1486,10 +1486,10 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       marriageTypeBadgeClass = "badge-gold";
       marriageTypeReason = `5-ஆம் பாவாதிபதி மற்றும் 7-ஆம் அதிபதிகளின் சேர்க்கை/பார்வை, சுக்கிரன்-ராகு/செவ்வாய் நாடித் தொடர்புகள் அமைவதால், மனதிற்குப் பிடித்தவரைக் காதலித்து திருமணம் செய்யும் பிராப்தம் சுபமாக உருவாகிறது.`;
     } else {
-      marriageTypeVerdict = "பெற்றோர் நிச்சயிக்கும் சீர்மணம்";
-      marriageTypeBadge = "💒 பெற்றோர் நிச்சயிக்கும் சீர்மணம் (Arranged Marriage)";
+      marriageTypeVerdict = "பெற்றோர் நிச்சயிக்கும் திருமணம்";
+      marriageTypeBadge = "💒 பெற்றோர் நிச்சயிக்கும் திருமணம் (Arranged Marriage)";
       marriageTypeBadgeClass = "badge-blue";
-      marriageTypeReason = `7-ஆம் பாவாதிபதி, 9-ஆம் அதிபதி மற்றும் குருவின் சுப அனுகூலத்தால் பெற்றோர், உற்றார் உறவினர்கள் முறைப்படி பார்த்து நிச்சயிக்கும் வைதீக மங்கலகரமான சீர்மண யோகம் கைகூடும்.`;
+      marriageTypeReason = `7-ஆம் பாவாதிபதி, 9-ஆம் அதிபதி மற்றும் குருவின் சுப அனுகூலத்தால் பெற்றோர், உற்றார் உறவினர்கள் முறைப்படி பார்த்து நிச்சயிக்கும் வைதீக மங்கலகரமான திருமண யோகம் கைகூடும்.`;
     }
 
     const marriageTypeData = {
@@ -2395,7 +2395,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
                       <div style="font-size:0.71rem; color:var(--text-dim); margin-top:4px; line-height:1.35; background:rgba(0,0,0,0.22); padding:0.35rem 0.5rem; border-radius:4px;">
                         📜 <strong>பாவக & நாடி சான்றுகள்:</strong>
                         ${mr.marriageType.loveReasons.length > 0 ? `<br>• <strong style="color:#f472b6;">காதல் யோக தொடர்புகள் (5 & 7):</strong> ${mr.marriageType.loveReasons.join(" • ")}` : ''}
-                        ${mr.marriageType.arrangedReasons.length > 0 ? `<br>• <strong style="color:#93c5fd;">சீர்மண யோக தொடர்புகள் (7 & 9 / குரு):</strong> ${mr.marriageType.arrangedReasons.join(" • ")}` : ''}
+                        ${mr.marriageType.arrangedReasons.length > 0 ? `<br>• <strong style="color:#93c5fd;">திருமண யோக தொடர்புகள் (7 & 9 / குரு):</strong> ${mr.marriageType.arrangedReasons.join(" • ")}` : ''}
                       </div>
                     </div>
                   ` : ""}
