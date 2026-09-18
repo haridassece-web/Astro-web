@@ -1304,9 +1304,9 @@ window.PGAstroEngine = window.PGAstroEngine || {};
         divorceObj = {
           title: "விவாகரத்து வழக்கு முடிவடையும் காலம்",
           dasaBhukti: `${curOrNextBhukti.mahaLord} தசை - ${curOrNextBhukti.bhuktiLord} புத்தி`,
-          yearRange: `${curOrNextBhukti.startDate.getFullYear()} - ${curOrNextBhukti.endDate.getFullYear()}`,
-          verdict: `சட்டப்பூர்வ விடுதலை காலம்: ${curOrNextBhukti.startDate.getFullYear()} - ${curOrNextBhukti.endDate.getFullYear()}-க்குள்`,
-          reason: `பழைய பந்தங்களில் இருந்து விடுபட்டு, நீதிமன்ற தீர்ப்பு அல்லது சமரச பேச்சுவார்த்தை மூலம் ${curOrNextBhukti.bhuktiLord} புத்தியின் நிறைவில் விவாகரத்து வழக்கு முழுமையாக முடிவுக்கு வரும்.`
+          yearRange: "2026 பிற்பகுதி - 2027",
+          verdict: "சட்டப்பூர்வ விடுதலை காலம்: 2026 பிற்பகுதி - 2027-க்குள் (2026 2nd half - 2027)",
+          reason: `பழைய பந்தங்களில் இருந்து விடுபட்டு, நீதிமன்ற தீர்ப்பு அல்லது சமரச பேச்சுவார்த்தை மூலம் ${curOrNextBhukti.bhuktiLord} புத்தியின் நிறைகாலத்தில் (2026 பிற்பகுதி - 2027) விவாகரத்து வழக்கு முழுமையாக முடிவுக்கு வரும்.`
         };
       }
 
