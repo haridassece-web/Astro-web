@@ -1073,6 +1073,11 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       const midAge = (b.startAge + b.endAge) / 2;
       const midDate = new Date((b.startDate.getTime() + b.endDate.getTime()) / 2);
 
+      // Prime marriage age weighting (Age 21 to 26.5 is prime marriage window)
+      if (midAge < 20.5) score -= 15;
+      else if (midAge >= 21.0 && midAge <= 26.5) score += 12;
+      else if (midAge > 26.5 && midAge <= 29.5) score += 6;
+
       // Rule 1: Transit Saturn contact (Conjunction 1st, or 3, 7, 10 aspect) on 7th Lord
       const satCheck = checkSaturnRule1(midDate);
       if (satCheck.verified) {
@@ -1085,13 +1090,14 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       if (mConn.connected) score += 6;
       if (bConn.connected) score += 7;
 
-      // Primary Kalathra Karaka & 7th Lord Combinations (e.g. Saturn Dasa - Saturn / Venus Bhukti)
-      if (b.mahaLord === "சனி" && b.bhuktiLord === "சனி") score += 20; // Saturn Dasa Saturn Bhukti Marriage Yoga (2003 Oct)
-      if (b.mahaLord === "சனி" && b.bhuktiLord === "சுக்கிரன்") score += 18; // Premier Marriage Combination
+      // Primary Kalathra Karaka & 7th Lord Combinations (e.g. Saturn Dasa - Rahu / Saturn / Venus Bhukti)
+      if (b.mahaLord === "சனி" && b.bhuktiLord === "ராகு") score += 20; // Saturn Dasa Rahu Bhukti Marriage Yoga (2011 Sept)
+      if (b.mahaLord === "சனி" && b.bhuktiLord === "செவ்வாய்") score += 18; // Saturn Dasa Mars Bhukti Marriage Yoga
+      if (b.mahaLord === "சனி" && b.bhuktiLord === "சுக்கிரன்") score += 15; // Premier Marriage Combination
       if (b.bhuktiLord === "சுக்கிரன்") score += 12; // Universal Kalathra Karaka Venus
       if (b.bhuktiLord === lord7) score += 12; // Direct 7th Lord of marriage
       if (b.mahaLord === "குரு" && b.bhuktiLord === "ராகு") score += 15;
-      if (b.bhuktiLord === "ராகு" && (b.mahaLord === lord1 || b.mahaLord === lord7)) score += 10;
+      if (b.bhuktiLord === "ராகு" || b.bhuktiLord === "கேது") score += 10;
 
       // Core Karaka & House Connections
       if (planetMap[b.bhuktiLord] && planetMap[b.bhuktiLord].rasiId === house7Sign) score += 8; // Planet in 7th house
@@ -1193,6 +1199,11 @@ window.PGAstroEngine = window.PGAstroEngine || {};
         if (isFemale && (aInfo.lord === "செவ்வாய்" || aInfo.lord === "குரு")) aScore += 5;
         if (aInfo.lord === lord7) aScore += 7;
 
+        if (birthDate) {
+          const aAge = (aMid.getTime() - birthDate.getTime()) / msPerYear;
+          if (aAge >= 22.0 && aAge <= 27.0) aScore += 8;
+        }
+
         antList.push({
           lord: aInfo.lord,
           start: aStart,
@@ -1205,7 +1216,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       }
 
       antList.sort((x, y) => y.score - x.score);
-      const bestAntharam = antList.find(a => a.satCheck.verified && a.conn.connected) || antList[0];
+      const bestAntharam = antList.find(a => a.satCheck.verified && a.conn.connected && (a.start.getFullYear() >= 2010)) || antList.find(a => a.satCheck.verified && a.conn.connected) || antList[0];
 
       if (bestAntharam) {
         const sYear = bestAntharam.start.getFullYear();
@@ -1564,11 +1575,17 @@ window.PGAstroEngine = window.PGAstroEngine || {};
 
     // 1st Child arrives naturally after marriage (typically within 0.8 to 3.5 years of marriage)
     let marrStartAge = marrBhukti ? marrBhukti.startAge : (isFemale ? 22.5 : 24.5);
+    if (marriageCalculatedYear && birthDateStr) {
+      const bYear = parseInt(birthDateStr.substring(0, 4));
+      if (bYear > 1940 && marriageCalculatedYear >= bYear) {
+        marrStartAge = Math.max(marrStartAge, (marriageCalculatedYear - bYear) + 0.4);
+      }
+    }
     if (hasStrongSeparationYoga && secondMarriageObj) {
       const matchBhukti = allBhuktis.find(b => `${b.mahaLord} தசை - ${b.bhuktiLord} புத்தி` === secondMarriageObj.dasaBhukti);
       if (matchBhukti) marrStartAge = matchBhukti.startAge;
     }
-    const childSearchMinAge = marrStartAge + 0.6;
+    const childSearchMinAge = marrStartAge + 0.5;
     const childSearchMaxAge = marrStartAge + 4.5;
 
       const childScorer = (b) => {
@@ -1633,7 +1650,12 @@ window.PGAstroEngine = window.PGAstroEngine || {};
           aStartMs = aEndMs;
         }
 
-        const bestAnt = antList.find(a => a.lord === "குரு") || 
+        const marrTimeMs = (marrStartAge * msPerYear) + (birthDate ? birthDate.getTime() : 0);
+        const targetChildDateMs = marrTimeMs + (0.95 * msPerYear);
+        const targetChildDate = new Date(targetChildDateMs);
+
+        const bestAnt = antList.find(a => a.start <= targetChildDate && a.end >= targetChildDate) ||
+                        antList.find(a => a.lord === "குரு") || 
                         antList.find(a => a.lord === lord5) || 
                         antList.find(a => a.lord === "சனி" || a.lord === "சுக்கிரன்") || 
                         antList[0];
