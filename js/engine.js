@@ -1086,24 +1086,25 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       if (mConn.connected) score += 6;
       if (bConn.connected) score += 7;
 
-      // Special Marriage Yoga: Guru Dasa - Rahu Bhukti / Rahu Bhukti in 7th/Lagna lord
-      if ((b.mahaLord === "குரு" && b.bhuktiLord === "ராகு") || (b.mahaLord === lord1 && b.bhuktiLord === "ராகு")) score += 20;
-      if (b.startDate.getFullYear() <= 2024 && b.endDate.getFullYear() >= 2024) score += 18; // 2024 Marriage alignment
+      // Primary Kalathra Karaka & 7th Lord Combinations (e.g. Saturn Dasa - Venus Bhukti / 7th Lord)
+      if (b.mahaLord === "சனி" && b.bhuktiLord === "சுக்கிரன்") score += 18; // Premier Marriage Combination
+      if (b.bhuktiLord === "சுக்கிரன்") score += 12; // Universal Kalathra Karaka Venus
+      if (b.bhuktiLord === lord7) score += 12; // Direct 7th Lord of marriage
+      if (b.mahaLord === "குரு" && b.bhuktiLord === "ராகு") score += 15;
+      if (b.bhuktiLord === "ராகு" && (b.mahaLord === lord1 || b.mahaLord === lord7)) score += 10;
 
       // Core Karaka & House Connections
-      if (b.bhuktiLord === lord7) score += 9; // Direct 7th Lord of marriage!
-      if (planetMap[b.bhuktiLord] && planetMap[b.bhuktiLord].rasiId === house7Sign) score += 8; // Planet placed directly in 7th house!
-      if (isFemale && b.bhuktiLord === "செவ்வாய்") score += 7; // Husband Karaka for woman!
-      if (isFemale && b.bhuktiLord === "குரு") score += 6; // Guru Pathi karaka / Subhadhipathi
+      if (planetMap[b.bhuktiLord] && planetMap[b.bhuktiLord].rasiId === house7Sign) score += 8; // Planet in 7th house
+      if (isFemale && b.bhuktiLord === "செவ்வாய்") score += 7; // Husband Karaka for woman
+      if (isFemale && b.bhuktiLord === "குரு") score += 6; // Guru Pathi karaka
       if (!isFemale && b.bhuktiLord === "சுக்கிரன்") score += 8; // Wife Karaka for man
-      if (b.bhuktiLord === lord1) score += 5; // Lagna lord self activation
-      if (b.bhuktiLord === lord2) score += 4; // Kutumbam
-      if (isFemale && b.bhuktiLord === "சுக்கிரன்") score += 4; // Kalathra karaka
+      if (b.bhuktiLord === lord1) score += 5; // Lagna lord
+      if (b.bhuktiLord === lord2) score += 4; // Family
 
       // Maha Dasa Lord Synergy
       if (b.mahaLord === lord1) score += 5;
       if (b.mahaLord === lord7) score += 9;
-      if (b.mahaLord === "சுக்கிரன்") score += 4;
+      if (b.mahaLord === "சுக்கிரன்") score += 6;
       if (b.mahaLord === "குரு") score += 5;
       if (isFemale && b.mahaLord === "செவ்வாய்") score += 3;
 
@@ -1115,13 +1116,6 @@ window.PGAstroEngine = window.PGAstroEngine || {};
           else if (yearsFromNow <= 5.0) score += 2;
         } else {
           score -= 15;
-        }
-      } else {
-        // Late marriage calibration up to age 38
-        if (midAge >= 33.0 && midAge <= 37.5) {
-          score += 10;
-        } else if (midAge >= (isFemale ? 23.5 : 24.5) && midAge <= (isFemale ? 27.8 : 29.5)) {
-          score += 6;
         }
       }
 
@@ -1143,8 +1137,8 @@ window.PGAstroEngine = window.PGAstroEngine || {};
         if (bestUpcoming) return bestUpcoming;
       }
 
-      // Search all candidates in age range 21 to 38:
-      const allCandidates = allBhuktis.filter(b => b.startAge < 38 && b.endAge > 21);
+      // Search all candidates in age range 15 to 40:
+      const allCandidates = allBhuktis.filter(b => b.startAge < 40 && b.endAge > 14);
       let bestBhukti = null;
       let maxScore = -999;
 
