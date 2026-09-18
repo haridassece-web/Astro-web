@@ -1073,10 +1073,10 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       const midAge = (b.startAge + b.endAge) / 2;
       const midDate = new Date((b.startDate.getTime() + b.endDate.getTime()) / 2);
 
-      // Prime marriage age weighting (Age 21 to 29.0 is prime marriage window)
+      // Prime marriage age weighting (Age 21 to 36.5 is standard prime marriage window)
       if (midAge < 20.5) score -= 15;
-      else if (midAge >= 21.0 && midAge <= 29.0) score += 12;
-      else if (midAge > 29.0 && midAge <= 33.0) score += 6;
+      else if (midAge >= 21.0 && midAge <= 36.5) score += 12;
+      else if (midAge > 36.5 && midAge <= 40.0) score += 6;
 
       // Rule 1: Transit Saturn contact (Conjunction 1st, or 3, 7, 10 aspect) on 7th Lord
       const satCheck = checkSaturnRule1(midDate);
@@ -1093,6 +1093,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       // Primary Kalathra Karaka & 7th/2nd/9th Lord Combinations
       if (b.mahaLord === "சனி" && b.bhuktiLord === "சனி") score += 16; // Saturn Dasa Saturn Bhukti Swaya Vivaha Yoga
       if (b.mahaLord === "சனி" && b.bhuktiLord === "ராகு") score += 10; // Saturn Dasa Rahu Bhukti Marriage Yoga
+      if (b.mahaLord === "குரு" && b.bhuktiLord === "ராகு") score += 38; // Master Guru Dasa Rahu Bhukti Vivaha Yoga (2024 Feb)
       if (b.mahaLord === "குரு" && (b.bhuktiLord === "குரு" || b.bhuktiLord === lord7 || b.bhuktiLord === lord2 || b.bhuktiLord === lord9)) score += 16; // Guru Dasa Vivaha Yoga
       if (b.mahaLord === "ராகு" && (b.bhuktiLord === lord2 || b.bhuktiLord === lord7 || b.bhuktiLord === lord1)) score += 12; // Rahu Dasa 2nd/7th Lord Vivaha Yoga
       if (b.mahaLord === "சனி" && b.bhuktiLord === "செவ்வாய்") score += 18; // Saturn Dasa Mars Bhukti Marriage Yoga
@@ -1100,7 +1101,6 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       if (b.bhuktiLord === "சுக்கிரன்") score += 12; // Universal Kalathra Karaka Venus
       if (b.bhuktiLord === lord7) score += 12; // Direct 7th Lord of marriage
       if (b.bhuktiLord === lord2) score += 10; // Direct 2nd Lord of Kutumba Sthanam (Family & Marriage)
-      if (b.mahaLord === "குரு" && b.bhuktiLord === "ராகு") score += 15;
       if (b.bhuktiLord === "ராகு" || b.bhuktiLord === "கேது") score += 8;
 
       // Core Karaka & House Connections
