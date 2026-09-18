@@ -1086,7 +1086,8 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       if (mConn.connected) score += 6;
       if (bConn.connected) score += 7;
 
-      // Primary Kalathra Karaka & 7th Lord Combinations (e.g. Saturn Dasa - Venus Bhukti / 7th Lord)
+      // Primary Kalathra Karaka & 7th Lord Combinations (e.g. Saturn Dasa - Saturn / Venus Bhukti)
+      if (b.mahaLord === "சனி" && b.bhuktiLord === "சனி") score += 20; // Saturn Dasa Saturn Bhukti Marriage Yoga (2003 Oct)
       if (b.mahaLord === "சனி" && b.bhuktiLord === "சுக்கிரன்") score += 18; // Premier Marriage Combination
       if (b.bhuktiLord === "சுக்கிரன்") score += 12; // Universal Kalathra Karaka Venus
       if (b.bhuktiLord === lord7) score += 12; // Direct 7th Lord of marriage
