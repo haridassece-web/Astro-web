@@ -938,8 +938,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
 
     const isLateMarriage = isVenusAfflicted || hasSaturnAspectOn7th || isVenusDusthana || hasRahuKetuOn7th || is7thLordInDusthana || (delayReasonsList.length > 0);
 
-    const isUnmarriedMode = (maritalStatus === "unmarried") || 
-      (maritalStatus === "auto" && (nativeCurrentAge >= 28 || isLateMarriage));
+    const isUnmarriedMode = (maritalStatus === "unmarried");
 
     // =========================================================================
     // USER MARRIAGE MASTER RULES (நாடி & பராசர விவாக பிரமாணங்கள்):
@@ -1156,7 +1155,8 @@ window.PGAstroEngine = window.PGAstroEngine || {};
 
     const marrBhukti = pickMarriageTimingBhukti();
     const marrAgeMid = marrBhukti ? (marrBhukti.startAge + marrBhukti.endAge) / 2 : 25;
-    const isActualLateMarriage = isLateMarriage || (marrAgeMid >= (isFemale ? 27.0 : 28.5)) || isUnmarriedMode;
+    const isEarlyMarriage = marrBhukti && (marrBhukti.startDate.getFullYear() <= 2005 || marrAgeMid < 25.5);
+    const isActualLateMarriage = !isEarlyMarriage && (isLateMarriage || (marrAgeMid >= (isFemale ? 27.0 : 28.5)) || isUnmarriedMode);
 
     // Compute auspicious marriage sub-period (Antharam) & Calibrate Marriage Year:
     let specialAntharamText = null;
@@ -1230,21 +1230,25 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       finalRule2SummaryText = rule2Parts.join(" • ");
     }
 
-    const marrTimingVerdict = isUnmarriedMode
-      ? `தாமத விவாக அமைப்பு (Late Marriage: தீவிர தாமத யோகம்)`
-      : (isActualLateMarriage 
-          ? `தாமத திருமணம் (Late Marriage: வயது ${isFemale ? '27' : '28'}-க்கு மேல்)` 
-          : `இயல்பான பருவ வயது திருமணம் (Proper Age Marriage: வயது ${isFemale ? '21-26' : '23-28'}-ல்)`);
+    const marrTimingVerdict = isEarlyMarriage
+      ? `சீக்கிரத் திருமணம் (Early Marriage: 25 வயதிற்குள் இளம் பருவ திருமணம்)`
+      : (isUnmarriedMode
+          ? `தாமத விவாக அமைப்பு (Late Marriage: தீவிர தாமத யோகம்)`
+          : (isActualLateMarriage 
+              ? `தாமத திருமணம் (Late Marriage: வயது ${isFemale ? '27' : '28'}-க்கு மேல்)` 
+              : `இயல்பான பருவ வயது திருமணம் (Proper Age Marriage: வயது ${isFemale ? '21-26' : '23-28'}-ல்)`));
 
-    const marrTimingReason = isUnmarriedMode
-      ? `7-ஆம் பாவத்தில் ${rahuRasi === house7Sign ? 'ராகுவின் ஆதிக்கம் (சர்ப தோஷம்)' : (saturnRasi === house7Sign ? 'சனியின் அமர்வு' : 'பாப கிரக ஆதிக்கம்')}, 7-ஆம் அதிபதி ${lord7} மறைவு மற்றும் சுக்கிரன் நிலைகளால் இதுவரை வரன் முடிவதில் தீவிர தாமதம் ஏற்பட்டது. தற்போது 2026-ல் 7-ஆம் அதிபதி ${lord7} மகா தசை தொடங்கி, ${marrBhukti ? marrBhukti.bhuktiLord + ' புத்தியில்' : 'சுப புத்தியில்'} விதி 1 (சனி சஞ்சாரம்/பார்வை) மற்றும் விதி 2 (3, 7, 11 தொடர்பு) கூடி வருவதால் திருமணம் சுபமாக நிறைவேறும் உச்சபட்ச காலம்.`
-      : (isActualLateMarriage
-          ? (isFemale
-              ? `7-ஆம் பாவம் அல்லது கணவர் காரகன் செவ்வாய்/குரு மீது சனியின் பார்வை / மறைவு ஸ்தான பாபத்துவ அமைப்பால் ஆரம்பத்தில் தாமதம் ஏற்பட்டு, பின்னர் ${marrBhukti ? marrBhukti.bhuktiLord : 'சுப'} புத்தியில் விதி 1 மற்றும் விதி 2 கூடி திருமணம் சுபமாக நிறைவேறும் காலம்.`
-              : `7-ஆம் பாவம் அல்லது களத்திர காரகன் சுக்கிரன் மீது சனியின் பார்வை / மறைவு ஸ்தான பாபத்துவ அமைப்பால் ஆரம்பத்தில் தாமதம் ஏற்பட்டு, பின்னர் ${marrBhukti ? marrBhukti.bhuktiLord : 'சுப'} புத்தியில் விதி 1 மற்றும் விதி 2 கூடி திருமணம் சுபமாக நிறைவேறும் காலம்.`)
-          : (isFemale
-              ? `7-ஆம் பாவாதிபதி ${lord7}, லக்னாதிபதி ${lord1} மற்றும் கணவர் காரகர்களின் அனுகூலத்துடன் விதி 1 (சனி பார்வை/இணைவு) மற்றும் விதி 2 (3, 7, 11 தொடர்பு) பூர்த்தியாகி சுப முகூர்த்தம் கைகூடும் யோகம்.`
-              : `7-ஆம் பாவாதிபதி ${lord7}, லக்னாதிபதி ${lord1} மற்றும் சுக்கிரனின் அனுகூலத்துடன் விதி 1 (சனி பார்வை/இணைவு) மற்றும் விதி 2 (3, 7, 11 தொடர்பு) பூர்த்தியாகி சுப முகூர்த்தம் கைகூடும் யோகம்.`));
+    const marrTimingReason = isEarlyMarriage
+      ? `7-ஆம் பாவாதிபதி ${lord7}, லக்னாதிபதி ${lord1} மற்றும் களத்திர காரகன் சுக்கிரன்/சனியின் சுப பலத்தால் இளம் பருவத்திலேயே (25 வயதிற்குள்) சுப முகூர்த்த திருமணம் சிறப்பான முறையில் கைகூடிய யோகம்.`
+      : (isUnmarriedMode
+          ? `7-ஆம் பாவத்தில் ${rahuRasi === house7Sign ? 'ராகுவின் ஆதிக்கம் (சர்ப தோஷம்)' : (saturnRasi === house7Sign ? 'சனியின் அமர்வு' : 'பாப கிரக ஆதிக்கம்')}, 7-ஆம் அதிபதி ${lord7} மறைவு மற்றும் சுக்கிரன் நிலைகளால் இதுவரை வரன் முடிவதில் தீவிர தாமதம் ஏற்பட்டது. தற்போது 2026-ல் 7-ஆம் அதிபதி ${lord7} மகா தசை தொடங்கி, ${marrBhukti ? marrBhukti.bhuktiLord + ' புத்தியில்' : 'சுப புத்தியில்'} விதி 1 (சனி சஞ்சாரம்/பார்வை) மற்றும் விதி 2 (3, 7, 11 தொடர்பு) கூடி வருவதால் திருமணம் சுபமாக நிறைவேறும் உச்சபட்ச காலம்.`
+          : (isActualLateMarriage
+              ? (isFemale
+                  ? `7-ஆம் பாவம் அல்லது கணவர் காரகன் செவ்வாய்/குரு மீது சனியின் பார்வை / மறைவு ஸ்தான பாபத்துவ அமைப்பால் ஆரம்பத்தில் தாமதம் ஏற்பட்டு, பின்னர் ${marrBhukti ? marrBhukti.bhuktiLord : 'சுப'} புத்தியில் விதி 1 மற்றும் விதி 2 கூடி திருமணம் சுபமாக நிறைவேறும் காலம்.`
+                  : `7-ஆம் பாவம் அல்லது களத்திர காரகன் சுக்கிரன் மீது சனியின் பார்வை / மறைவு ஸ்தான பாபத்துவ அமைப்பால் ஆரம்பத்தில் தாமதம் ஏற்பட்டு, பின்னர் ${marrBhukti ? marrBhukti.bhuktiLord : 'சுப'} புத்தியில் விதி 1 மற்றும் விதி 2 கூடி திருமணம் சுபமாக நிறைவேறும் காலம்.`)
+              : (isFemale
+                  ? `7-ஆம் பாவாதிபதி ${lord7}, லக்னாதிபதி ${lord1} மற்றும் கணவர் காரகர்களின் அனுகூலத்துடன் விதி 1 (சனி பார்வை/இணைவு) மற்றும் விதி 2 (3, 7, 11 தொடர்பு) பூர்த்தியாகி சுப முகூர்த்தம் கைகூடும் யோகம்.`
+                  : `7-ஆம் பாவாதிபதி ${lord7}, லக்னாதிபதி ${lord1} மற்றும் சுக்கிரனின் அனுகூலத்துடன் விதி 1 (சனி பார்வை/இணைவு) மற்றும் விதி 2 (3, 7, 11 தொடர்பு) பூர்த்தியாகி சுப முகூர்த்தம் கைகூடும் யோகம்.`)));
 
     // 3. MARRIAGE & REMARRIAGE ANALYSIS (ஒரு முறை திருமணமா? அல்லது மறுமண யோகமா?)
     // Classical Nadi & Vedic Astrology Rules for Dual Marriage (இருதார / மறுமண யோகம்):
@@ -1528,10 +1532,11 @@ window.PGAstroEngine = window.PGAstroEngine || {};
         specialAntharam: specialAntharamText,
         isPast: !isUnmarriedMode && marrBhukti.endDate < now,
         isUnmarried: isUnmarriedMode,
-        delayReasons: delayReasonsList,
+        isEarlyMarriage: isEarlyMarriage,
+        delayReasons: isEarlyMarriage ? [] : delayReasonsList,
         earlyOrLateVerdict: marrTimingVerdict,
         earlyOrLateReason: marrTimingReason,
-        isDelayed: isLateMarriage || isUnmarriedMode,
+        isDelayed: !isEarlyMarriage && (isLateMarriage || isUnmarriedMode),
         firstMarriage: firstMarriageObj,
         divorce: divorceObj,
         secondMarriage: secondMarriageObj,
