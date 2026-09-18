@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PG Astrologer - நாடி ஜோதிட மென்பொருள் &amp; வழிகாட்டி</title>
+  <meta name="description" content="PG Astrologer - நாடி ஜோதிட மென்பொருள். சுபத்துவம், சூட்சும வலு, பாபத்துவம், பிறந்த நாள் ஜாதகம், நவகிரக இணைவு பலன்கள், கோச்சாரம் மற்றும் வழிகாட்டி.">
+  <meta name="keywords" content="PG Astrologer, ஸ்ரீ பச்சையம்மன் துணை, ஸ்ரீ கங்கையம்மன் துணை, சுபத்துவம், சூட்சும வலு, பாபத்துவம், நாடி ஜோதிடம், இணைவு பலன்கள், பிறந்த நாள் ஜாதகம், நவகிரகங்கள், கோச்சாரம்">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/index.css?v=11">
+  <link rel="stylesheet" href="css/celestial.css?v=11">
+  <link rel="stylesheet" href="css/chart.css?v=11">
+  <link rel="stylesheet" href="css/print.css?v=11">
+
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+
+  <!-- 1. Auspicious Spiritual Invocation Banner -->
+  <div class="spiritual-invocation">
+    <span class="sacred-symbol">🔱</span>
+    <span>ஸ்ரீ பச்சையம்மன் துணை • ஸ்ரீ கங்கையம்மன் துணை</span>
+    <span class="sacred-symbol">🕉️</span>
+  </div>
+
+  <!-- 2. Main Header -->
+  <header class="app-header">
+    <div class="container header-inner">
+      <div class="brand-wrapper" onclick="window.PGAstroUI.switchTab('chart')">
+        <div class="brand-logo-icon"></div>
+        <div class="brand-text-col">
+          <span class="brand-title">PG Astrologer</span>
+          <span class="brand-subtitle">நாடி ஜோதிட மென்பொருள் & வழிகாட்டி</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <div class="time-badge" id="liveTimeBadge">
+          <span>🪐</span>
+          <span id="liveAstroClock">07:15:00</span>
+        </div>
+        <button class="btn btn-sm btn-outline-gold" id="btnOpenThemeModal" title="தோற்றம் / தீம் தேர்வுகள்">
+          <span>🎨</span>
+          <span>தோற்றம்</span>
+        </button>
+        <button class="btn btn-sm btn-gold" id="btnOpenReportModal">
+          <span>📄</span>
+          <span>அறிக்கை</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. Navigation Bar (Desktop & Mobile Horizontal Scroll) -->
+  <nav class="main-nav-bar">
+    <div class="container nav-tabs">
+      <button class="nav-tab-btn active" data-tab="chart">
+        <span class="nav-tab-icon">☸️</span>
+        <span>ஜாதகக் கட்டம்</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="combinations">
+        <span class="nav-tab-icon">⚡</span>
+        <span>இணைவு பலன்கள்</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="transits">
+        <span class="nav-tab-icon">🪐</span>
+        <span>நடப்பு கோச்சாரம்</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="dasha">
+        <span class="nav-tab-icon">⏳</span>
+        <span>தசா & விசேஷ விதிகள்</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="subhathuvam">
+        <span class="nav-tab-icon">✨</span>
+        <span>சுபத்துவம் & சூட்சும வலு</span>
+      </button>
+      <button class="nav-tab-btn" data-tab="karakas">
+        <span class="nav-tab-icon">🩺</span>
+        <span>காரகங்கள் & மருத்துவம்</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- 4. Main Body Content -->
+  <main class="container main-content-area">
+
+    <!-- ==========================================
+         TAB 1: SOUTH INDIAN RASI CHART & ANALYSIS
+         ========================================== -->
+    <section class="tab-pane active" id="tab_chart">
+
+      <!-- Birth Details Calculation Card -->
+      <div class="cosmic-card highlight" style="margin-bottom: 1.25rem;">
+        <div class="card-header" style="margin-bottom: 0.75rem; padding-bottom: 0.5rem;">
+          <div class="card-title-group">
+            <div class="card-title-icon">🎂</div>
+            <div>
+              <h2 class="card-title" style="font-size: 1.08rem;">பிறந்த விவரங்கள் மூலம் ஜாதகம் கணிக்க (Birth Chart Calculator)</h2>
+              <div class="card-subtitle">பெயர், பிறந்த தேதி, நேரம் மற்றும் இடத்தை உள்ளிட்டு துல்லியமாக கிரக நிலைகள் & லக்கினத்தை கணிக்கவும்</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; margin-bottom: 0.85rem;">
+          <div>
+            <label style="font-size: 0.78rem; color: var(--gold-light); display: block; margin-bottom: 3px; font-weight: 600;">ஜாதகர் பெயர் (Name):</label>
+            <input type="text" id="birthCalcName" placeholder="எ.கா: சுந்தர் / பிரியா" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); padding: 0.5rem 0.7rem; border-radius: var(--radius-md); color: #fff; width: 100%;">
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; color: var(--gold-light); display: block; margin-bottom: 3px; font-weight: 600;">பாலினம் (Gender):</label>
+            <select id="birthCalcGender" style="background: #0d1224; border: 1px solid rgba(255,255,255,0.15); padding: 0.5rem 0.7rem; border-radius: var(--radius-md); color: #fff; width: 100%;">
+              <option value="male" selected>ஆண் (Male)</option>
+              <option value="female">பெண் (Female)</option>
+              <option value="other">மற்றவை (Other)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; color: var(--gold-light); display: block; margin-bottom: 3px; font-weight: 600;">பிறந்த தேதி (Date of Birth) *:</label>
+            <input type="date" id="birthCalcDate" value="1988-04-30" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); padding: 0.45rem 0.7rem; border-radius: var(--radius-md); color: #fff; width: 100%;">
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; color: var(--gold-light); display: block; margin-bottom: 3px; font-weight: 600;">பிறந்த நேரம் (Time of Birth):</label>
+            <input type="time" id="birthCalcTime" value="22:10" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); padding: 0.45rem 0.7rem; border-radius: var(--radius-md); color: #fff; width: 100%;">
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; color: var(--gold-light); display: block; margin-bottom: 3px; font-weight: 600;">பிறந்த இடம் (Place of Birth):</label>
+            <select id="birthCalcPlaceSelect" style="background: #0d1224; border: 1px solid rgba(255,255,255,0.15); padding: 0.5rem 0.7rem; border-radius: var(--radius-md); color: #fff; width: 100%; margin-bottom: 4px;">
+              <!-- populated by cities -->
+            </select>
+            <input type="text" id="birthCalcPlaceCustom" placeholder="அல்லது வேறு ஊர் தட்டச்சு செய்க" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); padding: 0.35rem 0.6rem; border-radius: var(--radius-sm); color: #fff; width: 100%; font-size: 0.78rem;">
+          </div>
+          <div>
+            <label style="font-size: 0.78rem; color: var(--gold-light); display: block; margin-bottom: 3px; font-weight: 600;">திருமண நிலை (Marital Status):</label>
+            <select id="birthCalcMaritalStatus" style="background: #0d1224; border: 1px solid rgba(255,255,255,0.15); padding: 0.5rem 0.7rem; border-radius: var(--radius-md); color: #fff; width: 100%;">
+              <option value="unmarried" selected>💍 இன்னும் திருமணம் ஆகவில்லை (Unmarried / Awaiting)</option>
+              <option value="married">💑 ஏற்கனவே திருமணம் முடிந்தது (Married)</option>
+              <option value="divorced">⚖️ பிரிவு / விவாகரத்து (Separated / 2nd Marriage)</option>
+              <option value="auto">🔮 தானியங்கி கணிப்பு (Auto Predict)</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+          <button class="btn btn-gold" id="btnCalculateHoroscope" style="flex: 1; min-width: 200px;">
+            <span>🌟</span> ஜாதகம் கணிக்க (Calculate Horoscope)
+          </button>
+          <button class="btn btn-secondary" id="btnResetBirthForm">
+            <span>🔄</span> மீட்டமை (Reset)
+          </button>
+        </div>
+      </div>
+
+      <div class="chart-section-wrapper">
+
+        <!-- Left: South Indian 4x4 Grid -->
+        <div>
+          <div class="rasi-chart-container">
+            <div class="rasi-chart-grid" id="rasiChartGrid">
+              <!-- Cells populated dynamically by js/chart.js -->
+            </div>
+          </div>
+
+          <!-- Presets -->
+          <div class="cosmic-card presets-card">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-size:0.85rem; font-weight:600; color:var(--gold-light);">🌟 மாதிரி ஜாதகங்கள் (Quick Presets):</span>
+            </div>
+            <div class="preset-pills">
+              <button class="preset-pill-btn" data-preset="preset_wealth">💰 தொழில் & செல்வம்</button>
+              <button class="preset-pill-btn" data-preset="preset_leadership">👑 அரசு & நிர்வாகம்</button>
+              <button class="preset-pill-btn" data-preset="preset_spirituality">🕉️ ஆன்மீகம் & ஞானம்</button>
+              <button class="preset-pill-btn" data-preset="preset_retrograde">🌀 வக்கிரம் & விளிம்பு</button>
+            </div>
+          </div>
+
+          <!-- Navamsa Chart (D9) - சின்ன குட்டி நவாம்ச கட்டம் -->
+          <div class="cosmic-card navamsa-card" style="margin-top: 1rem;">
+            <div class="card-header" style="padding-bottom: 0.45rem; margin-bottom: 0.6rem; display: flex; justify-content: space-between; align-items: center;">
+              <div class="card-title-group">
+                <div class="card-title-icon" style="font-size: 1.05rem;">☸️</div>
+                <div>
+                  <h3 class="card-title" style="font-size: 0.95rem; margin: 0;">நவாம்ச சக்கரம் (Navamsa Chart - D9)</h3>
+                  <div class="card-subtitle" style="font-size: 0.72rem;">குட்டி நவாம்ச கட்டம் • திருமண & கிரக ஆத்ம பலம்</div>
+                </div>
+              </div>
+              <span class="badge badge-gold" style="font-size: 0.7rem;">D-9 குட்டி கட்டம்</span>
+            </div>
+            <div class="navamsa-chart-container">
+              <div class="navamsa-chart-grid" id="navamsaChartGrid">
+                <!-- Populated dynamically by js/chart.js -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Planetary Degrees Table & Toggle -->
+          <div class="cosmic-card degrees-summary-card" id="degreesSummaryCard" style="margin-top: 1rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:6px;">
+              <h3 style="color:var(--gold-primary); font-size:0.95rem; display:flex; align-items:center; gap:0.4rem; margin:0;">
+                <span>📐</span> கிரக நிலைகள் & பாகைகள் (Degrees & Status)
+              </h3>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <label style="font-size:0.75rem; color:#818cf8; display:flex; align-items:center; gap:5px; cursor:pointer; background:rgba(129,140,248,0.1); padding:3px 8px; border-radius:4px; border:1px solid rgba(129,140,248,0.3);">
+                  <input type="checkbox" id="toggleShowGocharaInChart" checked style="accent-color:#818cf8; cursor:pointer;">
+                  <span>🌐 கோச்சாரம் காட்டுக (Transits)</span>
+                </label>
+                <label style="font-size:0.75rem; color:var(--gold-light); display:flex; align-items:center; gap:5px; cursor:pointer; background:rgba(212,175,55,0.08); padding:3px 8px; border-radius:4px; border:1px solid rgba(212,175,55,0.2);">
+                  <input type="checkbox" id="toggleShowDegreesInChart" checked style="accent-color:var(--gold-primary); cursor:pointer;">
+                  <span>பாகை காட்டுக (Degrees)</span>
+                </label>
+              </div>
+            </div>
+            <div id="planetaryDegreesTableContainer">
+              <!-- Rendered dynamically by js/chart.js -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Touch-Friendly Planet Placement Drawer & Analysis -->
+        <div style="display:flex; flex-direction:column; gap:1rem;">
+          
+          <!-- Planet Placement Controls -->
+          <div class="planet-palette-card">
+            <div class="palette-instruction">
+              <span>👉</span>
+              <span>கிரகத்தை தொட்டு, ராசி கட்டத்தில் வைக்கவும்:</span>
+            </div>
+
+            <!-- 9 Planets Grid -->
+            <div class="planet-chips-grid" id="planetChipsGrid">
+              <!-- Populated by js/chart.js -->
+            </div>
+
+            <!-- Degree Input Bar -->
+            <div class="degree-input-bar" style="background: rgba(255,255,255,0.03); border:1px solid rgba(212,175,55,0.2); padding:0.6rem 0.8rem; border-radius:var(--radius-md); margin-bottom:0.75rem;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                <label for="planetDegreeInput" style="font-size:0.78rem; font-weight:700; color:var(--gold-light); display:flex; align-items:center; gap:0.3rem;">
+                  <span>📐</span> வைக்கப்படும் பாகை (Degree 0° - 30°):
+                </label>
+                <span id="activeDegreeDisplay" style="font-size:0.82rem; font-weight:700; color:#38bdf8; font-family:monospace;">15° 00'</span>
+              </div>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <input type="range" id="planetDegreeSlider" min="0" max="29.9" step="0.1" value="15.0" style="flex:1; accent-color:var(--gold-primary); cursor:pointer;">
+                <input type="number" id="planetDegreeInput" min="0" max="29.99" step="0.1" value="15.0" style="width:65px; background:#0b0f1d; border:1px solid rgba(212,175,55,0.3); color:#fff; padding:3px 6px; border-radius:4px; font-size:0.8rem; text-align:center;">
+              </div>
+              <div style="display:flex; gap:4px; margin-top:0.45rem; flex-wrap:wrap;">
+                <button type="button" class="btn-deg-quick btn btn-xs btn-outline-gold" data-deg="1.5">1.5° (விளிம்பு)</button>
+                <button type="button" class="btn-deg-quick btn btn-xs btn-outline-gold" data-deg="5.0">5°</button>
+                <button type="button" class="btn-deg-quick btn btn-xs btn-outline-gold" data-deg="10.0">10°</button>
+                <button type="button" class="btn-deg-quick btn btn-xs btn-outline-gold" data-deg="15.0">15° (மத்தியம்)</button>
+                <button type="button" class="btn-deg-quick btn btn-xs btn-outline-gold" data-deg="20.0">20°</button>
+                <button type="button" class="btn-deg-quick btn btn-xs btn-outline-gold" data-deg="28.5">28.5° (விளிம்பு)</button>
+              </div>
+            </div>
+
+            <!-- Modifiers Toggles -->
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:0.3rem;">விசேஷ நிலை (தேவைப்பட்டால் தேர்வு செய்க):</div>
+            <div class="modifiers-bar">
+              <button class="mod-toggle-btn" data-mod="vakkiram">வக்கிரம் (வ)</button>
+              <button class="mod-toggle-btn" data-mod="ucham">உச்சம் (உ)</button>
+              <button class="mod-toggle-btn" data-mod="neesam">நீசம் (நீ)</button>
+              <button class="mod-toggle-btn" data-mod="vilimbu">விளிம்பு (வி)</button>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Full-Width Comprehensive Predictions & Life Milestones Dashboard -->
+      <div id="chartAnalysisContainer" style="margin-top: 1.5rem;">
+        <!-- Populated by js/engine.js -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         TAB 2: PLANETARY COMBINATIONS (CHAPTER 2)
+         ========================================== -->
+    <section class="tab-pane" id="tab_combinations">
+      <div class="cosmic-card" style="margin-bottom: 1.25rem;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="card-title-icon">⚡</div>
+            <div>
+              <h2 class="card-title">அத்யாயம் 2: கிரக இணைவு பலன்கள் ஆய்வி</h2>
+              <div class="card-subtitle">இரு கிரகங்களை தேர்வு செய்து நேரடி நாடி பலன்களை அறிக</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Two Planets Selector -->
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem; margin-bottom:1rem;">
+          <div>
+            <label style="font-size:0.8rem; color:var(--gold-light); display:block; margin-bottom:0.4rem;">முதல் கிரகம் (Planet 1):</label>
+            <div id="pairSelectorListP1" style="display:flex; flex-wrap:wrap; gap:4px;"></div>
+          </div>
+          <div>
+            <label style="font-size:0.8rem; color:var(--gold-light); display:block; margin-bottom:0.4rem;">இரண்டாம் கிரகம் (Planet 2):</label>
+            <div id="pairSelectorListP2" style="display:flex; flex-wrap:wrap; gap:4px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Result Card -->
+      <div id="pairResultBox">
+        <!-- Populated by js/ui.js -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         TAB 3: TRANSITS / GOCHARA (CHAPTER 3)
+         ========================================== -->
+    <section class="tab-pane" id="tab_transits">
+      <div class="cosmic-card" style="margin-bottom: 1.25rem;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="card-title-icon">🪐</div>
+            <div>
+              <h2 class="card-title">அத்யாயம் 3: நடப்பு கிரக பலன்கள் (கோச்சாரம்)</h2>
+              <div class="card-subtitle">நடப்பு குரு, சனி, ராகு, கேது பெயர்ச்சிகள் பிறப்பு கிரகங்களை தொடும் பலன்கள்</div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:1rem;" id="transitNavButtons">
+          <!-- Populated by js/ui.js -->
+        </div>
+
+        <div id="transitNatalGrid">
+          <!-- Populated by js/ui.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================================
+         TAB 4: DASHA, RETROGRADE & SPECIAL RULES
+         ========================================== -->
+    <section class="tab-pane" id="tab_dasha">
+      <div class="cosmic-card" style="margin-bottom: 1rem;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="card-title-icon">⏳</div>
+            <div>
+              <h2 class="card-title">அத்யாயம் 4: தசா புத்தி & விசேஷ நாடி விதிகள்</h2>
+              <div class="card-subtitle">வக்கிரம், பரிவர்த்தனை, விளிம்பு பலன் & அதிகார கிரகம்</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-filter-box">
+          <span>🔍</span>
+          <input type="text" id="dashaRulesSearch" placeholder="கிரகம் அல்லது பலனை தேடுக (எ.கா: தசா, வக்கிரம், செவ்வாய், சனி)...">
+        </div>
+      </div>
+
+      <div id="dashaRulesContainer">
+        <!-- Populated by js/ui.js -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         TAB 5: SUBHATHUVAM & SOOKSHUMA VALU
+         ========================================== -->
+    <section class="tab-pane" id="tab_subhathuvam">
+      <div id="subhathuvamContainer">
+        <!-- Populated by js/ui.js -->
+      </div>
+    </section>
+
+    <!-- ==========================================
+         TAB 6: KARAKAS & MEDICAL ASTROLOGY
+         ========================================== -->
+    <section class="tab-pane" id="tab_karakas">
+      <div class="cosmic-card" style="margin-bottom: 1rem;">
+        <div class="card-header">
+          <div class="card-title-group">
+            <div class="card-title-icon">🩺</div>
+            <div>
+              <h2 class="card-title">நவகிரக காரகங்கள் & மருத்துவ ஜோதிடம்</h2>
+              <div class="card-subtitle">தொழில், நோய்கள், உறுப்புகள், சுற்றுச்சூழல், குலம் & முன்னோர்கள்</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="search-filter-box">
+          <span>🔍</span>
+          <input type="text" id="karakasSearch" placeholder="தொழில் அல்லது நோயை தேடுக (எ.கா: இதயம், கணினி, ஆசிரியர், தோல், கண்)...">
+        </div>
+      </div>
+
+      <div id="karakasContainer">
+        <!-- Populated by js/ui.js -->
+      </div>
+    </section>
+
+
+  </main>
+
+  <!-- 5. Mobile Bottom Navigation Bar -->
+  <div class="mobile-bottom-bar">
+    <button class="mobile-nav-item active" data-tab="chart">
+      <span class="m-icon">☸️</span>
+      <span>கட்டம்</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="combinations">
+      <span class="m-icon">⚡</span>
+      <span>இணைவு</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="transits">
+      <span class="m-icon">🪐</span>
+      <span>நடப்பு</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="dasha">
+      <span class="m-icon">⏳</span>
+      <span>தசா/விதி</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="subhathuvam">
+      <span class="m-icon">✨</span>
+      <span>சுபத்துவம்</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="karakas">
+      <span class="m-icon">🩺</span>
+      <span>காரகம்</span>
+    </button>
+  </div>
+
+  <!-- Theme & Style Selector Modal -->
+  <div class="modal-backdrop" id="themeModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 style="color:var(--gold-primary); font-size:1.1rem; display:flex; align-items:center; gap:0.4rem;">
+          <span>🎨</span> தோற்ற தேர்வுகள் (Style & Themes)
+        </h3>
+        <button class="modal-close-btn" id="btnCloseThemeModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <!-- 1. Color Themes -->
+        <div style="margin-bottom: 1.25rem;">
+          <label style="font-size:0.85rem; font-weight:700; color:var(--gold-light); display:block; margin-bottom:0.6rem;">
+            1. வண்ண தீம் (Color Theme):
+          </label>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:0.5rem;" id="themeOptionGrid">
+            <button class="btn btn-sm btn-gold theme-pick-btn" data-theme-val="gold" style="justify-content:flex-start;">
+              <span>🌟</span> <span>வேத தங்கம்</span>
+            </button>
+            <button class="btn btn-sm btn-secondary theme-pick-btn" data-theme-val="silver" style="justify-content:flex-start;">
+              <span>🌙</span> <span>சந்திர வெள்ளி</span>
+            </button>
+            <button class="btn btn-sm btn-secondary theme-pick-btn" data-theme-val="ruby" style="justify-content:flex-start;">
+              <span>🕉️</span> <span>குங்குமம்</span>
+            </button>
+            <button class="btn btn-sm btn-secondary theme-pick-btn" data-theme-val="emerald" style="justify-content:flex-start;">
+              <span>🍃</span> <span>மரகத ஞானம்</span>
+            </button>
+            <button class="btn btn-sm btn-secondary theme-pick-btn" data-theme-val="parchment" style="justify-content:flex-start;">
+              <span>☀️</span> <span>பகல் ஒளி (Light)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 2. Chart Visual Style -->
+        <div style="margin-bottom: 1.25rem;">
+          <label style="font-size:0.85rem; font-weight:700; color:var(--gold-light); display:block; margin-bottom:0.6rem;">
+            2. கட்ட வடிவமைப்பு (Chart Style):
+          </label>
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:0.5rem;" id="chartStyleOptionGrid">
+            <button class="btn btn-sm btn-gold chart-style-btn" data-chart-val="classic">
+              <span>🏛️</span> <span>பாரம்பரியம்</span>
+            </button>
+            <button class="btn btn-sm btn-secondary chart-style-btn" data-chart-val="neon">
+              <span>⚡</span> <span>நியான் ஒளி</span>
+            </button>
+            <button class="btn btn-sm btn-secondary chart-style-btn" data-chart-val="minimal">
+              <span>📐</span> <span>எளிய கோடு</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Chart Density -->
+        <div style="margin-bottom: 1.25rem;">
+          <label style="font-size:0.85rem; font-weight:700; color:var(--gold-light); display:block; margin-bottom:0.6rem;">
+            3. கட்ட அளவு (Density):
+          </label>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem;" id="chartDensityOptionGrid">
+            <button class="btn btn-sm btn-gold chart-density-btn" data-density-val="standard">
+              <span>💻</span> <span>வழக்கமான அளவு</span>
+            </button>
+            <button class="btn btn-sm btn-secondary chart-density-btn" data-density-val="compact">
+              <span>📱</span> <span>சுருக்கமான அளவு (Mobile)</span>
+            </button>
+          </div>
+        </div>
+
+        <button class="btn btn-gold btn-block" id="btnApplyThemeClose">
+          <span>✓</span> தெரிவை உறுதிப்படுத்து (Confirm & Apply)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Client Report & Print Modal -->
+  <div class="modal-backdrop" id="reportModal">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <h3 style="color:var(--gold-primary); font-size:1.1rem; display:flex; align-items:center; gap:0.4rem;">
+          <span>📄</span> ஜாதக அறிக்கை (Client Consultation Report)
+        </h3>
+        <button class="modal-close-btn" id="btnCloseReportModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:0.75rem; margin-bottom:1rem;" class="no-print">
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:2px;">ஜாதகர் பெயர்:</label>
+            <input type="text" id="clientNativeName" value="செல்வன் / செல்வி" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); padding:0.4rem 0.6rem; border-radius:6px; color:#fff; width:100%;">
+          </div>
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:2px;">பாலினம் (Gender):</label>
+            <select id="clientNativeGender" style="background:#0d1224; border:1px solid rgba(255,255,255,0.15); padding:0.4rem 0.6rem; border-radius:6px; color:#fff; width:100%;">
+              <option value="male" selected>ஆண் (Male)</option>
+              <option value="female">பெண் (Female)</option>
+              <option value="other">மற்றவை (Other)</option>
+            </select>
+          </div>
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:2px;">பிறந்த தேதி / நாள்:</label>
+            <input type="text" id="clientNativeDob" value="2026" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); padding:0.4rem 0.6rem; border-radius:6px; color:#fff; width:100%;">
+          </div>
+          <div>
+            <label style="font-size:0.78rem; color:var(--text-muted); display:block; margin-bottom:2px;">பிறந்த இடம் (Place of Birth):</label>
+            <input type="text" id="clientNativePlace" value="திருவண்ணாமலை" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.15); padding:0.4rem 0.6rem; border-radius:6px; color:#fff; width:100%;">
+          </div>
+        </div>
+
+        <div style="display:flex; gap:0.5rem; margin-bottom:1rem;" class="no-print">
+          <button class="btn btn-sm btn-gold btn-block" id="btnPrintReport">
+            <span>🖨️</span> அச்சிடு / PDF சேமி (Print Report)
+          </button>
+        </div>
+
+        <div class="print-report-container" id="printableReportContent">
+          <!-- Populated by js/ui.js -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Application Scripts -->
+  <script src="js/data/combinations.js?v=15"></script>
+  <script src="js/data/transits.js?v=15"></script>
+  <script src="js/data/dasha.js?v=15"></script>
+  <script src="js/data/karakas.js?v=15"></script>
+  <script src="js/data/subhathuvam.js?v=15"></script>
+  <script src="js/astronomy.js?v=15"></script>
+  <script src="js/chart.js?v=15"></script>
+  <script src="js/engine.js?v=15"></script>
+  <script src="js/ui.js?v=15"></script>
+  <script src="js/app.js?v=15"></script>
+</body>
+</html>

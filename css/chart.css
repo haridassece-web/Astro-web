@@ -1,0 +1,1046 @@
+/* ==========================================================================
+   PG ASTRO - South Indian Rasi Chart (தென்னிந்திய இராசி கட்டம்)
+   4x4 Classical Vedic Grid, Mobile Touch-Friendly, Responsive
+   ========================================================================== */
+
+.chart-section-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .chart-section-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    align-items: start;
+  }
+}
+
+/* South Indian 4x4 Grid */
+.rasi-chart-container {
+  background: radial-gradient(circle at center, #10162a 0%, #080c18 100%);
+  border: 2px solid var(--gold-secondary);
+  border-radius: var(--radius-lg);
+  padding: 0.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.15);
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.rasi-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, minmax(80px, 1fr));
+  gap: 3px;
+  background: var(--gold-border);
+  border: 2px solid var(--gold-primary);
+  aspect-ratio: 1 / 1;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+@media (max-width: 480px) {
+  .rasi-chart-grid {
+    grid-template-rows: repeat(4, minmax(68px, 1fr));
+  }
+}
+
+/* Individual Rasi Cell */
+.rasi-cell {
+  background: #0d1222;
+  position: relative;
+  padding: 0.35rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.rasi-cell:hover {
+  background: #171f38;
+}
+
+.rasi-cell.active-selected {
+  outline: 2px solid var(--gold-primary);
+  background: rgba(212, 175, 55, 0.12);
+  z-index: 5;
+}
+
+.rasi-cell.trine-highlight {
+  background: rgba(108, 92, 231, 0.18);
+  outline: 1px dashed var(--purple-nebula);
+}
+
+.rasi-cell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.2rem;
+  pointer-events: none;
+}
+
+.rasi-name {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-gold);
+  font-family: var(--font-tamil);
+  line-height: 1.1;
+}
+
+.rasi-lord {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+  font-family: var(--font-tamil);
+}
+
+@media (max-width: 420px) {
+  .rasi-lord {
+    display: none;
+  }
+  .rasi-name {
+    font-size: 0.66rem;
+  }
+}
+
+/* Planets Container inside Cell */
+.cell-planets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  align-content: flex-start;
+  min-height: 28px;
+  padding-top: 2px;
+}
+
+/* Placed Planet Chip */
+.chart-planet-chip {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  color: var(--text-pure);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  font-family: var(--font-tamil);
+  transition: transform 0.15s ease, background 0.15s ease;
+  cursor: pointer;
+}
+
+.chart-planet-chip:hover {
+  transform: scale(1.08);
+  border-color: var(--gold-primary);
+  background: rgba(212, 175, 55, 0.25);
+}
+
+.chip-status-badge {
+  font-size: 0.55rem;
+  padding: 0 2px;
+  border-radius: 2px;
+  font-weight: 800;
+}
+.badge-vakkiram { background: #dc2626; color: #fff; } /* வக்கிரம் */
+.badge-ucham { background: #16a34a; color: #fff; }    /* உச்சம் */
+.badge-neesam { background: #4b5563; color: #fff; }   /* நீசம் */
+.badge-vilimbu { background: #d97706; color: #fff; }  /* விளிம்பு */
+
+/* Degree badge displayed inside planet chips */
+.chip-degree {
+  font-size: 0.58rem;
+  font-family: var(--font-mono, monospace);
+  color: var(--gold-light, #ffd700);
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  padding: 0 3px;
+  border-radius: 3px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  display: inline-block;
+  line-height: 1.1;
+}
+
+.chip-lagna {
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+.chip-lagna .chip-degree {
+  background: rgba(11, 15, 29, 0.7);
+  color: #ffd700;
+  border-color: rgba(255, 215, 0, 0.5);
+}
+
+/* Specific Rasi Cell Grid Positions */
+.cell-pisces      { grid-area: 1 / 1 / 2 / 2; } /* மீனம் */
+.cell-aries       { grid-area: 1 / 2 / 2 / 3; } /* மேஷம் */
+.cell-taurus      { grid-area: 1 / 3 / 2 / 4; } /* ரிஷபம் */
+.cell-gemini      { grid-area: 1 / 4 / 2 / 5; } /* மிதுனம் */
+.cell-cancer      { grid-area: 2 / 4 / 3 / 5; } /* கடகம் */
+.cell-leo         { grid-area: 3 / 4 / 4 / 5; } /* சிம்மம் */
+.cell-virgo       { grid-area: 4 / 4 / 5 / 5; } /* கன்னி */
+.cell-libra       { grid-area: 4 / 3 / 5 / 4; } /* துலாம் */
+.cell-scorpio     { grid-area: 4 / 2 / 5 / 3; } /* விருச்சிகம் */
+.cell-sagittarius { grid-area: 4 / 1 / 5 / 2; } /* தனுசு */
+.cell-capricorn   { grid-area: 3 / 1 / 4 / 2; } /* மகரம் */
+.cell-aquarius    { grid-area: 2 / 1 / 3 / 2; } /* கும்பம் */
+
+/* Central Hub (2x2 span) */
+.cell-center-hub {
+  grid-area: 2 / 2 / 4 / 4;
+  background: radial-gradient(circle at center, #131b34 0%, #090d1a 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.6rem;
+  border: 1px solid var(--gold-border);
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.8);
+  position: relative;
+}
+
+.center-title {
+  font-size: clamp(0.82rem, 1.6vw, 1.12rem);
+  font-family: var(--font-tamil), var(--font-heading);
+  background: var(--gold-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.center-subtitle {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-family: var(--font-tamil);
+  margin-bottom: 0.35rem;
+}
+
+.center-active-stats {
+  font-size: 0.72rem;
+  color: var(--gold-light);
+  background: rgba(212, 175, 55, 0.1);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-full);
+  margin-bottom: 0.4rem;
+  border: 1px solid rgba(212, 175, 55, 0.2);
+}
+
+.center-quick-actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Planet Placement Controls & Mobile Drawer */
+.planet-palette-card {
+  background: var(--bg-card);
+  border: 1px solid var(--gold-border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+}
+
+.palette-instruction {
+  font-size: 0.8rem;
+  color: var(--gold-light);
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-tamil);
+}
+
+.planet-chips-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 480px) {
+  .planet-chips-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.planet-source-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-main);
+  padding: 0.5rem 0.3rem;
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: var(--font-tamil);
+}
+
+.planet-source-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--gold-primary);
+  color: var(--gold-light);
+}
+
+.planet-source-btn.selected {
+  background: var(--gold-gradient);
+  color: #0b0f1d;
+  border-color: var(--gold-primary);
+  box-shadow: 0 0 14px var(--gold-glow);
+  transform: translateY(-2px);
+}
+
+.planet-source-btn .p-icon {
+  font-size: 1.15rem;
+}
+
+/* Modifiers Toggles (Retrograde, Exaltation, Marginal) */
+.modifiers-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background: rgba(11, 15, 29, 0.8);
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.mod-toggle-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-family: var(--font-tamil);
+  transition: all 0.2s ease;
+}
+
+.mod-toggle-btn.active {
+  background: var(--gold-primary);
+  color: #0b0f1d;
+  font-weight: 700;
+  border-color: var(--gold-primary);
+}
+
+/* Preset Horoscopes Bar */
+.presets-card {
+  margin-top: 1rem;
+}
+
+.preset-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.preset-pill-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  padding: 0.35rem 0.7rem;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  cursor: pointer;
+  font-family: var(--font-tamil);
+  transition: all 0.2s ease;
+}
+
+.preset-pill-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: var(--gold-border);
+  color: var(--gold-light);
+}
+
+/* Extra small button for quick degree selection */
+.btn-xs {
+  padding: 0.2rem 0.5rem !important;
+  font-size: 0.72rem !important;
+  border-radius: 4px !important;
+  line-height: 1.2 !important;
+}
+
+/* Degrees Table styling */
+.degrees-summary-card {
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  background: rgba(13, 18, 36, 0.75);
+}
+
+.degrees-table th, .degrees-table td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.degrees-table tbody tr:hover {
+  background: rgba(212, 175, 55, 0.12) !important;
+}
+
+@media (max-width: 600px) {
+  .chip-degree {
+    font-size: 0.52rem;
+    padding: 0 2px;
+  }
+}
+
+/* ==========================================================================
+   Vimshottari Dasa - Bhukti - Antharam Dashboard Styling
+   ========================================================================== */
+.dasa-dashboard-card {
+  background: linear-gradient(135deg, rgba(16, 22, 42, 0.95) 0%, rgba(26, 18, 48, 0.95) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.dasa-nakshatra-banner {
+  background: rgba(212, 175, 55, 0.12);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: var(--radius-md);
+  padding: 0.6rem 0.85rem;
+  margin-bottom: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.dasa-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  margin-bottom: 0.85rem;
+}
+
+@media (max-width: 580px) {
+  .dasa-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dasa-metric-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.65rem;
+  text-align: center;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.dasa-metric-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(212, 175, 55, 0.4);
+}
+
+.dasa-metric-card.active-maha {
+  border-color: rgba(239, 68, 68, 0.4);
+  background: radial-gradient(circle at top, rgba(239, 68, 68, 0.12), rgba(15, 23, 42, 0.6));
+}
+
+.dasa-metric-card.active-bhukti {
+  border-color: rgba(245, 197, 24, 0.4);
+  background: radial-gradient(circle at top, rgba(245, 197, 24, 0.12), rgba(15, 23, 42, 0.6));
+}
+
+.dasa-metric-card.active-antharam {
+  border-color: rgba(56, 189, 248, 0.4);
+  background: radial-gradient(circle at top, rgba(56, 189, 248, 0.12), rgba(15, 23, 42, 0.6));
+}
+
+.dasa-metric-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-dim);
+  margin-bottom: 3px;
+}
+
+.dasa-metric-lord {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 3px;
+  font-family: var(--font-tamil);
+}
+
+.dasa-metric-dates {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.dasa-prediction-box {
+  background: rgba(0, 0, 0, 0.3);
+  border-left: 3px solid var(--gold-primary);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: 0.75rem 0.9rem;
+  margin-bottom: 0.75rem;
+}
+
+.dasa-timeline-strip {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding: 0.4rem 0.2rem;
+  scrollbar-width: thin;
+}
+
+.dasa-timeline-chip {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.6rem;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  text-align: center;
+  white-space: nowrap;
+}
+
+.dasa-timeline-chip.current {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: var(--gold-primary);
+  color: var(--gold-light);
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   Subhathuvam, Sookshuma Valu & Papathuvam Styling
+   ========================================================================== */
+.subha-dashboard-card {
+  background: linear-gradient(135deg, rgba(13, 18, 36, 0.95) 0%, rgba(20, 28, 56, 0.95) 100%);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.subha-career-box {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.15) 0%, rgba(212, 175, 55, 0.05) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.subha-warning-box {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.15) 0%, rgba(239, 68, 68, 0.05) 100%);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.subha-remedy-box {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15) 0%, rgba(245, 158, 11, 0.05) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  margin-bottom: 0.85rem;
+}
+
+.subha-planets-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 0.75rem;
+}
+
+.subha-planet-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.subha-planet-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(212, 175, 55, 0.3);
+}
+
+.score-tag-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0.4rem 0;
+}
+
+.score-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono, monospace);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.score-badge.badge-subha {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.score-badge.badge-sookshuma {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
+.score-badge.badge-papa {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.score-badge.badge-net {
+  background: rgba(212, 175, 55, 0.2);
+  color: #ffd700;
+  border: 1px solid rgba(212, 175, 55, 0.4);
+}
+
+.subha-reason-line {
+  font-size: 0.76rem;
+  line-height: 1.4;
+  margin-top: 3px;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+}
+
+.subha-reason-line.subha {
+  color: #a7f3d0;
+}
+
+.subha-reason-line.sookshuma {
+  color: #bae6fd;
+}
+
+.subha-reason-line.papa {
+  color: #fca5a5;
+}
+
+.subha-reason-line.neutral {
+  color: var(--text-dim);
+}
+
+/* ==========================================================================
+   LIFE MILESTONES & PREDICTIONS (முக்கிய வாழ்க்கை நிகழ்வுகள்)
+   Job, Business vs Job, Marriage, House, Vehicle / Car
+   ========================================================================== */
+
+.milestones-dashboard-card {
+  background: radial-gradient(circle at 50% 0%, rgba(30, 41, 69, 0.75) 0%, rgba(11, 16, 32, 0.96) 100%);
+  border: 2px solid rgba(212, 175, 55, 0.45);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.milestones-dashboard-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #f59e0b, #ec4899, #38bdf8, #10b981, #d4af37);
+}
+
+.milestones-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+  padding-bottom: 0.75rem;
+}
+
+.milestones-title {
+  font-size: 1.12rem;
+  color: var(--gold-primary);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.milestones-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+
+.milestone-card {
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  transition: all 0.25s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.milestone-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.milestone-card.card-education { border-left: 4px solid #06b6d4; }
+.milestone-card.card-job-type { border-left: 4px solid #38bdf8; }
+.milestone-card.card-job-time { border-left: 4px solid #f59e0b; }
+.milestone-card.card-marriage { border-left: 4px solid #ec4899; }
+.milestone-card.card-child    { border-left: 4px solid #f43f5e; }
+.milestone-card.card-house    { border-left: 4px solid #10b981; }
+.milestone-card.card-vehicle  { border-left: 4px solid #a855f7; }
+
+.milestone-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.milestone-icon-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.milestone-icon-title .icon {
+  font-size: 1.35rem;
+}
+
+.milestone-card-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+}
+
+.milestone-card-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.milestone-verdict-box {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.8rem;
+  margin: 0.5rem 0 0.65rem 0;
+}
+
+.milestone-highlight-text {
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: var(--gold-light);
+  line-height: 1.3;
+}
+
+.milestone-time-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(212, 175, 55, 0.15);
+  color: #fbbf24;
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  padding: 3px 8px;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+  margin-top: 5px;
+}
+
+.milestone-desc-text {
+  font-size: 0.82rem;
+  line-height: 1.6;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.milestone-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 0.6rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.milestone-tag {
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-dim);
+  padding: 2px 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.milestone-nadi-box {
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-left: 3px solid #8b5cf6;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.65rem;
+  margin-top: 0.5rem;
+}
+
+.nadi-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #c4b5fd;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 3px;
+}
+
+.nadi-box-content {
+  font-size: 0.76rem;
+  color: #ede9fe;
+  line-height: 1.45;
+}
+
+.milestone-subha-box {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-left: 3px solid #f59e0b;
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.65rem;
+  margin-top: 0.45rem;
+}
+
+.subha-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fbbf24;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 3px;
+}
+
+.subha-box-content {
+  font-size: 0.76rem;
+  color: #fef3c7;
+  line-height: 1.45;
+}
+
+/* ==========================================================================
+   Compact Navamsa Chart (குட்டி நவாம்ச கட்டம் - D9)
+   ========================================================================== */
+.navamsa-card {
+  background: rgba(13, 18, 36, 0.7);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+}
+
+.navamsa-chart-container {
+  background: radial-gradient(circle at center, #10172e 0%, #070b16 100%);
+  border: 1.5px solid rgba(212, 175, 55, 0.35);
+  border-radius: var(--radius-md);
+  padding: 0.35rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(212, 175, 55, 0.05);
+  user-select: none;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.navamsa-chart-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: repeat(4, minmax(52px, 1fr));
+  gap: 2px;
+  background: rgba(212, 175, 55, 0.2);
+  border: 1.5px solid var(--gold-secondary);
+  aspect-ratio: 1 / 1;
+}
+
+@media (max-width: 480px) {
+  .navamsa-chart-grid {
+    grid-template-rows: repeat(4, minmax(46px, 1fr));
+  }
+}
+
+.navamsa-cell {
+  background: #0d1324;
+  padding: 0.2rem 0.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  position: relative;
+  transition: background 0.2s ease;
+}
+
+.navamsa-cell:hover {
+  background: #151e38;
+}
+
+.navamsa-cell-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  pointer-events: none;
+  line-height: 1;
+}
+
+.navamsa-rasi-name {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--gold-light);
+}
+
+.navamsa-rasi-lord {
+  font-size: 0.58rem;
+  color: var(--text-dim);
+}
+
+.navamsa-cell-planets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+.navamsa-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.62rem;
+  font-weight: 700;
+  padding: 1px 3px;
+  border-radius: 3px;
+  line-height: 1.1;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+}
+
+.navamsa-chip.chip-lagna {
+  background: linear-gradient(135deg, #ffd700 0%, #d4af37 100%);
+  color: #0b0f1d;
+  font-weight: 800;
+  border: 1px solid #fff;
+}
+
+.navamsa-center-hub {
+  grid-column: 2 / 4;
+  grid-row: 2 / 4;
+  background: radial-gradient(circle at center, #151d36 0%, #090e1c 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  border: 1px dashed rgba(212, 175, 55, 0.35);
+  padding: 0.25rem;
+}
+
+.navamsa-hub-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--gold-primary);
+  letter-spacing: 0.5px;
+}
+
+.navamsa-hub-sub {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
+
+/* ==========================================================================
+   Today's Gochara (Transit) Badges in Main Rasi Cell
+   ========================================================================== */
+.cell-gochara {
+  margin-top: auto;
+  padding-top: 2px;
+  pointer-events: none;
+}
+
+.gochara-cell-strip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 2px 3px;
+  background: rgba(99, 102, 241, 0.12);
+  border: 1px dashed rgba(129, 140, 248, 0.35);
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 0.65rem;
+  line-height: 1.2;
+}
+
+.gochara-pill-tag {
+  color: #818cf8;
+  font-weight: 800;
+  font-size: 0.62rem;
+}
+
+.gochara-planet-item {
+  color: #c7d2fe;
+  font-weight: 600;
+  font-size: 0.64rem;
+}
+
+/* ==========================================================================
+   Job Location Prediction Section in Card 1
+   ========================================================================== */
+.job-location-card-section {
+  background: rgba(14, 165, 233, 0.07);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.8rem;
+  margin-top: 0.6rem;
+}
+
+.loc-prob-box {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 3px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.72rem;
+}
+
+.loc-prob-lbl {
+  color: var(--text-dim);
+}
+
+.loc-prob-val {
+  font-weight: 700;
+  font-family: var(--font-mono, monospace);
+}
+
+
+
