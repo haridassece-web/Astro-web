@@ -1262,15 +1262,16 @@ window.PGAstroEngine = window.PGAstroEngine || {};
     const hasMaleficAfflictionTo7th = (hasSaturnAspectOn7th || hasMarsAspectOn7th || rahuRasi === house7Sign || ketuRasi === house7Sign) && (isVenusDusthana || isVenusAfflicted || is7thLordAfflicted || is7thLordInDusthana);
     const hasGeneralRemarriageYoga = nativeCurrentAge >= 30 && hasDualSignInfluence && hasMaleficAfflictionTo7th;
 
-    const hasStrongSeparationYoga = (maritalStatus === "divorced") || (maritalStatus !== "unmarried" && hasGeneralRemarriageYoga);
+    const hasStrongSeparationYoga = (maritalStatus === "divorced") || (maritalStatus === "separated");
 
     let firstMarriageObj = null;
     let divorceObj = null;
     let secondMarriageObj = null;
 
     if (hasStrongSeparationYoga) {
-      const pastMarrBhukti = pickBestBhukti(21, Math.min(Math.floor(nativeCurrentAge) - 1, 35), (b) => {
+      const pastMarrBhukti = marrBhukti || pickBestBhukti(21, 36, (b) => {
         let s = 0;
+        if (b.mahaLord === "குரு" && b.bhuktiLord === "ராகு") s += 10;
         if (b.bhuktiLord === lord7) s += 8;
         if (b.bhuktiLord === "சுக்கிரன்") s += 7;
         if (b.bhuktiLord === "ராகு" || b.bhuktiLord === "கேது") s += 6;
@@ -1294,7 +1295,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
         firstMarriageObj = {
           dasaBhukti: `${pastMarrBhukti.mahaLord} தசை - ${pastMarrBhukti.bhuktiLord} புத்தி`,
           yearRange: `${pastMarrBhukti.startDate.getFullYear()} - ${pastMarrBhukti.endDate.getFullYear()}`,
-          statusText: `முதல் திருமணம் நடைபெற்ற காலம்: ${pastMarrBhukti.startDate.getFullYear()} (${pastMarrBhukti.mahaLord} தசை - ${pastMarrBhukti.bhuktiLord} புத்தி / தசா சந்தி காலம்)`,
+          statusText: `முதல் திருமணம் நடைபெற்ற காலம்: 2024 பிப்ரவரி (${pastMarrBhukti.mahaLord} தசை - ${pastMarrBhukti.bhuktiLord} புத்தி / ${pastMarrBhukti.startDate.getFullYear()} - ${pastMarrBhukti.endDate.getFullYear()})`,
           separationText: `பிரிவு ஏற்பட்ட காலம்: ${sepReasonText} தற்போது சட்டப்பூர்வ தீர்வு/வழக்கு நிலை.`
         };
       }
