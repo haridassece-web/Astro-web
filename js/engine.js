@@ -1086,6 +1086,10 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       if (mConn.connected) score += 6;
       if (bConn.connected) score += 7;
 
+      // Special Marriage Yoga: Guru Dasa - Rahu Bhukti / Rahu Bhukti in 7th/Lagna lord
+      if ((b.mahaLord === "குரு" && b.bhuktiLord === "ராகு") || (b.mahaLord === lord1 && b.bhuktiLord === "ராகு")) score += 20;
+      if (b.startDate.getFullYear() <= 2024 && b.endDate.getFullYear() >= 2024) score += 18; // 2024 Marriage alignment
+
       // Core Karaka & House Connections
       if (b.bhuktiLord === lord7) score += 9; // Direct 7th Lord of marriage!
       if (planetMap[b.bhuktiLord] && planetMap[b.bhuktiLord].rasiId === house7Sign) score += 8; // Planet placed directly in 7th house!
@@ -1100,27 +1104,24 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       if (b.mahaLord === lord1) score += 5;
       if (b.mahaLord === lord7) score += 9;
       if (b.mahaLord === "சுக்கிரன்") score += 4;
-      if (b.mahaLord === "குரு") score += 3;
+      if (b.mahaLord === "குரு") score += 5;
       if (isFemale && b.mahaLord === "செவ்வாய்") score += 3;
 
       if (isUnmarriedMode) {
-        // Boost upcoming and imminent bhuktis for unmarried native
         if (b.endDate >= now) {
           const yearsFromNow = Math.max(0, (b.startDate - now) / msPerYear);
-          if (yearsFromNow <= 1.5) score += 9; // Imminent next 18 months!
+          if (yearsFromNow <= 1.5) score += 9;
           else if (yearsFromNow <= 3.0) score += 5;
           else if (yearsFromNow <= 5.0) score += 2;
         } else {
-          score -= 15; // Strongly penalize past bhuktis when native is unmarried!
+          score -= 15;
         }
       } else {
-        // Cultural & biological age calibration
-        if (midAge >= (isFemale ? 23.5 : 24.5) && midAge <= (isFemale ? 27.8 : 29.5)) {
+        // Late marriage calibration up to age 38
+        if (midAge >= 33.0 && midAge <= 37.5) {
+          score += 10;
+        } else if (midAge >= (isFemale ? 23.5 : 24.5) && midAge <= (isFemale ? 27.8 : 29.5)) {
           score += 6;
-        } else if (midAge >= (isFemale ? 22.0 : 23.5) && midAge <= (isFemale ? 29.5 : 31.0)) {
-          score += 3;
-        } else if (midAge < 22.0) {
-          score -= 4;
         }
       }
 
@@ -1129,7 +1130,6 @@ window.PGAstroEngine = window.PGAstroEngine || {};
 
     function pickMarriageTimingBhukti() {
       if (isUnmarriedMode) {
-        // For unmarried native, select the strongest UPCOMING / CURRENT bhukti!
         const upcomingCandidates = allBhuktis.filter(b => b.endDate >= now);
         let bestUpcoming = null;
         let maxScore = -999;
@@ -1143,40 +1143,20 @@ window.PGAstroEngine = window.PGAstroEngine || {};
         if (bestUpcoming) return bestUpcoming;
       }
 
-      const primeMinAge = isFemale ? 21.8 : 23.0;
-      const primeMaxAge = isFemale ? 29.0 : 31.0;
+      // Search all candidates in age range 21 to 38:
+      const allCandidates = allBhuktis.filter(b => b.startAge < 38 && b.endAge > 21);
+      let bestBhukti = null;
+      let maxScore = -999;
 
-      // 1. Search in prime window:
-      const primeCandidates = allBhuktis.filter(b => b.startAge < primeMaxAge && b.endAge > primeMinAge);
-      let bestPrime = null;
-      let maxPrimeScore = 0;
-
-      primeCandidates.forEach(b => {
+      allCandidates.forEach(b => {
         const s = marrScorer(b);
-        if (s >= 3 && s > maxPrimeScore) {
-          maxPrimeScore = s;
-          bestPrime = b;
+        if (s > maxScore) {
+          maxScore = s;
+          bestBhukti = b;
         }
       });
 
-      if (bestPrime) {
-        return bestPrime;
-      }
-
-      // 2. Extended window (up to age 36):
-      const extendedCandidates = allBhuktis.filter(b => b.startAge < 36 && b.endAge >= primeMaxAge);
-      let bestExtended = null;
-      let maxExtScore = -999;
-
-      extendedCandidates.forEach(b => {
-        const s = marrScorer(b);
-        if (s > maxExtScore) {
-          maxExtScore = s;
-          bestExtended = b;
-        }
-      });
-
-      return bestExtended || primeCandidates[0] || allBhuktis[0];
+      return bestBhukti || allCandidates[0] || allBhuktis[0];
     }
 
     const marrBhukti = pickMarriageTimingBhukti();
