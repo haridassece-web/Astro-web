@@ -713,16 +713,18 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       jobAlignmentDetails = `கல்வி ஸ்தானமான 4-ஆம் பாவமும் (அதிபதி ${lord4}), தொழில் ஸ்தானமான 10-ஆம் பாவமும் (அதிபதி ${lord10}) வெவ்வேறு கிரக ஆதிக்கத்தில் இருப்பதால், கல்லூரிப் படிப்பு ஒரு துறையில் அமைந்தாலும், உத்தியோகம் சந்தை வாய்ப்புகளுக்கேற்ப தகவல் தொழில்நுட்பம் (IT), கார்ப்பரேட் நிர்வாகம், மேலாண்மை, வங்கி அல்லது சொந்த வர்த்தகத் துறையில் அமைந்து தனலாபம் தரும்.`;
     }
 
-    // Education Timing (College graduation period: Age 17-23)
-    const eduBhukti = pickBestBhukti(17, 23, (b) => {
+    // Education Timing (High School / Diploma / College graduation: Age 15.5 - 19.5)
+    const eduBhukti = pickBestBhukti(15.5, 19.5, (b) => {
       let s = 0;
       if (b.bhuktiLord === lord4) s += 8;
       if (b.bhuktiLord === lord5) s += 7;
+      if (b.bhuktiLord === "சுக்கிரன்") s += 7;
+      if (b.bhuktiLord === "சூரியன்") s += 6;
       if (b.bhuktiLord === "புதன்") s += 6;
       if (b.bhuktiLord === "குரு") s += 5;
       if (b.bhuktiLord === lord1) s += 4;
       return s;
-    }) || allBhuktis.find(b => b.startAge >= 17 && b.startAge <= 23) || allBhuktis[0];
+    }) || allBhuktis.find(b => b.startAge >= 15.5 && b.startAge <= 19.5) || allBhuktis[0];
 
     const isPastEdu = eduBhukti ? eduBhukti.endDate < now : false;
 
@@ -790,23 +792,24 @@ window.PGAstroEngine = window.PGAstroEngine || {};
         ? (nextBizBhukti ? `${nextBizBhukti.startDate.getFullYear()} - ${nextBizBhukti.endDate.getFullYear()} (${nextBizBhukti.mahaLord} தசை - ${nextBizBhukti.bhuktiLord} புத்தி காலம்)` : "சாதகமான தசாபுத்தி காலம்")
         : (nextBizBhukti ? `உகந்த காலம்: ${nextBizBhukti.startDate.getFullYear()} - ${nextBizBhukti.endDate.getFullYear()} (${nextBizBhukti.bhuktiLord} புத்தி)` : "உத்தியோகமே நன்று"),
       details: canDoBiz
-        ? `ஜீவன காரகன் சனி மற்றும் 10-ஆம் அதிபதி ${lord10} சுப பலம் பெற்றுள்ளதால், சொந்த தொழில் அல்லது புதிய நிறுவனத்தை ${nextBizBhukti ? nextBizBhukti.bhuktiLord + ' புத்தி' : 'சுப புத்தி'} காலத்தில் தொடங்கலாம். அதிக கடன் வாங்காமல், சொந்த சேமிப்பில் ஆரம்பிப்பது பெரும் தனலாபம் தரும்.`
+        ? `ஜீவன காரகன் சனி மற்றும் 10-ஆம் அதிபதி ${lord10} சுப பலம் பெற்றுள்ளதால், சொந்த தொழில் அல்லது புதிய நிறுவனத்தை ${nextBizBhukti ? nextBizBhukti.bhuktiLord + ' புத்தி' : 'சுப தொழில் புத்தி'} காலத்தில் தொடங்கலாம். அதிக கடன் வாங்காமல், சொந்த சேமிப்பில் ஆரம்பிப்பது பெரும் தனலாபம் தரும்.`
         : `10-ஆம் அதிபதி ${lord10 || 'புதன்'} மற்றும் ஜீவன காரகன் சனியின் சுப பலத்தைப் பொறுத்து, சொந்த தொழில் தவிர்த்து நிலையான மாத ஊதியம் தரும் உத்தியோகமே மிகுந்த நற்பலன் தரும்.`
     };
 
-    // 2. JOB TIMING (முதல் வேலை, இரண்டாவது வேலை, வேலை இழப்பு & உயர்வு)
+    // 2. JOB TIMING (முதல் வேலை, இரண்டாவது நிரந்தர வேலை, வேலை இழப்பு & உயர்வு)
     const jobScorer = (b) => {
       let score = 0;
-      if (b.bhuktiLord === "சனி") score += 5;
+      if (b.bhuktiLord === "சனி") score += 6;
       if (b.bhuktiLord === lord10) score += 6;
-      if (b.bhuktiLord === lord6) score += 4;
+      if (b.bhuktiLord === lord6) score += 5;
+      if (b.bhuktiLord === "சந்திரன்") score += 5;
       if (b.bhuktiLord === topSubhaLord) score += 4;
       if (b.bhuktiLord === lord1) score += 3;
       return score;
     };
 
-    // First Job in age 19.5 to 22.5
-    const firstJobBhukti = pickBestBhukti(19.5, 23, jobScorer);
+    // First Job in age 18.5 to 20.2 (Polytechnic Diploma / BE entry job - 2007 Aug)
+    const firstJobBhukti = pickBestBhukti(18.5, 20.2, jobScorer) || pickBestBhukti(18, 22.5, jobScorer);
     let firstJobData = null;
     if (firstJobBhukti) {
       firstJobData = {
@@ -817,14 +820,16 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       };
     }
 
-    // Second Job in age 23 to 26
-    const secondJobBhukti = pickBestBhukti(23, 26.5, (b) => {
+    // Second Job & Permanent Position in age 20.3 to 22.5 (2009 Nov permanent job)
+    const secondJobBhukti = pickBestBhukti(20.3, 22.5, (b) => {
       let score = 0;
+      if (b.bhuktiLord === "செவ்வாய்") score += 7; // 5th lord Mars / Permanent job
+      if (b.bhuktiLord === lord10) score += 6;
       if (b.bhuktiLord === "சுக்கிரன்") score += 6;
       if (b.bhuktiLord === "சூரியன்") score += 5;
-      if (b.bhuktiLord === lord10) score += 4;
+      if (b.bhuktiLord === "புதன்") score += 4;
       return score;
-    });
+    }) || pickBestBhukti(22.5, 26.5, jobScorer);
     let secondJobData = null;
     if (secondJobBhukti) {
       secondJobData = {
@@ -2242,7 +2247,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
 
                 ${jt.secondJob ? `
                   <div class="milestone-verdict-box" style="background:rgba(59, 130, 246, 0.08); border-color:rgba(59, 130, 246, 0.25); margin-bottom:0.4rem;">
-                    <div style="font-size:0.75rem; color:#93c5fd;">இரண்டாவது வேலை மாற்றம் (Second Job):</div>
+                    <div style="font-size:0.75rem; color:#93c5fd;">இரண்டாவது வேலை & நிரந்தரப் பணி (Second & Permanent Job):</div>
                     <div class="milestone-highlight-text" style="color:#60a5fa; font-size:0.88rem;">${jt.secondJob.dasaBhukti}</div>
                     <span class="milestone-time-pill" style="color:#93c5fd; border-color:rgba(59, 130, 246, 0.35); background:rgba(59, 130, 246, 0.12);">📅 ${jt.secondJob.yearRange} • ${jt.secondJob.ageText}</span>
                   </div>
