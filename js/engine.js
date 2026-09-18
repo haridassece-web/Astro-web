@@ -520,6 +520,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
 
     // Educational Stream Scoring
     let engScore = 0;
+    let eceScore = 0;
     let itScore = 0;
     let commScore = 0;
     let medScore = 0;
@@ -527,15 +528,24 @@ window.PGAstroEngine = window.PGAstroEngine || {};
     let lawScore = 0;
     let sciScore = 0;
 
-    // 1. Engineering & Technology (செவ்வாய் / சனி / 4-ஆம் பாவம்)
+    // 1. ECE, Electronics & Communication & Polytechnic Diploma (செவ்வாய் + புதன் + சனி / 5-ஆம் அதிபதி செவ்வாய்)
+    if (lord5 === "செவ்வாய்" || lord4 === "செவ்வாய்") eceScore += 10;
+    if (eduHouse5Sign === 1 || eduHouse5Sign === 8 || eduHouse4Sign === 1 || eduHouse4Sign === 8) eceScore += 8;
+    if (eduMarsData && eduMercuryData && [0, 4, 8, 6].includes((eduMercuryData.rasiId - eduMarsData.rasiId + 12) % 12)) eceScore += 10;
+    if (eduMercNadi.conj.includes("செவ்வாய்") || eduMercNadi.trine.includes("செவ்வாய்")) eceScore += 9;
+    if (eduSaturnData && (eduSaturnData.rasiId === eduHouse4Sign || eduSaturnData.rasiId === eduHouse5Sign)) eceScore += 8; // Polytechnic Diploma
+    if (eduSaturnData && eduMarsData && [0, 4, 8, 6].includes((eduSaturnData.rasiId - eduMarsData.rasiId + 12) % 12)) eceScore += 7;
+    if ((eduRahuData && (eduRahuData.rasiId === eduHouse4Sign || eduRahuData.rasiId === eduHouse5Sign)) || (eduKetuData && (eduKetuData.rasiId === eduHouse4Sign || eduKetuData.rasiId === eduHouse5Sign))) eceScore += 6; // Micro-electronics & Wireless
+
+    // 2. Mechanical, Civil & Core Engineering (செவ்வாய் / சனி / 4-ஆம் பாவம்)
     if (eduMarsData && (eduMarsData.rasiId === eduHouse4Sign || eduMarsData.rasiId === eduHouse5Sign)) engScore += 8;
-    if (lord4 === "செவ்வாய்" || lord5 === "செவ்வாய்") engScore += 7;
+    if (lord4 === "செவ்வாய்" || lord5 === "செவ்வாய்") engScore += 8;
     if (eduMarsData && eduLord4Data && [0, 4, 8, 6].includes((eduLord4Data.rasiId - eduMarsData.rasiId + 12) % 12)) engScore += 6;
     if (eduMarsData && eduSaturnData && [0, 4, 8, 6].includes((eduSaturnData.rasiId - eduMarsData.rasiId + 12) % 12)) engScore += 6;
-    if (eduHouse4Sign === 1 || eduHouse4Sign === 8) engScore += 4;
-    if (eduSaturnData && (eduSaturnData.rasiId === eduHouse4Sign || eduSaturnData.rasiId === eduHouse5Sign)) engScore += 4;
+    if (eduHouse4Sign === 1 || eduHouse4Sign === 8) engScore += 5;
+    if (eduSaturnData && (eduSaturnData.rasiId === eduHouse4Sign || eduSaturnData.rasiId === eduHouse5Sign)) engScore += 6;
 
-    // 2. Computer Science, IT, AI & Software (புதன் + கேது/ராகு/செவ்வாய்)
+    // 3. Computer Science, IT, AI & Software (புதன் + கேது/ராகு/செவ்வாய்)
     if (eduMercNadi.conj.includes("கேது") || eduMercNadi.trine.includes("கேது")) itScore += 9;
     if (eduMercNadi.conj.includes("ராகு") || eduMercNadi.trine.includes("ராகு")) itScore += 8;
     if ((eduRahuData && (eduRahuData.rasiId === eduHouse4Sign || eduRahuData.rasiId === eduHouse5Sign)) || (eduKetuData && (eduKetuData.rasiId === eduHouse4Sign || eduKetuData.rasiId === eduHouse5Sign))) itScore += 7;
@@ -543,7 +553,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
     if (eduMercuryData && eduMarsData && [0, 4, 8, 6].includes((eduMercuryData.rasiId - eduMarsData.rasiId + 12) % 12)) itScore += 6;
     if (lord4 === "புதன்" || lord5 === "புதன்") itScore += 5;
 
-    // 3. Commerce, Accounting, CA & Finance (புதன் + குரு/சுக்கிரன், 2-ஆம் அதிபதி)
+    // 4. Commerce, Accounting, CA & Finance (புதன் + குரு/சுக்கிரன், 2-ஆம் அதிபதி)
     if (eduMercNadi.conj.includes("குரு") || eduMercNadi.trine.includes("குரு")) commScore += 8;
     if (eduMercNadi.conj.includes("சுக்கிரன்") || eduMercNadi.trine.includes("சுக்கிரன்")) commScore += 7;
     if (eduMercuryData && (eduMercuryData.rasiId === 2 || eduMercuryData.rasiId === 7 || eduMercuryData.rasiId === 6)) commScore += 6;
@@ -553,7 +563,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
     if (eduGuruData && (eduGuruData.rasiId === eduHouse2Sign || eduGuruData.rasiId === eduHouse4Sign || eduGuruData.rasiId === eduHouse5Sign)) commScore += 5;
     if (lord4 === "புதன்" || lord4 === "சுக்கிரன்" || lord5 === "புதன்" || lord5 === "சுக்கிரன்") commScore += 4;
 
-    // 4. Medicine, Healthcare, Pharmacy & Surgery (சூரியன் + செவ்வாய்/கேது/சந்திரன்)
+    // 5. Medicine, Healthcare, Pharmacy & Surgery (சூரியன் + செவ்வாய்/கேது/சந்திரன்)
     if (eduSunData && (eduSunData.rasiId === eduHouse4Sign || eduSunData.rasiId === eduHouse5Sign)) medScore += 8;
     if (eduSunData && eduMarsData && [0, 4, 8, 6].includes((eduSunData.rasiId - eduMarsData.rasiId + 12) % 12)) medScore += 7;
     if (eduKetuData && (eduKetuData.rasiId === eduHouse4Sign || eduKetuData.rasiId === eduHouse5Sign || (eduSunData && eduKetuData.rasiId === eduSunData.rasiId))) medScore += 7;
@@ -563,26 +573,32 @@ window.PGAstroEngine = window.PGAstroEngine || {};
     const eduLord6Data = planetMap[eduLord6Planet];
     if (eduLord6Data && (eduLord6Data.rasiId === eduHouse4Sign || eduLord6Data.rasiId === eduHouse5Sign)) medScore += 5;
 
-    // 5. Arts, Architecture, Visual Media & Design (சுக்கிரன் + புதன்/ராகு/செவ்வாய்)
+    // 6. Arts, Architecture, Visual Media & Design (சுக்கிரன் + புதன்/ராகு/செவ்வாய்)
     if (eduVenusData && (eduVenusData.rasiId === eduHouse4Sign || eduVenusData.rasiId === eduHouse5Sign)) artsScore += 8;
     if (lord4 === "சுக்கிரன்" || lord5 === "சுக்கிரன்") artsScore += 7;
     if (eduVenusData && eduMarsData && [0, 4, 8, 6].includes((eduVenusData.rasiId - eduMarsData.rasiId + 12) % 12)) artsScore += 7;
     if (eduVenusData && eduRahuData && [0, 4, 8, 6].includes((eduVenusData.rasiId - eduRahuData.rasiId + 12) % 12)) artsScore += 7;
     if (eduVenusData && (eduVenusData.rasiId === 2 || eduVenusData.rasiId === 7 || eduVenusData.rasiId === 12)) artsScore += 5;
 
-    // 6. Law, Administration & Management (குரு + சனி, சூரியன், 9-ஆம் அதிபதி)
+    // 7. Law, Administration & Management (குரு + சனி, சூரியன், 9-ஆம் அதிபதி)
     if (eduGuruData && eduSaturnData && [0, 4, 8, 6].includes((eduGuruData.rasiId - eduSaturnData.rasiId + 12) % 12)) lawScore += 9;
     if (eduSaturnData && (eduSaturnData.rasiId === eduHouse4Sign || eduSaturnData.rasiId === eduHouse5Sign)) lawScore += 6;
     if (eduSunData && (eduSunData.rasiId === eduHouse10Sign || eduSunData.rasiId === eduHouse4Sign || eduSunData.rasiId === eduHouse9Sign)) lawScore += 7;
     if (eduLord9Data && (eduLord9Data.rasiId === eduHouse4Sign || eduLord9Data.rasiId === eduHouse10Sign)) lawScore += 6;
 
-    // 7. Pure Sciences, Mathematics & Teaching / Research (குரு, புதன் உச்சம்/ஆட்சி)
-    if (eduGuruData && (eduGuruData.rasiId === eduHouse4Sign || eduGuruData.rasiId === eduHouse5Sign || eduGuruData.rasiId === eduHouse9Sign)) sciScore += 8;
+    // 8. Pure Sciences, Mathematics & Teaching / Research (குரு, புதன் உச்சம்/ஆட்சி)
     if (eduMercuryData && (eduMercuryData.rasiId === 6 || eduMercuryData.rasiId === 3)) sciScore += 7;
-    if (eduGuruData && eduMercuryData && [0, 4, 8, 6].includes((eduGuruData.rasiId - eduMercuryData.rasiId + 12) % 12)) sciScore += 6;
-    if (eduLord5Data && eduLord5Data.rasiId === eduHouse9Sign) sciScore += 6;
+    if (eduGuruData && (eduGuruData.rasiId === 9 || eduGuruData.rasiId === 12)) sciScore += 6;
+    if (eduGuruData && eduMercuryData && [0, 4, 8, 6].includes((eduGuruData.rasiId - eduMercuryData.rasiId + 12) % 12) && lord5 !== "செவ்வாய்") sciScore += 5;
 
     const eduStreams = [
+      {
+        id: "ece_eng",
+        name: "எலக்ட்ரானிக்ஸ் (ECE), பொறியியல் & பட்டயப் படிப்பு (Electronics, Communication & Diploma in ECE)",
+        degrees: "Diploma in ECE / Mechanical / EEE (பாலிடெக்னிக் பட்டயப் படிப்பு), B.E / B.Tech (ECE, EEE, Electronics & Telecom)",
+        score: eceScore,
+        desc: "தொழில்நுட்பக் காரகன் செவ்வாய், தகவல்/சிக்னல் காரகன் புதன் மற்றும் பட்டயப் படிப்பு காரகன் சனியின் சேர்க்கையால் எலக்ட்ரானிக்ஸ் & கம்யூனிகேஷன் (ECE), பாலிடெக்னிக் பட்டயப் படிப்பு (Diploma in ECE / Engineering), டெலிகாம் மற்றும் நுண்-எலக்ட்ரானிக்ஸ் துறைகளில் சிறப்புப் பட்டம் பயிலும் யோகம்."
+      },
       {
         id: "cs_it",
         name: "கணினி அறிவியல், மென்பொருள் & IT (Computer Science, Software & AI)",
@@ -592,10 +608,10 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       },
       {
         id: "eng",
-        name: "பொறியியல் & தொழில்நுட்பம் (Engineering & Technology)",
-        degrees: "B.E / B.Tech (Mechanical, Civil, Electrical / EEE, Robotics, Automobile)",
+        name: "இயந்திர, சிவில் & தொழில்நுட்பப் பொறியியல் (Mechanical, Civil & Electrical Engineering)",
+        degrees: "Diploma / B.E / B.Tech (Mechanical, Civil, EEE, Robotics, Automobile)",
         score: engScore,
-        desc: "இயந்திர & தொழில்நுட்ப காரகன் செவ்வாய், சனி மற்றும் 4-ஆம் பாவ தொடர்பால் உற்பத்தி, கட்டுமானம், எலக்ட்ரிக்கல், ஆட்டோமொபைல் அல்லது மெக்கானிக்கல் பொறியியல் துறையில் சிறந்து விளங்கும் யோகம் அமைகிறது."
+        desc: "இயந்திர & கட்டுமான காரகன் செவ்வாய், சனி மற்றும் 4/5-ஆம் பாவ தொடர்பால் உற்பத்தி, கட்டுமானம், எலக்ட்ரிக்கல், ஆட்டோமொபைல் அல்லது பாலிடெக்னிக் பொறியியல் பட்டயப் படிப்பு பயிலும் யோகம் அமைகிறது."
       },
       {
         id: "comm",
@@ -650,11 +666,11 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       eduLevelVerdict = "முதுகலை & வெளிநாட்டு உயர் கல்வி (Postgraduate & Overseas Studies)";
       eduLevelDetails = "9-ஆம் பாவம் (உயர்கல்வி), 12-ஆம் பாவம் (வெளிநாடு) மற்றும் ராகுவின் ஆதிக்கத்தால் உள்நாட்டைக் கடந்து வெளிநாட்டு பல்கலைக்கழகங்களில் பயிலும் யோகம் அல்லது சர்வதேச தரத்திலான முதுகலை/தொழில்முறைப் பட்டம் பெறும் யோகம் உண்டு.";
     } else if (hasHigherPG) {
-      eduLevelVerdict = "முதுகலை / தொழில்முறை உயர் கல்வி (Postgraduate / Professional Master's Degree)";
-      eduLevelDetails = "புத்தி ஸ்தானமான 5-ஆம் பாவாதிபதி மற்றும் குருவின் அனுகூலத்தால் இளங்கலை (UG) பட்டத்தோடு நிற்காமல், முதுகலை (PG / Master's / MBA / M.Tech) அல்லது சிறப்பு தொழிற்கல்வி முடிக்கும் யோகம் அமையும்.";
+      eduLevelVerdict = "பட்டயப் படிப்பு / பட்டப்படிப்பு / தொழிற்கல்வி (Diploma / Bachelor's / Master's Degree)";
+      eduLevelDetails = "புத்தி ஸ்தானமான 5-ஆம் பாவாதிபதி மற்றும் சனியின் கைவினைத் தொழில் சுப பலத்தால் பாலிடெக்னிக் பட்டயப் படிப்பு (Diploma in ECE / Engineering), இளங்கலை (B.E / B.Tech / B.Sc) அல்லது முதுகலை/தொழில்முறைப் பட்டம் வெற்றிகரமாக நிறைவு செய்யும் யோகம் அமையும்.";
     } else {
-      eduLevelVerdict = "இளங்கலை பட்டப் படிப்பு (Undergraduate Degree / Professional Degree)";
-      eduLevelDetails = "4-ஆம் பாவாதிபதி மற்றும் வித்யா காரகன் புதனின் பலத்தால் கல்லூரிப் படிப்பில் நல்ல மதிப்பெண்களுடன் பட்டப் படிப்பு (B.E / B.Com / B.Sc / etc.) நிறைவு செய்யும் யோகம் அமையும்.";
+      eduLevelVerdict = "பட்டயப் படிப்பு / பட்டப் படிப்பு (Polytechnic Diploma / Engineering Degree)";
+      eduLevelDetails = "4-ஆம் பாவாதிபதி மற்றும் வித்யா காரகன் புதனின் பலத்தால் தொழிற்கல்வி, பாலிடெக்னிக் பட்டயப் படிப்பு (Diploma in ECE / Mechanical / EEE) அல்லது பட்டப் படிப்பு (B.E / B.Tech / B.Sc) நிறைவு செய்யும் சிறப்பான யோகம் அமையும்.";
     }
 
     // Breaks in Education
