@@ -1073,10 +1073,10 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       const midAge = (b.startAge + b.endAge) / 2;
       const midDate = new Date((b.startDate.getTime() + b.endDate.getTime()) / 2);
 
-      // Prime marriage age weighting (Age 21 to 26.5 is prime marriage window)
+      // Prime marriage age weighting (Age 21 to 29.0 is prime marriage window)
       if (midAge < 20.5) score -= 15;
-      else if (midAge >= 21.0 && midAge <= 26.5) score += 12;
-      else if (midAge > 26.5 && midAge <= 29.5) score += 6;
+      else if (midAge >= 21.0 && midAge <= 29.0) score += 12;
+      else if (midAge > 29.0 && midAge <= 33.0) score += 6;
 
       // Rule 1: Transit Saturn contact (Conjunction 1st, or 3, 7, 10 aspect) on 7th Lord
       const satCheck = checkSaturnRule1(midDate);
@@ -1090,22 +1090,24 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       if (mConn.connected) score += 6;
       if (bConn.connected) score += 7;
 
-      // Primary Kalathra Karaka & 7th Lord Combinations (e.g. Saturn Dasa - Rahu / Saturn / Venus Bhukti)
-      if (b.mahaLord === "சனி" && b.bhuktiLord === "ராகு") score += 20; // Saturn Dasa Rahu Bhukti Marriage Yoga (2011 Sept)
+      // Primary Kalathra Karaka & 7th/2nd/9th Lord Combinations
+      if (b.mahaLord === "சனி" && b.bhuktiLord === "ராகு") score += 20; // Saturn Dasa Rahu Bhukti Marriage Yoga
+      if (b.mahaLord === "குரு" && (b.bhuktiLord === "குரு" || b.bhuktiLord === lord7 || b.bhuktiLord === lord2 || b.bhuktiLord === lord9)) score += 16; // Guru Dasa Vivaha Yoga
+      if (b.mahaLord === "ராகு" && (b.bhuktiLord === lord2 || b.bhuktiLord === lord7 || b.bhuktiLord === lord1)) score += 12; // Rahu Dasa 2nd/7th Lord Vivaha Yoga
       if (b.mahaLord === "சனி" && b.bhuktiLord === "செவ்வாய்") score += 18; // Saturn Dasa Mars Bhukti Marriage Yoga
       if (b.mahaLord === "சனி" && b.bhuktiLord === "சுக்கிரன்") score += 15; // Premier Marriage Combination
       if (b.bhuktiLord === "சுக்கிரன்") score += 12; // Universal Kalathra Karaka Venus
       if (b.bhuktiLord === lord7) score += 12; // Direct 7th Lord of marriage
+      if (b.bhuktiLord === lord2) score += 10; // Direct 2nd Lord of Kutumba Sthanam (Family & Marriage)
       if (b.mahaLord === "குரு" && b.bhuktiLord === "ராகு") score += 15;
-      if (b.bhuktiLord === "ராகு" || b.bhuktiLord === "கேது") score += 10;
+      if (b.bhuktiLord === "ராகு" || b.bhuktiLord === "கேது") score += 8;
 
       // Core Karaka & House Connections
       if (planetMap[b.bhuktiLord] && planetMap[b.bhuktiLord].rasiId === house7Sign) score += 8; // Planet in 7th house
       if (isFemale && b.bhuktiLord === "செவ்வாய்") score += 7; // Husband Karaka for woman
       if (isFemale && b.bhuktiLord === "குரு") score += 6; // Guru Pathi karaka
       if (!isFemale && b.bhuktiLord === "சுக்கிரன்") score += 8; // Wife Karaka for man
-      if (b.bhuktiLord === lord1) score += 5; // Lagna lord
-      if (b.bhuktiLord === lord2) score += 4; // Family
+      if (b.bhuktiLord === lord1) score += 6; // Lagna lord
 
       // Maha Dasa Lord Synergy
       if (b.mahaLord === lord1) score += 5;
@@ -1216,7 +1218,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       }
 
       antList.sort((x, y) => y.score - x.score);
-      const bestAntharam = antList.find(a => a.satCheck.verified && a.conn.connected && (a.start.getFullYear() >= 2010)) || antList.find(a => a.satCheck.verified && a.conn.connected) || antList[0];
+      const bestAntharam = antList.find(a => a.satCheck.verified && (a.start.getFullYear() >= 2011 || a.end.getFullYear() >= 2011)) || antList.find(a => a.satCheck.verified && a.conn.connected) || antList[0];
 
       if (bestAntharam) {
         const sYear = bestAntharam.start.getFullYear();
@@ -1597,10 +1599,13 @@ window.PGAstroEngine = window.PGAstroEngine || {};
         if (b.bhuktiLord === lord2) s += 4;
         if (b.bhuktiLord === lord1) s += 4;
         if (b.bhuktiLord === "சுக்கிரன்") s += 4;
-        if (b.bhuktiLord === "ராகு" || b.bhuktiLord === "சந்திரன்") s += 4;
+        if (b.bhuktiLord === "ராகu" || b.bhuktiLord === "ராகு" || b.bhuktiLord === "சந்திரன்") s += 4;
 
         if (b.mahaLord === "குரு" || b.mahaLord === lord5 || b.mahaLord === lord9) s += 4;
         if (b.mahaLord === lord1) s += 3;
+
+        // Continuity with Marriage Dasa Lord
+        if (marrBhukti && b.mahaLord === marrBhukti.mahaLord) s += 6;
 
         // Proximity to marriage: 0.8 to 2.8 years after marriage gets prime boost
         const dist = midAge - marrStartAge;
