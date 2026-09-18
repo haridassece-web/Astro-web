@@ -1305,21 +1305,25 @@ window.PGAstroEngine = window.PGAstroEngine || {};
             : "களத்திர ஸ்தான பாபத்துவ அமைப்பால் முதல் திருமணத்தில் கருத்து வேறுபாடு ஏற்பட்டு பிரிவு.");
 
       if (pastMarrBhukti) {
+        const pStartYr = pastMarrBhukti.startDate.getFullYear();
+        const pEndYr = pastMarrBhukti.endDate.getFullYear();
         firstMarriageObj = {
           dasaBhukti: `${pastMarrBhukti.mahaLord} தசை - ${pastMarrBhukti.bhuktiLord} புத்தி`,
-          yearRange: `${pastMarrBhukti.startDate.getFullYear()} - ${pastMarrBhukti.endDate.getFullYear()}`,
-          statusText: `முதல் திருமணம் நடைபெற்ற காலம்: 2024 பிப்ரவரி (${pastMarrBhukti.mahaLord} தசை - ${pastMarrBhukti.bhuktiLord} புத்தி / ${pastMarrBhukti.startDate.getFullYear()} - ${pastMarrBhukti.endDate.getFullYear()})`,
+          yearRange: `${pStartYr} - ${pEndYr}`,
+          statusText: `முதல் திருமணம் நடைபெற்ற காலம்: ${pastMarrBhukti.mahaLord} தசை - ${pastMarrBhukti.bhuktiLord} புத்தி (${pStartYr} - ${pEndYr})`,
           separationText: `பிரிவு ஏற்பட்ட காலம்: ${sepReasonText} தற்போது சட்டப்பூர்வ தீர்வு/வழக்கு நிலை.`
         };
       }
 
       if (curOrNextBhukti) {
+        const dStartYr = curOrNextBhukti.startDate.getFullYear();
+        const dEndYr = curOrNextBhukti.endDate.getFullYear();
         divorceObj = {
           title: "விவாகரத்து வழக்கு முடிவடையும் காலம்",
           dasaBhukti: `${curOrNextBhukti.mahaLord} தசை - ${curOrNextBhukti.bhuktiLord} புத்தி`,
-          yearRange: "2026 பிற்பகுதி - 2027",
-          verdict: "சட்டப்பூர்வ விடுதலை காலம்: 2026 பிற்பகுதி - 2027-க்குள் (2026 2nd half - 2027)",
-          reason: `பழைய பந்தங்களில் இருந்து விடுபட்டு, நீதிமன்ற தீர்ப்பு அல்லது சமரச பேச்சுவார்த்தை மூலம் ${curOrNextBhukti.bhuktiLord} புத்தியின் நிறைகாலத்தில் (2026 பிற்பகுதி - 2027) விவாகரத்து வழக்கு முழுமையாக முடிவுக்கு வரும்.`
+          yearRange: `${dStartYr} - ${dEndYr}`,
+          verdict: `சட்டப்பூர்வ விடுதலை காலம்: ${dStartYr} பிற்பகுதி - ${dEndYr}-க்குள்`,
+          reason: `பழைய பந்தங்களில் இருந்து விடுபட்டு, நீதிமன்ற தீர்ப்பு அல்லது சமரச பேச்சுவார்த்தை மூலம் ${curOrNextBhukti.bhuktiLord} புத்தியின் நிறைகாலத்தில் (${dStartYr} - ${dEndYr}) விவாகரத்து வழக்கு முழுமையாக முடிவுக்கு வரும்.`
         };
       }
 
