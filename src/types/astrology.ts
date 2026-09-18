@@ -403,3 +403,46 @@ export interface UserUser {
   savedHoroscopes?: BirthInput[];
 }
 
+// Vivaha Chakra (விவாக சக்கரம்) Types
+export interface VivahaChakraBox {
+  id: number; // 1 to 9
+  directionEn: 'Center' | 'East' | 'South-East' | 'South' | 'South-West' | 'West' | 'North-West' | 'North' | 'North-East';
+  directionTa: 'நடு' | 'கிழக்கு' | 'தென்கிழக்கு' | 'தெற்கு' | 'தென்மேற்கு' | 'மேற்கு' | 'வடமேற்கு' | 'வடக்கு' | 'வடகிழக்கு';
+  gridRow: number; // 1 to 3
+  gridCol: number; // 1 to 3
+  status: 'auspicious' | 'inauspicious'; // ✓ vs X
+  nakshatraIndices: number[]; // 3 nakshatra indices (0-26)
+  nakshatrasTa: string[];
+  nakshatrasEn: string[];
+  predictionTa: string;
+  predictionEn: string;
+}
+
+export interface VivahaChakraProhibition {
+  targetEvent: 'marriage' | 'valaikaappu' | 'grihapravesam' | 'upanayanam';
+  starCount: number;
+  isProhibited: boolean;
+  titleTa: string;
+  titleEn: string;
+  descriptionTa: string;
+  descriptionEn: string;
+}
+
+export interface VivahaChakraAnalysis {
+  sunNakshatraIndex: number;
+  sunNakshatraTa: string;
+  sunNakshatraEn: string;
+  boxes: VivahaChakraBox[];
+  candidateNakshatraIndex: number;
+  candidateNakshatraTa: string;
+  candidateNakshatraEn: string;
+  candidateBox: VivahaChakraBox;
+  starDistance: number; // 1 to 27 count from Sun star
+  eventProhibitions: VivahaChakraProhibition[];
+  isCandidateAuspicious: boolean;
+  score: number; // 0 to 100
+  summaryTa: string;
+  summaryEn: string;
+}
+
+

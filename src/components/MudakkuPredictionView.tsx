@@ -19,11 +19,13 @@ import {
 interface MudakkuPredictionViewProps {
   mudakkuPrediction: MudakkuIndividualPrediction;
   language: Language;
+  onNavigateToVivahaChakra?: () => void;
 }
 
 export const MudakkuPredictionView: React.FC<MudakkuPredictionViewProps> = ({
   mudakkuPrediction,
   language,
+  onNavigateToVivahaChakra,
 }) => {
   const [selectedBhava, setSelectedBhava] = useState<number>(mudakkuPrediction.mudakkuBhava);
 
@@ -31,6 +33,7 @@ export const MudakkuPredictionView: React.FC<MudakkuPredictionViewProps> = ({
     mudakkuPrediction.allBhavas[selectedBhava] || mudakkuPrediction.nativeBhavaData;
 
   const isNativeBhava = selectedBhava === mudakkuPrediction.mudakkuBhava;
+
 
   return (
     <div className="space-y-6">
@@ -556,6 +559,36 @@ export const MudakkuPredictionView: React.FC<MudakkuPredictionViewProps> = ({
             <ExternalLink className="w-3 h-3" />
           </a>
         </div>
+
+        {/* Vivaha Chakra Quick Navigation Feature Banner */}
+        {onNavigateToVivahaChakra && (
+          <div className="mt-4 bg-gradient-to-r from-amber-500/20 via-slate-900 to-indigo-950/40 border border-amber-500/40 p-4 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center shrink-0">
+                <Compass className="w-5 h-5 text-amber-400" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-amber-200 font-serif">
+                  {language === 'ta'
+                    ? 'விவாக சக்கரம் & திசை முகூர்த்த சாஸ்திரம் (Vivaha Chakra)'
+                    : 'Vivaha Chakra & Directional Muhurtha Evaluation'}
+                </h4>
+                <p className="text-[11px] text-slate-300">
+                  {language === 'ta'
+                    ? 'சூரியன் நின்ற நட்சத்திரம் ➔ 9 திசைகளில் 27 நட்சத்திரங்களின் சுப (✓) & அசுப (X) நிலைகள் மற்றும் கஜயோகத் தடைகள்.'
+                    : 'Sun Nakshatra ➔ 9 Directions Matrix for Marriage & Ceremony suitability.'}
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={onNavigateToVivahaChakra}
+              className="shrink-0 bg-amber-500 hover:bg-amber-400 text-slate-950 font-mono font-bold text-xs px-4 py-2 rounded-xl transition-all shadow-md flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>{language === 'ta' ? 'விவாக சக்கரம் பார்க்க' : 'Open Vivaha Chakra'}</span>
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

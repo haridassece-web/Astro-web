@@ -16,6 +16,7 @@ import { RemediesView } from './components/RemediesView';
 import { TransitView } from './components/TransitView';
 import { AshtakavargaView } from './components/AshtakavargaView';
 import { MudakkuPredictionView } from './components/MudakkuPredictionView';
+import { VivahaChakraView } from './components/VivahaChakraView';
 import { ReportGeneratorModal } from './components/ReportGeneratorModal';
 import { ResearchComparisonModal } from './components/ResearchComparisonModal';
 import { AuthModal } from './components/AuthModal';
@@ -43,7 +44,7 @@ function getCurrentDateTime() {
 export function App() {
   const [language, setLanguage] = useState<Language>('ta');
   const [chartFormat, setChartFormat] = useState<'south' | 'north'>('south');
-  const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'panchanga' | 'dasa' | 'transit' | 'ashtakavarga' | 'yogas' | 'predictions' | 'mudakku' | 'remedies'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'panchanga' | 'dasa' | 'transit' | 'ashtakavarga' | 'yogas' | 'predictions' | 'mudakku' | 'vivahachakra' | 'remedies'>('overview');
 
   const [activeChartId, setActiveChartId] = useState<string>('D1');
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
@@ -319,6 +320,18 @@ export function App() {
           </button>
 
           <button
+            onClick={() => setActiveTab('vivahachakra')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              activeTab === 'vivahachakra'
+                ? 'bg-amber-500 text-slate-950 shadow-md font-semibold'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-amber-300" />
+            <span>{language === 'ta' ? 'விவாக சக்கரம் (முகூர்த்தம்)' : 'Vivaha Chakra (Muhurtha)'}</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('remedies')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
               activeTab === 'remedies'
@@ -475,6 +488,16 @@ export function App() {
           <MudakkuPredictionView
             mudakkuPrediction={horoscope.mudakkuPrediction}
             language={language}
+            onNavigateToVivahaChakra={() => setActiveTab('vivahachakra')}
+          />
+        )}
+
+        {activeTab === 'vivahachakra' && (
+          <VivahaChakraView
+            language={language}
+            sunNakshatraIndex={horoscope.planets.find((p) => p.name === 'Sun')?.nakshatraId}
+            moonNakshatraIndex={horoscope.planets.find((p) => p.name === 'Moon')?.nakshatraId}
+            planets={horoscope.planets}
           />
         )}
 
