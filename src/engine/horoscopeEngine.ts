@@ -8,6 +8,7 @@ import { generateDomainPredictions, generateRemedies } from './predictionEngine'
 import { generatePersonalizedTempleRemedies, calculateTraditionalPariharaReport } from './remedyEngine';
 import { calculateAshtakavargaReport } from './ashtakavargaEngine';
 import { calculateMudakkuPrediction } from './mudakkuEngine';
+import { calculateTithiSoonyaReport } from './tithiPalangalEngine';
 
 export function calculateFullHoroscope(birth: BirthInput): CalculatedHoroscope {
   const julianDay = calculateJulianDay(birth.dob, birth.tob, birth.timezone);
@@ -36,6 +37,7 @@ export function calculateFullHoroscope(birth: BirthInput): CalculatedHoroscope {
     presentDasaInfo,
     panchanga
   );
+  const tithiSoonyaReport = calculateTithiSoonyaReport(planets, lagnaSignId, panchanga);
 
   const yogaScores = yogasMatched.map((y) => y.score);
   const avgYogaScore = yogaScores.length > 0 ? yogaScores.reduce((a, b) => a + b, 0) / yogaScores.length : 70;
@@ -59,6 +61,7 @@ export function calculateFullHoroscope(birth: BirthInput): CalculatedHoroscope {
     traditionalParihara,
     ashtakavarga,
     mudakkuPrediction,
+    tithiSoonyaReport,
     overallScore: Math.min(99, Math.max(65, overallScore)),
   };
 }

@@ -17,13 +17,14 @@ import { TransitView } from './components/TransitView';
 import { AshtakavargaView } from './components/AshtakavargaView';
 import { MudakkuPredictionView } from './components/MudakkuPredictionView';
 import { VivahaChakraView } from './components/VivahaChakraView';
+import { TithiPalangalView } from './components/TithiPalangalView';
 import { ReportGeneratorModal } from './components/ReportGeneratorModal';
 import { ResearchComparisonModal } from './components/ResearchComparisonModal';
 import { AuthModal } from './components/AuthModal';
 
 import {
   Compass, LayoutGrid, Clock, Award, Sparkles, ShieldCheck,
-  Brain, ChevronRight, Layers
+  Brain, ChevronRight, Layers, Moon
 } from 'lucide-react';
 
 function getCurrentDateTime() {
@@ -44,7 +45,7 @@ function getCurrentDateTime() {
 export function App() {
   const [language, setLanguage] = useState<Language>('ta');
   const [chartFormat, setChartFormat] = useState<'south' | 'north'>('south');
-  const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'panchanga' | 'dasa' | 'transit' | 'ashtakavarga' | 'yogas' | 'predictions' | 'mudakku' | 'vivahachakra' | 'remedies'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'panchanga' | 'dasa' | 'transit' | 'ashtakavarga' | 'yogas' | 'predictions' | 'mudakku' | 'tithi' | 'vivahachakra' | 'remedies'>('overview');
 
   const [activeChartId, setActiveChartId] = useState<string>('D1');
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
@@ -174,11 +175,16 @@ export function App() {
             </span>
           </div>
 
-          <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
-            <span className="text-[10px] text-slate-400 font-mono block">
-              {language === 'ta' ? 'திதி' : 'Tithi'}
+          <div
+            onClick={() => setActiveTab('tithi')}
+            className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 hover:border-amber-500/40 flex flex-col justify-center cursor-pointer transition-all group"
+            title={language === 'ta' ? 'திதி சூன்ய பலன்கள் பார்க்க கிளிக் செய்யவும்' : 'Click to view Tithi Soonya Predictions'}
+          >
+            <span className="text-[10px] text-slate-400 font-mono flex items-center justify-between">
+              <span>{language === 'ta' ? 'திதி (பலன் பார்க்க)' : 'Tithi (Palangal)'}</span>
+              <ChevronRight className="w-3 h-3 text-amber-400 opacity-0 group-hover:opacity-100 transition-opacity" />
             </span>
-            <span className="text-xs font-bold text-slate-200 truncate">
+            <span className="text-xs font-bold text-amber-300 truncate">
               {language === 'ta' ? horoscope.panchanga.tithiTa : horoscope.panchanga.tithiEn}
             </span>
           </div>
@@ -317,6 +323,18 @@ export function App() {
           >
             <Compass className="w-4 h-4 text-amber-400" />
             <span>{language === 'ta' ? 'முடக்கு ஜாதக பலன்' : 'Mudakku Predictions'}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('tithi')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              activeTab === 'tithi'
+                ? 'bg-amber-500 text-slate-950 shadow-md font-semibold'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Moon className="w-4 h-4 text-indigo-400" />
+            <span>{language === 'ta' ? 'திதி பலன்கள் (சூன்யம் & பாதகம்)' : 'Thithi Palangal (Soonya & Badhaka)'}</span>
           </button>
 
           <button
@@ -480,6 +498,8 @@ export function App() {
             predictions={horoscope.domainPredictions}
             mudakkuPrediction={horoscope.mudakkuPrediction}
             onNavigateToMudakku={() => setActiveTab('mudakku')}
+            tithiSoonyaReport={horoscope.tithiSoonyaReport}
+            onNavigateToTithi={() => setActiveTab('tithi')}
             language={language}
           />
         )}
@@ -489,6 +509,13 @@ export function App() {
             mudakkuPrediction={horoscope.mudakkuPrediction}
             language={language}
             onNavigateToVivahaChakra={() => setActiveTab('vivahachakra')}
+          />
+        )}
+
+        {activeTab === 'tithi' && horoscope.tithiSoonyaReport && (
+          <TithiPalangalView
+            report={horoscope.tithiSoonyaReport}
+            language={language}
           />
         )}
 

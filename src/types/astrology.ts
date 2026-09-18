@@ -303,6 +303,7 @@ export interface CalculatedHoroscope {
   traditionalParihara: TraditionalPariharaReport;
   ashtakavarga: AshtakavargaReport;
   mudakkuPrediction: MudakkuIndividualPrediction;
+  tithiSoonyaReport?: TithiSoonyaReport;
   overallScore: number;
 }
 
@@ -443,6 +444,110 @@ export interface VivahaChakraAnalysis {
   score: number; // 0 to 100
   summaryTa: string;
   summaryEn: string;
+}
+
+// Tithi Soonya & Badhaka Sthana Report Types
+export interface IndividualBhavaAnalysis {
+  bhava: number;
+  signId: number;
+  signNameEn: string;
+  signNameTa: string;
+  lordNameEn: string;
+  lordNameTa: string;
+  isSoonya: boolean;
+  isBadhaka: boolean;
+  isUpachaya: boolean;
+  planetsInBhava: PlanetPosition[];
+  bhavaData: {
+    bhava: number;
+    nameTa: string;
+    nameEn: string;
+    significationsTa: string;
+    significationsEn: string;
+    soonyaEffectTa: string[];
+    soonyaEffectEn: string[];
+    badhakaEffectTa: string[];
+    badhakaEffectEn: string[];
+    vitalWarningsTa: string[];
+    vitalWarningsEn: string[];
+    specialManuscriptNotesTa: string[];
+    specialManuscriptNotesEn: string[];
+  };
+}
+
+export interface IndividualGrahaAnalysis {
+  planet: PlanetName;
+  planetTa: string;
+  isPlacedInSoonya: boolean;
+  isPlacedInBadhaka: boolean;
+  isSoonyaLord: boolean;
+  isBadhakaLord: boolean;
+  bhavaPlaced: number;
+  signId: number;
+  grahaData: {
+    planet: string;
+    planetTa: string;
+    generalKarakatvaTa: string;
+    generalKarakatvaEn: string;
+    afflictionsTa: string[];
+    afflictionsEn: string[];
+    remediesAndCautionsTa: string[];
+    remediesAndCautionsEn: string[];
+  };
+}
+
+export interface TithiSoonyaReport {
+  tithiNumber: number; // 1 to 15
+  tithiIndexRaw: number; // 0 to 29
+  tithiNameEn: string;
+  tithiNameTa: string;
+  paksha: 'Shukla' | 'Krishna';
+  pakshaTitleTa: string;
+  pakshaTitleEn: string;
+  pakshaImpactTa: string;
+  pakshaImpactEn: string;
+  
+  // Soonya details
+  soonyaSignIds: number[];
+  soonyaSignsEn: string[];
+  soonyaSignsTa: string[];
+  soonyaBhavas: number[];
+  soonyaLords: string[];
+  soonyaLordsTa: string[];
+  
+  // Badhaka details
+  lagnaSignId: number;
+  lagnaSignNameEn: string;
+  lagnaSignNameTa: string;
+  lagnaType: 'Chara' | 'Sthira' | 'Ubhaya';
+  lagnaTypeTa: string;
+  badhakaBhava: number;
+  badhakaSignId: number;
+  badhakaSignNameEn: string;
+  badhakaSignNameTa: string;
+  badhakadhipati: string;
+  badhakadhipatiTa: string;
+  badhakadhipatiPlacementBhava: number;
+  
+  // Specific Planetary occupancy
+  planetsInSoonya: PlanetPosition[];
+  planetsInBadhaka: PlanetPosition[];
+  
+  // Active Mitigations
+  hasUpachayaMitigation: boolean;
+  hasGuruAspectMitigation: boolean;
+  hasSunMoonMitigation: boolean;
+  hasLeoSagittariusMitigation: boolean;
+  activeMitigationsTa: string[];
+  activeMitigationsEn: string[];
+  
+  // Tailored Warnings & Highlights
+  criticalWarningsTa: string[];
+  criticalWarningsEn: string[];
+  
+  // Full 12 Bhavas & Grahas breakdowns
+  bhavasAnalysis: IndividualBhavaAnalysis[];
+  grahasAnalysis: IndividualGrahaAnalysis[];
 }
 
 

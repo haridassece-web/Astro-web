@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import type { DomainPrediction, Language, MudakkuIndividualPrediction } from '../types/astrology';
+import type { DomainPrediction, Language, MudakkuIndividualPrediction, TithiSoonyaReport } from '../types/astrology';
 import {
   GraduationCap, Briefcase, Coins, Heart, Baby,
-  Activity, Globe, Home, Sparkles, ShieldCheck, Star, Compass, ArrowRight
+  Activity, Globe, Home, Sparkles, ShieldCheck, Star, Compass, ArrowRight, Moon
 } from 'lucide-react';
 
 interface PredictionsViewProps {
   predictions: DomainPrediction[];
   mudakkuPrediction?: MudakkuIndividualPrediction;
   onNavigateToMudakku?: () => void;
+  tithiSoonyaReport?: TithiSoonyaReport;
+  onNavigateToTithi?: () => void;
   language: Language;
 }
 
@@ -29,6 +31,8 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
   predictions,
   mudakkuPrediction,
   onNavigateToMudakku,
+  tithiSoonyaReport,
+  onNavigateToTithi,
   language,
 }) => {
   const [selectedDomain, setSelectedDomain] = useState<string>('all');
@@ -39,6 +43,43 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
 
   return (
     <div className="space-y-4">
+      {/* Individual Native Tithi Soonya Highlight Banner */}
+      {tithiSoonyaReport && (
+        <div className="bg-gradient-to-r from-indigo-950/90 via-slate-900/95 to-slate-950 border border-indigo-500/40 rounded-2xl p-4 md:p-5 shadow-xl backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono font-bold text-indigo-300 bg-indigo-500/10 px-2.5 py-0.5 rounded-full border border-indigo-500/20 uppercase tracking-wide">
+                திதி பலன்கள் & சூன்ய ஆய்வு • Palm-leaf Shastra
+              </span>
+              <span className="text-[10px] font-mono text-amber-300 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                {language === 'ta' ? tithiSoonyaReport.tithiNameTa : tithiSoonyaReport.tithiNameEn}
+              </span>
+            </div>
+            <h4 className="text-sm md:text-base font-bold text-amber-200 font-serif flex items-center gap-2">
+              <Moon className="w-4 h-4 text-indigo-400" />
+              {language === 'ta'
+                ? `திதி சூன்ய ராசிகள்: ${tithiSoonyaReport.soonyaSignsTa.join(', ') || 'இல்லை'} • பாதக ஸ்தானம்: ${tithiSoonyaReport.badhakaBhava}-ஆம் பாவம்`
+                : `Soonya Signs: ${tithiSoonyaReport.soonyaSignsEn.join(', ') || 'None'} • Badhaka: House ${tithiSoonyaReport.badhakaBhava}`}
+            </h4>
+            <p className="text-xs text-slate-300">
+              {language === 'ta'
+                ? `சூன்ய வீட்டில் உங்கள் செல்வம் மறைந்து இருக்கும். முதலில் வினைகள் கழிந்து பின்னர் பெரும் வெற்றி கிட்டும். 12 பாவக முழு சுவடி ஆய்வு தயாராக உள்ளது.`
+                : `Hidden wealth is concealed within your Soonya house. Initial karmic clearance yields great victory. Complete 12 Bhavas Shastra report is ready.`}
+            </p>
+          </div>
+
+          {onNavigateToTithi && (
+            <button
+              onClick={onNavigateToTithi}
+              className="shrink-0 bg-indigo-500 hover:bg-indigo-400 text-slate-950 px-4 py-2 rounded-xl text-xs font-bold font-mono transition-all flex items-center gap-1.5 shadow-md group"
+            >
+              <span>{language === 'ta' ? 'திதி பலன்களைப் பார்க்க' : 'View Thithi Palangal'}</span>
+              <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Individual Native Mudakku Highlight Banner */}
       {mudakkuPrediction && (
         <div className="bg-gradient-to-r from-amber-950/80 via-slate-900/95 to-slate-950 border border-amber-500/40 rounded-2xl p-4 md:p-5 shadow-xl backdrop-blur-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
