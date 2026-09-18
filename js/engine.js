@@ -1091,7 +1091,8 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       if (bConn.connected) score += 7;
 
       // Primary Kalathra Karaka & 7th/2nd/9th Lord Combinations
-      if (b.mahaLord === "சனி" && b.bhuktiLord === "ராகு") score += 20; // Saturn Dasa Rahu Bhukti Marriage Yoga
+      if (b.mahaLord === "சனி" && b.bhuktiLord === "சனி") score += 16; // Saturn Dasa Saturn Bhukti Swaya Vivaha Yoga
+      if (b.mahaLord === "சனி" && b.bhuktiLord === "ராகு") score += 10; // Saturn Dasa Rahu Bhukti Marriage Yoga
       if (b.mahaLord === "குரு" && (b.bhuktiLord === "குரு" || b.bhuktiLord === lord7 || b.bhuktiLord === lord2 || b.bhuktiLord === lord9)) score += 16; // Guru Dasa Vivaha Yoga
       if (b.mahaLord === "ராகு" && (b.bhuktiLord === lord2 || b.bhuktiLord === lord7 || b.bhuktiLord === lord1)) score += 12; // Rahu Dasa 2nd/7th Lord Vivaha Yoga
       if (b.mahaLord === "சனி" && b.bhuktiLord === "செவ்வாய்") score += 18; // Saturn Dasa Mars Bhukti Marriage Yoga
@@ -1197,7 +1198,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
         let aScore = 0;
         if (aSatCheck.verified) aScore += 12;
         if (aConn.connected) aScore += 8;
-        if (aInfo.lord === "சுக்கிரன்") aScore += 6;
+        if (aInfo.lord === "சுக்கிரன்") aScore += 8;
         if (isFemale && (aInfo.lord === "செவ்வாய்" || aInfo.lord === "குரு")) aScore += 5;
         if (aInfo.lord === lord7) aScore += 7;
 
@@ -1218,7 +1219,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       }
 
       antList.sort((x, y) => y.score - x.score);
-      const bestAntharam = antList.find(a => a.satCheck.verified && (a.start.getFullYear() >= 2011 || a.end.getFullYear() >= 2011)) || antList.find(a => a.satCheck.verified && a.conn.connected) || antList[0];
+      const bestAntharam = antList.find(a => a.satCheck.verified && a.conn.connected) || antList.find(a => a.satCheck.verified) || antList[0];
 
       if (bestAntharam) {
         const sYear = bestAntharam.start.getFullYear();
@@ -1604,13 +1605,14 @@ window.PGAstroEngine = window.PGAstroEngine || {};
         if (b.mahaLord === "குரு" || b.mahaLord === lord5 || b.mahaLord === lord9) s += 4;
         if (b.mahaLord === lord1) s += 3;
 
-        // Continuity with Marriage Dasa Lord
+        // Continuity with Marriage Dasa & Bhukti Lord
         if (marrBhukti && b.mahaLord === marrBhukti.mahaLord) s += 6;
+        if (marrBhukti && b.mahaLord === marrBhukti.mahaLord && b.bhuktiLord === marrBhukti.bhuktiLord) s += 6;
 
-        // Proximity to marriage: 0.8 to 2.8 years after marriage gets prime boost
+        // Proximity to marriage: 0.0 to 2.2 years after marriage gets prime boost
         const dist = midAge - marrStartAge;
-        if (dist >= 0.8 && dist <= 2.8) s += 8;
-        else if (dist > 2.8 && dist <= 4.0) s += 3;
+        if (dist >= 0.0 && dist <= 2.2) s += 10;
+        else if (dist > 2.2 && dist <= 3.8) s += 4;
 
         return s;
       };
