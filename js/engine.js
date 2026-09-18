@@ -1130,7 +1130,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
 
     function pickMarriageTimingBhukti() {
       if (isUnmarriedMode) {
-        const upcomingCandidates = allBhuktis.filter(b => b.endDate >= now);
+        const upcomingCandidates = allBhuktis.filter(b => b.endDate >= now && b.startAge <= 55);
         let bestUpcoming = null;
         let maxScore = -999;
         upcomingCandidates.forEach(b => {
@@ -1143,8 +1143,8 @@ window.PGAstroEngine = window.PGAstroEngine || {};
         if (bestUpcoming) return bestUpcoming;
       }
 
-      // Search all candidates in age range 15 to 40:
-      const allCandidates = allBhuktis.filter(b => b.startAge < 40 && b.endAge > 14);
+      // Search all candidates in realistic prime marriage age range 17 to 42:
+      const allCandidates = allBhuktis.filter(b => b.startAge <= 42 && b.endAge > 16);
       let bestBhukti = null;
       let maxScore = -999;
 
@@ -1156,7 +1156,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
         }
       });
 
-      return bestBhukti || allCandidates[0] || allBhuktis[0];
+      return bestBhukti || allCandidates[0] || allBhuktis.find(b => b.startAge >= 18 && b.startAge <= 45) || allBhuktis[0];
     }
 
     const marrBhukti = pickMarriageTimingBhukti();
@@ -1703,7 +1703,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
     };
 
     // 6. VEHICLE / CAR TIMING (வாகனம் / கார் யோகம்)
-    const upcomingCar = allBhuktis.find(b => b.endDate >= now && (b.bhuktiLord === "சுக்கிரன்" || b.bhuktiLord === lord4 || b.bhuktiLord === lord2 || b.bhuktiLord === lord1)) || allBhuktis.find(b => b.endDate >= now) || allBhuktis[0];
+    const upcomingCar = allBhuktis.find(b => b.endDate >= now && b.startAge <= (nativeCurrentAge + 15) && (b.bhuktiLord === "சுக்கிரன்" || b.bhuktiLord === lord4 || b.bhuktiLord === lord2 || b.bhuktiLord === lord1)) || allBhuktis.find(b => b.endDate >= now && b.startAge <= (nativeCurrentAge + 15)) || allBhuktis.find(b => b.startAge >= 20 && b.startAge <= 55) || allBhuktis[0];
     const isPastCar = upcomingCar ? upcomingCar.endDate < now : false;
     const hasLuxuryCar = venusSubha.netScore >= 2 || (venusInfo && (venusInfo.isExalted || venusInfo.rasiId === 2 || venusInfo.rasiId === 7));
     
