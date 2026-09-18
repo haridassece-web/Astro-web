@@ -190,6 +190,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
     const lord6 = getHouseLord(effectiveLagnaId, 6);
     const lord7 = getHouseLord(effectiveLagnaId, 7);
     const lord5 = getHouseLord(effectiveLagnaId, 5);
+    const lord8 = getHouseLord(effectiveLagnaId, 8);
     const lord9 = getHouseLord(effectiveLagnaId, 9);
     const lord4 = getHouseLord(effectiveLagnaId, 4);
     const lord2 = getHouseLord(effectiveLagnaId, 2);
