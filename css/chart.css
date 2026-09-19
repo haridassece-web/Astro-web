@@ -642,6 +642,227 @@
 }
 
 /* ==========================================================================
+   12 Bhavas Subhathuvam & Separate Predictions Styling
+   ========================================================================== */
+.bhava-subha-section {
+  width: 100%;
+}
+
+.bhava-dash-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.85rem;
+}
+
+.bhava-stat-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.bhava-stat-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.bhava-stat-badge.good-chip {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.bhava-stat-badge.moderate-chip {
+  background: rgba(148, 163, 184, 0.12);
+  color: #cbd5e1;
+  border: 1px solid rgba(148, 163, 184, 0.25);
+}
+
+.bhava-stat-badge.notgood-chip {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.bhava-filter-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.bhava-filter-btn {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-dim);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.73rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.bhava-filter-btn:hover {
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold-light);
+  border-color: rgba(212, 175, 55, 0.35);
+}
+
+.bhava-filter-btn.active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.3) 0%, rgba(212, 175, 55, 0.15) 100%);
+  color: #ffd700;
+  border-color: var(--gold-primary);
+  font-weight: 700;
+}
+
+.bhava-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 0.9rem;
+}
+
+.bhava-card {
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.bhava-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+.bhava-card.bhava-status-good {
+  border-left: 4px solid #10b981;
+  background: linear-gradient(145deg, rgba(16, 185, 129, 0.04) 0%, rgba(15, 23, 42, 0.95) 100%);
+}
+
+.bhava-card.bhava-status-moderate {
+  border-left: 4px solid #94a3b8;
+  background: linear-gradient(145deg, rgba(148, 163, 184, 0.03) 0%, rgba(15, 23, 42, 0.95) 100%);
+}
+
+.bhava-card.bhava-status-not_good {
+  border-left: 4px solid #ef4444;
+  background: linear-gradient(145deg, rgba(239, 68, 68, 0.05) 0%, rgba(15, 23, 42, 0.95) 100%);
+}
+
+.bhava-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  padding-bottom: 0.45rem;
+}
+
+.bhava-card-title {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 2px 0 0 0;
+}
+
+.bhava-details-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 6px 8px;
+  border-radius: 6px;
+  margin-bottom: 0.45rem;
+  font-size: 0.72rem;
+}
+
+.bhava-detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.bhava-detail-label {
+  color: var(--gold-light);
+  font-weight: 600;
+  margin-bottom: 1px;
+}
+
+.bhava-detail-val {
+  color: #e2e8f0;
+  word-break: break-word;
+}
+
+.bhava-reasons-box {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin-bottom: 0.5rem;
+}
+
+.bhava-prediction-box {
+  border-radius: 6px;
+  padding: 0.65rem 0.75rem;
+  margin-top: 0.4rem;
+  line-height: 1.5;
+}
+
+.bhava-prediction-box.good {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
+.bhava-prediction-box.moderate {
+  background: rgba(148, 163, 184, 0.07);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.bhava-prediction-box.not_good {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.bhava-pred-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: var(--gold-light);
+  margin-bottom: 3px;
+}
+
+.bhava-pred-content {
+  font-size: 0.81rem;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.bhava-remedy-box {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, rgba(245, 158, 11, 0.04) 100%);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  margin-top: 0.5rem;
+}
+
+/* ==========================================================================
    LIFE MILESTONES & PREDICTIONS (முக்கிய வாழ்க்கை நிகழ்வுகள்)
    Job, Business vs Job, Marriage, House, Vehicle / Car
    ========================================================================== */

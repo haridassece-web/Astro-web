@@ -92,9 +92,11 @@ window.PGAstroEngine = window.PGAstroEngine || {};
     const specialPlanets = placedPlanets.filter(p => p.isRetrograde || p.isMarginal || p.isExalted || p.isDebilitated);
 
     // 5. Evaluate Subhathuvam, Sookshuma Valu & Papathuvam (சுபத்துவம் & பாபத்துவம்)
+    const lagnaRasiId = (window.PGAstro.chart && window.PGAstro.chart.getLagnaRasiId()) || 1;
+    const lagnaDegree = (window.PGAstro.chart && window.PGAstro.chart.getLagnaDegree()) || null;
     let subhathuvamResult = null;
     if (window.PGAstro.subhathuvam && window.PGAstro.subhathuvam.evaluate) {
-      subhathuvamResult = window.PGAstro.subhathuvam.evaluate(chartState);
+      subhathuvamResult = window.PGAstro.subhathuvam.evaluate(chartState, { lagnaRasiId });
     }
 
     // 6. Calculate Vimshottari Dasa - Bhukti - Antharam (தசா, புத்தி, அந்தரம்)
@@ -123,8 +125,6 @@ window.PGAstroEngine = window.PGAstroEngine || {};
     }
 
     // 7. Evaluate Life Milestones (வேலை, தொழில், திருமணம், வீடு, வாகனம்/கார்)
-    const lagnaRasiId = window.PGAstro.chart.getLagnaRasiId();
-    const lagnaDegree = window.PGAstro.chart.getLagnaDegree();
     const lifeMilestones = predictLifeMilestones({
       chartState,
       lagnaRasiId,
@@ -2899,6 +2899,158 @@ window.PGAstroEngine = window.PGAstroEngine || {};
               `;
             }).join("")}
           </div>
+
+          <!-- ============================================================= -->
+          <!-- 12 BHAVAS SUBHATHUVAM, PAPATHUVAM & SEPARATE PREDICTIONS -->
+          <!-- ============================================================= -->
+          ${(subha.bhavas && subha.bhavas.length > 0) ? (() => {
+            const bhs = subha.bhavas;
+            const goodCount = bhs.filter(b => b.isGood === true).length;
+            const moderateCount = bhs.filter(b => b.isGood === null).length;
+            const notGoodCount = bhs.filter(b => b.isGood === false).length;
+
+            return `
+              <div class="bhava-subha-section" style="margin-top:1.5rem; padding-top:1.2rem; border-top:1px dashed rgba(212,175,55,0.3);">
+                <!-- Section Header -->
+                <div class="bhava-dash-header">
+                  <div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                      <span style="font-size:1.35rem;">🏛️</span>
+                      <div>
+                        <h4 style="font-size:1.1rem; color:var(--gold-primary); margin:0; font-weight:800;">
+                          12 பாவங்களின் சுபத்துவம், பாபத்துவம் & தனித்தனி பலன்கள்
+                        </h4>
+                        <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+                          லக்ன அடிப்படையில் எந்த பாவம் நன்மை தரும் (Good) அல்லது பாதிப்பு/பரிகாரம் தேவைப்படும் (Not Good) என்ற பிரத்யேக கணிப்பு
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Summary Stats Chips -->
+                  <div class="bhava-stat-chips">
+                    <span class="bhava-stat-badge good-chip">
+                      🟢 <strong>${goodCount}</strong> சுப பாவங்கள் (Good)
+                    </span>
+                    <span class="bhava-stat-badge moderate-chip">
+                      ⚪ <strong>${moderateCount}</strong> சமநிலை பாவங்கள்
+                    </span>
+                    <span class="bhava-stat-badge notgood-chip">
+                      🔴 <strong>${notGoodCount}</strong> பாபத்துவ பாவங்கள் (Not Good)
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Filter Controls -->
+                <div class="bhava-filter-bar">
+                  <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700;">வடிகட்ட:</span>
+                  <button type="button" class="bhava-filter-btn active" data-filter="all" onclick="window.filterBhavaCards('all', this)">
+                    அனைத்து 12 பாவங்கள் (${bhs.length})
+                  </button>
+                  <button type="button" class="bhava-filter-btn filter-good" data-filter="good" onclick="window.filterBhavaCards('good', this)">
+                    🟢 நன்மை தரும் பாவங்கள் (${goodCount})
+                  </button>
+                  <button type="button" class="bhava-filter-btn filter-moderate" data-filter="moderate" onclick="window.filterBhavaCards('moderate', this)">
+                    ⚪ சமநிலை பாவங்கள் (${moderateCount})
+                  </button>
+                  <button type="button" class="bhava-filter-btn filter-notgood" data-filter="not_good" onclick="window.filterBhavaCards('not_good', this)">
+                    🔴 பாதிக்கப்பட்ட பாவங்கள் (${notGoodCount})
+                  </button>
+                </div>
+
+                <!-- 12 Bhavas Cards Grid -->
+                <div class="bhava-cards-grid" id="bhavaCardsContainer">
+                  ${bhs.map(b => {
+                    const sittingText = b.sittingPlanets.length > 0 
+                      ? b.sittingPlanets.join(", ") 
+                      : "கிரக அமர்வு இல்லை";
+                    const aspectsText = b.aspectingPlanets.length > 0 
+                      ? b.aspectingPlanets.map(a => a.text).join(", ") 
+                      : "நேரடிப் பார்வைகள் இல்லை";
+
+                    return `
+                      <div class="bhava-card bhava-status-${b.statusClass}" data-bhava-status="${b.statusClass}">
+                        <!-- Top Header -->
+                        <div class="bhava-card-header">
+                          <div>
+                            <div style="font-size:0.7rem; color:var(--gold-light); font-weight:700; text-transform:uppercase;">
+                              ${b.english} • ${b.signName}
+                            </div>
+                            <h5 class="bhava-card-title">${b.name}</h5>
+                            <div style="font-size:0.73rem; color:var(--text-dim); margin-top:2px;">
+                              ${b.primaryTheme}
+                            </div>
+                          </div>
+                          <div style="text-align:right;">
+                            <span class="badge ${b.badgeClass}" style="font-size:0.7rem; padding:3px 7px;">
+                              ${b.verdict}
+                            </span>
+                            <div style="font-size:0.67rem; color:var(--text-muted); margin-top:3px;">
+                              காரகன்: ${b.karaka}
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Score Pill Group -->
+                        <div class="score-tag-group" style="margin:0.5rem 0 0.55rem 0;">
+                          <span class="score-badge badge-subha" title="சுபத்துவ புள்ளிகள்">சுபம்: +${b.subhaScore}</span>
+                          ${b.papaScore > 0 ? `<span class="score-badge badge-papa" title="பாபத்துவ புள்ளிகள்">பாபம்: -${b.papaScore}</span>` : ""}
+                          <span class="score-badge badge-net" title="நிகர சுபத்துவ மதிப்பு">நிகரம்: ${b.netScore >= 0 ? '+' + b.netScore : b.netScore}</span>
+                          <span class="score-badge" style="background:rgba(255,255,255,0.05); color:#e2e8f0; font-size:0.68rem;" title="அதிபதி நிலை">
+                            ${b.lordPlacementText}
+                          </span>
+                        </div>
+
+                        <!-- Sitting Planets & Aspects Pills -->
+                        <div class="bhava-details-row">
+                          <div class="bhava-detail-item">
+                            <span class="bhava-detail-label">🪐 அமர்ந்தவை:</span>
+                            <span class="bhava-detail-val">${sittingText}</span>
+                          </div>
+                          <div class="bhava-detail-item">
+                            <span class="bhava-detail-label">👁️ பார்வைகள்:</span>
+                            <span class="bhava-detail-val">${aspectsText}</span>
+                          </div>
+                        </div>
+
+                        <!-- Reasons Breakdown -->
+                        <div class="bhava-reasons-box">
+                          ${b.reasons.map(r => `
+                            <div class="subha-reason-line ${r.type}">
+                              <span>${r.type === 'subha' ? '🟢' : (r.type === 'papa' ? '🔴' : '⚪')}</span>
+                              <span>${r.text}</span>
+                            </div>
+                          `).join("")}
+                        </div>
+
+                        <!-- Prediction Text Box -->
+                        <div class="bhava-prediction-box ${b.statusClass}">
+                          <div class="bhava-pred-title">
+                            <span>🔮</span>
+                            <strong>தனித்தனி பாவப் பலன்:</strong>
+                          </div>
+                          <p class="bhava-pred-content">${b.prediction}</p>
+                        </div>
+
+                        <!-- Remedy Box (if present) -->
+                        ${b.remedy ? `
+                          <div class="bhava-remedy-box">
+                            <div style="display:flex; align-items:center; gap:5px; margin-bottom:3px;">
+                              <span style="font-size:0.88rem;">🪔</span>
+                              <strong style="color:#fbbf24; font-size:0.74rem;">பாவ தோஷ நிவர்த்தி & பரிகாரம்:</strong>
+                            </div>
+                            <div style="font-size:0.74rem; color:#fef3c7; line-height:1.45;">
+                              ${b.remedy}
+                            </div>
+                          </div>
+                        ` : ""}
+                      </div>
+                    `;
+                  }).join("")}
+                </div>
+              </div>
+            `;
+          })() : ""}
         </div>
       `;
     }
@@ -3014,6 +3166,24 @@ window.PGAstroEngine = window.PGAstroEngine || {};
 
     container.innerHTML = html;
   }
+
+  // Helper to filter Bhava Cards
+  window.filterBhavaCards = function(status, btnElem) {
+    const container = document.getElementById("bhavaCardsContainer");
+    if (!container) return;
+    const cards = container.querySelectorAll(".bhava-card");
+    cards.forEach(card => {
+      const cardStatus = card.getAttribute("data-bhava-status");
+      if (status === "all" || cardStatus === status) {
+        card.style.display = "";
+      } else {
+        card.style.display = "none";
+      }
+    });
+    const filterBtns = document.querySelectorAll(".bhava-filter-btn");
+    filterBtns.forEach(b => b.classList.remove("active"));
+    if (btnElem) btnElem.classList.add("active");
+  };
 
   // Public API
   window.PGAstroEngine = {

@@ -552,6 +552,13 @@ window.PGAstro = window.PGAstro || {};
     const sortedByPapa = [...results].sort((a, b) => b.papaScore - a.papaScore);
     const topPapaPlanet = sortedByPapa[0] && sortedByPapa[0].papaScore >= 2 ? sortedByPapa[0] : null;
 
+    // Evaluate 12 Bhavas Subhathuvam & Papathuvam
+    const effectiveLagna = options.lagnaRasiId || (window.PGAstro && window.PGAstro.chart && window.PGAstro.chart.getLagnaRasiId()) || 1;
+    const bhavasResult = evaluate12BhavasSubhathuvam(chartInput, effectiveLagna, results, {
+      isWaxingMoon,
+      saturnMarsAffliction: saturnMarsSevereAffliction
+    });
+
     return {
       evaluatedAt: new Date().toLocaleTimeString(),
       isWaxingMoon: isWaxingMoon,
@@ -560,14 +567,580 @@ window.PGAstro = window.PGAstro || {};
       venusAffliction: venusAfflictionFound,
       topSubhathuvamPlanet: topSubhaPlanet,
       topPapathuvamPlanet: topPapaPlanet,
-      planets: results
+      planets: results,
+      bhavas: bhavasResult
     };
+  }
+
+  // =========================================================================
+  // 12 BHAVAS KNOWLEDGE BASE & SUBHATHUVAM EVALUATION RULES
+  // =========================================================================
+  const BHAVA_RULES_DATA = {
+    1: {
+      num: 1,
+      name: "1-ஆம் பாவம் (லக்னம் - தனு ஸ்தானம்)",
+      shortName: "1-ஆம் பாவம் (லக்னம்)",
+      english: "1st House (Lagna / Self)",
+      primaryTheme: "உடல், தோற்றம், ஆரோக்கியம், புகழ், ஆயுள், தலைமைப் பண்பு",
+      karaka: "சூரியன் (ஆத்ம காரகன்)",
+      goodVerdict: "அதி சுபத்துவ லக்னம் (Good / யோகம்)",
+      goodPrediction: "லக்ன பாவம் சுபத்துவமடைந்துள்ளதால் ஜாதகருக்கு கம்பீரமான தோற்றம், சிறந்த மனோபலம் மற்றும் நோய் நொடியற்ற தீர்க்காயுள் உண்டாகும். சமுதாயத்தில் உயர்ந்த மதிப்பும், கௌரவமும், தலைமைப் பொறுப்புகளும் இயல்பாகவே தேடி வரும். பிறரை வழிநடத்தும் ஆளுமைத் திறனும், எடுக்கும் காரியங்களை வெற்றிகரமாக முடிக்கும் ஆற்றலும் அமையும்.",
+      moderateVerdict: "சமநிலை லக்னம் (Moderate)",
+      moderatePrediction: "லக்ன பாவம் நடுத்தரமான பலத்துடன் உள்ளது. வழக்கமான ஆரோக்கியமும் சராசரி நற்பலன்களும் கிட்டும். திட்டமிட்ட உழைப்பால் தன்னம்பிக்கையை வளர்த்துக் கொண்டு முன்னேறலாம்.",
+      notGoodVerdict: "பாபத்துவ லக்னம் / எச்சரிக்கை (Not Good)",
+      notGoodPrediction: "லக்ன பாவம் பாபத்துவத் தொடர்பு பெற்றுள்ளதால் அடிக்கடி தலைவலி, உடல் சோர்வு, நோய் எதிர்ப்புச் சக்தி குறைவு மற்றும் தேவையற்ற மன உளைச்சல்கள் உண்டாகலாம். அவசர முடிவுகளால் நற்பெயருக்கு களங்கம் ஏற்பட வாய்ப்புண்டு. உடல் ஆரோக்கியத்திலும் நற்பெயரிலும் கூடுதல் கவனம் தேவை.",
+      remedy: "ஞாயிற்றுக்கிழமைகளில் சிவபெருமானுக்கு செவ்வரளி மாலை சாற்றி நெய்தீபம் ஏற்றுதல், காலையில் சூரிய நமஸ்காரம் செய்தல் மற்றும் தினமும் ஆதித்ய ஹிருதய ஸ்தோத்திரம் படித்தல்."
+    },
+    2: {
+      num: 2,
+      name: "2-ஆம் பாவம் (தன & குடும்ப ஸ்தானம்)",
+      shortName: "2-ஆம் பாவம் (தனம் & குடும்பம்)",
+      english: "2nd House (Dhana & Kutumba)",
+      primaryTheme: "தனம், சேமிப்பு, குடும்பம், வாக்கு வன்மை, கண்கள், முகம்",
+      karaka: "குரு (தன காரகன்), புதன் (வாக்கு காரகன்)",
+      goodVerdict: "தனாகர்ஷண சுபத்துவம் (Good / யோகம்)",
+      goodPrediction: "2-ஆம் பாவம் சுபத்துவ பலம் பெற்றுள்ளதால் ஜாதகருக்கு நிலையான பண வரவும், அசையா சொத்து மற்றும் வங்கி சேமிப்பு சேர்க்கையும் உண்டாகும். குடும்பத்தில் அமைதியும் மகிழ்ச்சியும் நிலவும். இவரது பேச்சில் வசீகரமும், வாக்கு பலிதமும் இருக்கும்; நிதி ஆலோசனை மற்றும் வங்கித் துறைகளில் பெருவெற்றி காண்பார்.",
+      moderateVerdict: "சமநிலை தன ஸ்தானம் (Moderate)",
+      moderatePrediction: "2-ஆம் பாவம் சமபலத்தில் உள்ளது. வரவுக்கு ஏற்ப செலவுகள் இருக்கும்; பெரிய அளவில் தட்டுப்பாடு இன்றி குடும்பத்தை நிர்வகிப்பார். சேமிப்பில் விழிப்புணர்வு தேவை.",
+      notGoodVerdict: "தன விரயம் / குடும்ப சலசலப்பு (Not Good)",
+      notGoodPrediction: "2-ஆம் பாவம் பாபத்துவம் பெற்றுள்ளதால் கையில் பணம் தங்காமல் திடீர் விரயங்கள் ஏற்படும். அவசரப்பட்டு பேசும் பேச்சால் குடும்பத்தில் வீண் மனஸ்தாபங்கள் உருவாகலாம். வரவுக்கு மீறிய ஆடம்பர செலவுகளைத் தவிர்ப்பது அவசியம். கண் மற்றும் பல் சார்ந்த உபாதைகள் வரலாம்.",
+      remedy: "வியாழக்கிழமைகளில் தட்சிணாமூர்த்திக்கு நெய்தீபம் ஏற்றுதல், புதன்கிழமைகளில் விஷ்ணு சஹஸ்ரநாமம் கேட்டல் மற்றும் ஏழை எளியோருக்கு அன்னதானம் வழங்குதல்."
+    },
+    3: {
+      num: 3,
+      name: "3-ஆம் பாவம் (தைரிய, வீரிய, சகோதர ஸ்தானம்)",
+      shortName: "3-ஆம் பாவம் (தைரியம் & இளைய சகோதரன்)",
+      english: "3rd House (Bhratru & Courage)",
+      primaryTheme: "தைரியம், முயற்சி, இளைய சகோதரன், தகவல் தொடர்பு, குறுகிய பயணம்",
+      karaka: "செவ்வாய் (சகோதர காரகன்), புதன் (தகவல் தொடர்பு)",
+      goodVerdict: "வெற்றி & வீரிய சுபத்துவம் (Good / யோகம்)",
+      goodPrediction: "3-ஆம் பாவம் சுபத்துவமாக இருப்பதால் ஜாதகர் அஞ்சா நெஞ்சமும் அளப்பரிய மனோதிடமும் கொண்டவர். சுய உழைப்பால் வாழ்க்கையில் படிப்படியாக உயர்ந்து பெருவெற்றி காண்பார். இளைய சகோதரர்களால் நன்மைகளும் பாசமும் கிட்டும். எழுத்து, பத்திரிகை, தகவல் தொடர்பு, கலை மற்றும் விளையாட்டுத் துறைகளில் பிரகாசிக்கும் யோகம் உண்டு.",
+      moderateVerdict: "சமநிலை முயற்சி ஸ்தானம் (Moderate)",
+      moderatePrediction: "3-ஆம் பாவம் மிதமான பலத்துடன் உள்ளது. வழக்கமான முயற்சிகளுக்கு ஏற்ப பலன் கிட்டும். சகோதரர்களிடம் சுமுகமான உறவு நிலவும்.",
+      notGoodVerdict: "முயற்சி தடை / மன பயம் (Not Good)",
+      notGoodPrediction: "3-ஆம் பாவம் பாபத்துவம் அடைந்துள்ளதால் முக்கிய முடிவுகளை எடுப்பதில் தயக்கமும், உள்ளுக்குள் காரணமற்ற பயமும் நிலவலாம். ஆரம்பிக்கும் முயற்சிகளில் சிறு தடைகளும் தாமதங்களும் ஏற்படலாம். இளைய சகோதரருடன் கருத்து வேறுபாடுகள் வரலாம். காது, தொண்டை உபாதைகளில் கவனம் தேவை.",
+      remedy: "செவ்வாய்க்கிழமைகளில் முருகப்பெருமானுக்கு செவ்வரளி அர்ச்சனை செய்தல், கந்த சஷ்டி கவசம் பாராயணம் செய்தல் மற்றும் இளைய சகோதரருக்கு இயன்ற உதவிகளைச் செய்தல்."
+    },
+    4: {
+      num: 4,
+      name: "4-ஆம் பாவம் (சுக, மாத்ரு, வித்யா & பூமி ஸ்தானம்)",
+      shortName: "4-ஆம் பாவம் (சுகம், தாய், கல்வி, பூமி)",
+      english: "4th House (Sukha, Matru & Properties)",
+      primaryTheme: "தாய், சொந்த வீடு, வாகனம், கல்வி, பூமி, மன நிம்மதி",
+      karaka: "சந்திரன் (தாய்), புதன் (கல்வி), சுக்கிரன் (வாகனம்), செவ்வாய் (பூமி)",
+      goodVerdict: "சுக போக சுபத்துவம் (Good / யோகம்)",
+      goodPrediction: "4-ஆம் பாவம் பலம் பெற்று சுபத்துவமாக அமைந்துள்ளதால் சொந்த வீடு, தோட்டம், நிலம் மற்றும் சொகுசு வாகனங்கள் அமையப்பெறும் பாக்கியம் உண்டு. கல்வி தடையின்றி சிறப்பாக அமையும். தாயாரின் அன்பும் பரிபூரண ஆசியும் எப்போதும் துணை நிற்கும். குடும்பத்தில் மன நிம்மதியும் சுகபோக வாழ்க்கையும் குறைவின்றி கிட்டும்.",
+      moderateVerdict: "சமநிலை சுக ஸ்தானம் (Moderate)",
+      moderatePrediction: "4-ஆம் பாவம் சராசரி பலத்துடன் உள்ளது. நடுத்தரமான வீடு, வாகன வசதிகள் அமையும். தாயாரின் உடல்நலத்தை வழக்கமான பரிசோதனைகள் மூலம் பேண வேண்டும்.",
+      notGoodVerdict: "சுகக் குறைவு / பூமி வில்லங்கம் (Not Good)",
+      notGoodPrediction: "4-ஆம் பாவம் பாபத்துவம் பெற்றுள்ளதால் கல்வியில் தடைகள், சொந்த வீடு வாங்குவதில் காலதாமதம், பூமி/வீடு சொத்துக்களில் வில்லங்கப் பிரச்சனைகள் உண்டாகலாம். தாயாருக்கு உடல்நல பாதிப்புகள் வர வாய்ப்புண்டு. வாகன பயணங்களில் நிதானமும் நெஞ்சு/இதய ஆரோக்கியத்தில் அக்கறையும் தேவை.",
+      remedy: "திங்கட்கிழமைகளில் அம்பாளுக்கு மல்லிகை மலர் சாற்றுதல், வெள்ளிக்கிழமைகளில் பசு மாட்டிற்கு அகத்திக்கீரை வழங்குதல் மற்றும் தாயாரை வணங்கி ஆசி பெறுதல்."
+    },
+    5: {
+      num: 5,
+      name: "5-ஆம் பாவம் (பூர்வ புண்ணிய, புத்திர & வித்யா ஸ்தானம்)",
+      shortName: "5-ஆம் பாவம் (பூர்வ புண்ணியம் & குழந்தைகள்)",
+      english: "5th House (Putra & Poorva Punya)",
+      primaryTheme: "குழந்தைகள், பூர்வ புண்ணியம், நுண்ணறிவு, குலதெய்வ அருள், காதல்",
+      karaka: "குரு (புத்திர காரகன்)",
+      goodVerdict: "பூர்வ புண்ணிய சுபத்துவம் (Good / யோகம்)",
+      goodPrediction: "5-ஆம் பாவம் பரிபூரண சுபத்துவம் பெற்றுள்ளதால் ஜாதகருக்கு குலதெய்வத்தின் அருட்கடாட்சம் எப்போதும் உண்டு. நற்குணமும், அறிவாற்றலும் கொண்ட குழந்தைகள் பிறந்து வம்சத்தை உயர்த்துவார்கள். கூர்மையான நுண்ணறிவு, ஆன்மீக ஞானம், கலைத் திறன் மற்றும் அதிர்ஷ்ட வாய்ப்புகள் இயல்பாகவே தேடி வரும். காதலில் சுப வெற்றியும் மன நிறைவும் உண்டாகும்.",
+      moderateVerdict: "சமநிலை புத்திர ஸ்தானம் (Moderate)",
+      moderatePrediction: "5-ஆம் பாவம் மிதமான பலத்துடன் உள்ளது. குழந்தைகள் மூலம் இயல்பான நற்பலன்கள் கிட்டும். குலதெய்வ வழிபாட்டை முறையாகத் தொடர்வது கூடுதல் நன்மையளிக்கும்.",
+      notGoodVerdict: "புத்திர தோஷம் / அதிர்ஷ்டத் தடை (Not Good)",
+      notGoodPrediction: "5-ஆம் பாவம் பாபத்துவம் அடைந்துள்ளதால் குழந்தை பிறப்பில் சிறு தாமதங்கள் அல்லது மருத்துவ சிகிச்சைகள் தேவைப்படலாம். பிள்ளைகளால் மனக்கவலைகள், பூர்வ புண்ணியக் குறைவால் அதிர்ஷ்ட வாய்ப்புகள் கைநழுவுதல், மற்றும் காதலில் மனக்கசப்புகள் ஏற்படலாம். குலதெய்வ வழிபாட்டில் ஏற்பட்ட குறைபாடுகளை நிவர்த்தி செய்வது மிகவும் நன்று.",
+      remedy: "குலதெய்வ கோவிலுக்குச் சென்று பொங்கலிட்டு அபிஷேகம் செய்தல், திருச்செந்தூர் அல்லது பழனி முருகப்பெருமானை வழிபடுதல் மற்றும் ஏழை குழந்தைகளுக்கு கல்வி உதவி செய்தல்."
+    },
+    6: {
+      num: 6,
+      name: "6-ஆம் பாவம் (ரோக, கடன், சத்ரு & போட்டி ஸ்தானம்)",
+      shortName: "6-ஆம் பாவம் (ரோகம், கடன், சத்ரு, போட்டி)",
+      english: "6th House (Roga, Rina, Shatru)",
+      primaryTheme: "நோய், கடன், மறைமுக எதிரிகள், வழக்குகள், போட்டித் தேர்வுகள்",
+      karaka: "செவ்வாய், சனி",
+      goodVerdict: "சத்ரு நாச விபரீத சுபத்துவம் (Good / யோகம்)",
+      goodPrediction: "6-ஆம் பாவம் சுபத்துவ தொடர்பால் விபரீத சுபத்துவத்தை அடைந்துள்ளது. எதிரிகள் ஜாதகரின் முன்னேற்றத்தைக் கண்டு தானாகவே பணிந்து விலகுவார்கள். கடன் சுமை இல்லாத நிம்மதியான வாழ்வு அமையும். அரசு வேலைவாய்ப்புப் போட்டித் தேர்வுகள், நேர்காணல்கள் மற்றும் வழக்குகளில் அபார வெற்றி பெற்று முன்னிலை வகிப்பார். நோய் எதிர்ப்புச் சக்தி அபரிமிதமாக இருக்கும்.",
+      moderateVerdict: "சமநிலை சத்ரு ஸ்தானம் (Moderate)",
+      moderatePrediction: "6-ஆம் பாவம் சமபலத்தில் உள்ளது. சிறு உடல் உபாதைகளும் சிறிய கடன்களும் வந்து உடனுக்குடன் தீரும். எதிரிகளால் பெரிய பாதிப்புகள் ஏற்படாது.",
+      notGoodVerdict: "கடன் & பிணி எச்சரிக்கை (Not Good)",
+      notGoodPrediction: "6-ஆம் பாவம் கடுமையான பாபத்துவம் பெற்றிருந்தால் தீராத அநாவசிய கடன் தொல்லைகள், வட்டிக்கு வாங்கும் சூழல், மற்றும் மறைமுக எதிரிகளின் சதித் திட்டங்களால் மன உளைச்சல் ஏற்படலாம். வழக்குகள் அல்லது காவல் நிலைய இழுபறிகள் வர வாய்ப்புண்டு. செரிமானக் கோளாறு, குடல் உபாதை, தோல் நோய்களில் விழிப்புணர்வு தேவை.",
+      remedy: "சனிக்கிழமைகளில் நரசிம்மர் அல்லது கால பைரவர் வழிபாடு செய்தல், எலுமிச்சம்பழ மாலை சாற்றி நெய்தீபம் ஏற்றுதல் மற்றும் அநாவசிய கடன் வாங்குவதை திட்டமிட்டு தவிர்த்தல்."
+    },
+    7: {
+      num: 7,
+      name: "7-ஆம் பாவம் (களத்திர & கூட்டுத் தொழில் ஸ்தானம்)",
+      shortName: "7-ஆம் பாவம் (களத்திரம், திருமணம், கூட்டு)",
+      english: "7th House (Kalathra & Marriage)",
+      primaryTheme: "மனைவி / கணவர், திருமணம், தாம்பத்தியம், வெளி உலகம், கூட்டாளிகள்",
+      karaka: "சுக்கிரன் (களத்திர காரகன்), குரு/செவ்வாய்",
+      goodVerdict: "களத்திர சுபத்துவ யோகம் (Good / யோகம்)",
+      goodPrediction: "7-ஆம் பாவம் சுபத்துவ வலிமை பெற்றுள்ளதால் நற்குணமும், அழகும், குடும்பப் பாரம்பரியமும் கொண்ட உன்னதமான வாழ்க்கைத் துணை அமையும். திருமண வாழ்க்கை பரஸ்பர அன்பும் ஒற்றுமையும் நிறைந்து விளங்கும். பொதுமக்களிடையே நன்மதிப்பும், வாடிக்கையாளர் தொடர்பும், கூட்டுத்தொழிலில் நல்ல வருமானமும் கிட்டும்.",
+      moderateVerdict: "சமநிலை களத்திர ஸ்தானம் (Moderate)",
+      moderatePrediction: "7-ஆம் பாவம் மிதமான நிலையில் உள்ளது. இல்லற வாழ்க்கை சராசரியாக அமையும்; சிறு கருத்து வேறுபாடுகள் வந்தாலும் பேசித் தீர்த்துக் கொள்வது நன்று.",
+      notGoodVerdict: "களத்திர தோஷம் / திருமணத் தாமதம் (Not Good)",
+      notGoodPrediction: "7-ஆம் பாவம் பாபத்துவம் அடைந்துள்ளதால் வரன் அமைவதில் இழுபறி, திருமணத் தாமதம் அல்லது திருமணத்திற்குப் பின் தம்பதியரிடையே கருத்து மோதல்கள் உண்டாகலாம். கூட்டுத்தொழில் (Partnership) வைத்தால் கூட்டாளிகளால் ஏமாற்றங்கள் ஏற்பட வாய்ப்புண்டு. புரிதலும் சகிப்புத்தன்மையும் தாம்பத்தியத்திற்கு மிக அவசியம். சிறுநீரகம் மற்றும் அடிவயிறு நலனில் கவனம் தேவை.",
+      remedy: "வெள்ளிக்கிழமைகளில் ஸ்ரீரங்கம் அல்லது திருப்பதி பெருமாள்-தாயார் சன்னதியில் துளசி அர்ச்சனை செய்தல், சுமங்கலிப் பெண்களுக்கு மாங்கல்ய சரடு/தாம்பூலம் வழங்கி ஆசி பெறுதல்."
+    },
+    8: {
+      num: 8,
+      name: "8-ஆம் பாவம் (ஆயுள், அஷ்டம & திடீர் அதிர்ஷ்ட ஸ்தானம்)",
+      shortName: "8-ஆம் பாவம் (ஆயுள், கண்டம், வெளிநாடு)",
+      english: "8th House (Ayur & Ashtama)",
+      primaryTheme: "ஆயுள், திடீர் தனலாபம், வெளிநாட்டு நிரந்தர வாசம், கண்டங்கள், அவமானம்",
+      karaka: "சனி (ஆயுள் காரகன்)",
+      goodVerdict: "தீர்க்காயுள் & மறைமுக தன யோகம் (Good / யோகம்)",
+      goodPrediction: "8-ஆம் பாவம் சுபத்துவ தொடர்பு பெற்றிருப்பதால் விபரீத யோக அடிப்படையில் ஜாதகருக்கு தீர்க்காயுள் பலம் உண்டு. எதிர்பாராத வழிகளில் திடீர் தனலாபம், உயில் சொத்துக்கள், பங்குச் சந்தை/இன்சூரன்ஸ் ஆதாயங்கள் கிட்டும். கடல் கடந்து வெளிநாட்டில் நிரந்தரமாகத் தங்கி குடியுரிமை பெறும் பிரகாசமான யோகம் உண்டாகும்.",
+      moderateVerdict: "சமநிலை ஆயுள் ஸ்தானம் (Moderate)",
+      moderatePrediction: "8-ஆம் பாவம் சமபலத்தில் உள்ளது. வழக்கமான ஆயுள் பலம் உண்டு; தூர தேச பயணங்கள் நற்பலன்களைத் தரும். திடீர் செலவுகளில் கவனமாக இருக்க வேண்டும்.",
+      notGoodVerdict: "அஷ்டம பாபத்துவம் / விபத்து கண்டம் (Not Good)",
+      notGoodPrediction: "8-ஆம் பாவம் பாபத்துவம் அடைந்துள்ளதால் திடீர் விபத்துக்கள், வெட்டுக் காயங்கள், அறுவை சிகிச்சைகள் அல்லது காரணமற்ற அவப்பெயர்கள் உண்டாகலாம். எதிர்பாராத நிதி இழப்பு மற்றும் மறைமுக எதிர்ப்புகளால் மன உளைச்சல் ஏற்படலாம். வேகமான வாகனப் பயணம் மற்றும் அநாவசிய வாக்குவாதங்களில் மிகவும் எச்சரிக்கையாக இருக்க வேண்டும்.",
+      remedy: "திங்கட்கிழமைகளில் ருத்ர ஜபம் அல்லது மகா மிருத்யுஞ்ஜய மந்திரம் பாராயணம் செய்தல், சனிக்கிழமைகளில் மாற்றுத்திறனாளிகளுக்கு அன்னதானம் வழங்குதல்."
+    },
+    9: {
+      num: 9,
+      name: "9-ஆம் பாவம் (பாக்கிய, பித்ரு & தர்ம ஸ்தானம்)",
+      shortName: "9-ஆம் பாவம் (பாக்கியம் & தந்தை)",
+      english: "9th House (Bhagya, Pitru & Dharma)",
+      primaryTheme: "பாக்கியம், தந்தை, தர்மம், கோவில் திருப்பணி, வெளிநாட்டு உயர்கல்வி",
+      karaka: "சூரியன் (தந்தை), குரு (பாக்கியம் & தர்மம்)",
+      goodVerdict: "பாக்கிய விருத்தி சுபத்துவம் (Good / யோகம்)",
+      goodPrediction: "9-ஆம் பாவம் மிகச் சிறந்த சுபத்துவ பலம் பெற்றுள்ளதால் ஜாதகருக்கு தந்தையின் பரிபூரண ஆதரவும், முன்னோர்களின் புண்ணியமும், பூர்வீகச் சொத்துக்களும் தடையின்றி கிடைக்கும். தெய்வ பக்தி, கோவில் திருப்பணிகளில் ஈடுபாடு மற்றும் வெளிநாட்டுப் பயணங்கள் வழியே பெரும் அதிர்ஷ்டம் கிட்டும். பெரியோர்களின் ஆசி எப்போதும் கைகொடுக்கும்.",
+      moderateVerdict: "சமநிலை பாக்கிய ஸ்தானம் (Moderate)",
+      moderatePrediction: "9-ஆம் பாவம் நடுத்தர பலத்தில் உள்ளது. தந்தையுடன் சுமாரான இணக்கமும் சராசரி பாக்கிய பலன்களும் உண்டு. தர்ம காரியங்களைச் செய்வது பாக்கியத்தை உயர்த்தும்.",
+      notGoodVerdict: "பித்ரு தோஷம் / பாக்கியத் தடை (Not Good)",
+      notGoodPrediction: "9-ஆம் பாவம் பாபத்துவம் அடைந்துள்ளதால் தந்தைக்கு உடல்நல பாதிப்புகள் அல்லது தந்தையுடன் கருத்து வேறுபாடுகள் வரலாம். பூர்வீகச் சொத்துக்களில் சிக்கல்கள் மற்றும் நற்பாக்கியங்கள் கடைசி நேரத்தில் நழுவிப் போகும் நிலை ஏற்படலாம். ஆன்மீக மற்றும் முன்னோர்கள் வழிபாட்டில் உள்ள குறைகளை நிவர்த்தி செய்வது அவசியம்.",
+      remedy: "அமாவாசை தோறும் முன்னோர்களுக்கு எள் தர்ப்பணம் கொடுத்தல், ஞாயிற்றுக்கிழமைகளில் சிவன் கோவிலில் நெய்தீபம் ஏற்றுதல் மற்றும் தந்தை ஸ்தானத்தில் உள்ள பெரியவர்களை மதித்து வணங்குதல்."
+    },
+    10: {
+      num: 10,
+      name: "10-ஆம் பாவம் (ஜீவன, கர்ம & கீர்த்தி ஸ்தானம்)",
+      shortName: "10-ஆம் பாவம் (ஜீவனம், தொழில், அதிகாரம்)",
+      english: "10th House (Karma & Profession)",
+      primaryTheme: "தொழில், உத்தியோகம், அதிகாரம், சமுதாயப் புகழ், அரசு பதவி",
+      karaka: "சனி (ஜீவனம்), சூரியன் (அரசு/அதிகாரம்), புதன் (வணிகம்)",
+      goodVerdict: "ஜீவன சுபத்துவம் / முதலாளி யோகம் (Good / யோகம்)",
+      goodPrediction: "10-ஆம் பாவம் உயர்ந்த சுபத்துவம் பெற்றுள்ளதால் ஜாதகர் நிலையான கௌரவமான உத்தியோகம் அல்லது பலருக்கு வேலை கொடுக்கும் பெரிய தொழில் அதிபராக விளங்குவார். அரசுத் துறை வாய்ப்புகள், நிறுவனத் தலைமைப் பதவிகள் மற்றும் சமுதாயத்தில் உயர்ந்த அந்தஸ்து தேடி வரும். தொழிலில் தொடர்ச்சியான தனலாபமும் பெரும் புகழும் உண்டாகும்.",
+      moderateVerdict: "சமநிலை ஜீவன ஸ்தானம் (Moderate)",
+      moderatePrediction: "10-ஆம் பாவம் மிதமான பலத்தில் உள்ளது. சீரான உத்தியோகம் அல்லது சிறிய அளவிலான சுய தொழில் அமையும். கடின உழைப்பால் படிப்படியாக முன்னேறலாம்.",
+      notGoodVerdict: "தொழில் முடக்கம் / வேலை இழப்பு (Not Good)",
+      notGoodPrediction: "10-ஆம் பாவம் பாபத்துவம் அடைந்துள்ளதால் உத்தியோகத்தில் அடிக்கடி இடமாற்றம், வேலையின்மை, அதிகாரிகளுடன் கருத்து மோதல் அல்லது சுய தொழிலில் திடீர் நஷ்டங்கள் உண்டாகலாம். உழைப்புக்கேற்ற ஊதியம் கிடைக்காமல் இழுபறி ஏற்படலாம். தொழிலில் தவறான கூட்டாளிகளை நம்பி பணத்தை முதலீடு செய்வதை தவிர்க்க வேண்டும்.",
+      remedy: "சனிக்கிழமைகளில் சனி பகவானுக்கு அல்லது ஆஞ்சநேயருக்கு எள்தீபம் ஏற்றுதல், வேலை செய்யும் தொழிலாளர்களுக்கு வஸ்திர தானம் அல்லது உணவு வழங்குதல்."
+    },
+    11: {
+      num: 11,
+      name: "11-ஆம் பாவம் (லாப, ஆசை பூர்த்தி & மூத்த சகோதர ஸ்தானம்)",
+      shortName: "11-ஆம் பாவம் (லாபம் & ஆசை பூர்த்தி)",
+      english: "11th House (Labha & Desires)",
+      primaryTheme: "தன லாபம், ஆசை பூர்த்தி, மூத்த சகோதரன், செல்வாக்கு மிக்க நட்பு",
+      karaka: "குரு (லாப காரகன்)",
+      goodVerdict: "சர்வ லாப சுபத்துவம் (Good / யோகம்)",
+      goodPrediction: "11-ஆம் பாவம் சுபத்துவ பெருக்கம் பெற்றுள்ளதால் ஜாதகர் தொட்ட காரியங்கள் யாவும் பொன்னாகும். பல வழிகளிலிருந்து தொடர்ச்சியான உபரி வருமானமும், முதலீடுகளில் இரட்டிப்பு லாபமும் குவியும். நினைத்த லட்சியங்கள் மற்றும் ஆசைகள் யாவும் படிப்படியாக நிறைவேறும். மூத்த சகோதரர்கள் மற்றும் செல்வாக்குள்ள நண்பர்களின் முழு ஆதரவு உண்டு.",
+      moderateVerdict: "சமநிலை லாப ஸ்தானம் (Moderate)",
+      moderatePrediction: "11-ஆம் பாவம் சமபலத்தில் உள்ளது. உழைப்புக்குரிய நியாயமான லாபம் வந்து சேரும். தேவைகள் நிறைவேறுவதில் பெரிய தடைகள் இருக்காது.",
+      notGoodVerdict: "லாப நஷ்டம் / ஏமாற்றம் (Not Good)",
+      notGoodPrediction: "11-ஆம் பாவம் பாபத்துவம் பெற்றுள்ளதால் எவ்வளவு உழைத்தாலும் வருமானம் கையில் தங்காமல் விரயமாகலாம். தவறான நண்பர்களை நம்பி பணத்தை இழக்க நேரிடலாம். மூத்த சகோதரருடன் சொத்துத் தகராறு அல்லது கருத்து வேறுபாடுகள் வரலாம். பேராசைப்பட்டு பங்குச் சந்தை அல்லது ஊக வணிகத்தில் இறங்குவதை முற்றிலுமாகத் தவிர்க்க வேண்டும்.",
+      remedy: "வியாழக்கிழமைகளில் திருச்செந்தூர் முருகன் அல்லது குரு பகவானுக்கு முல்லை மலர் சாற்றுதல், ஏழை மாணவர்களுக்கு நோட்டுப் புத்தகம் வாங்கிக் கொடுத்து உதவுதல்."
+    },
+    12: {
+      num: 12,
+      name: "12-ஆம் பாவம் (விரய, அயன சயன & மோட்ச ஸ்தானம்)",
+      shortName: "12-ஆம் பாவம் (விரயம், அயல்நாடு, மோட்சம்)",
+      english: "12th House (Vyaya & Moksha)",
+      primaryTheme: "சுப விரயம், தூக்கம் (அயன சயனம்), வெளிநாட்டு வாழ்க்கை, முதலீடு, மோட்சம்",
+      karaka: "சனி (விரயம்), கேது (மோட்சம்), சுக்கிரன் (சயன சுகம்)",
+      goodVerdict: "சுப விரய & வெளிநாட்டு யோகம் (Good / யோகம்)",
+      goodPrediction: "12-ஆம் பாவம் சுபத்துவ தொடர்பால் யோக ஸ்தானமாக மாறியுள்ளது. வீணான செலவுகள் இன்றி வீடு கட்டுதல், நிலம் வாங்குதல், சுப காரியங்கள் போன்ற சுப விரயங்கள் நடக்கும். கடல் கடந்து வெளிநாட்டில் நீண்ட காலம் தங்கி அந்நிய செலாவணியில் சம்பாதிக்கும் பாக்கியம் உண்டு. ஆழ்ந்த அமைதியான நிம்மதியான உறக்கமும், ஆன்மீக ஞானமும் குறைவின்றி அமையும்.",
+      moderateVerdict: "சமநிலை விரய ஸ்தானம் (Moderate)",
+      moderatePrediction: "12-ஆம் பாவம் மிதமான பலத்தில் உள்ளது. சுபமும் அசுபமும் கலந்த செலவுகள் இருக்கும். தூர தேச பயணங்களால் சுமாரான ஆதாயம் கிடைக்கும்.",
+      notGoodVerdict: "அசுப விரயம் / தூக்கமின்மை (Not Good)",
+      notGoodPrediction: "12-ஆம் பாவம் பாபத்துவம் பெற்றுள்ளதால் மருத்துவச் செலவுகள், வீண் அபராதங்கள், அல்லது எதிர்பாராத பண நஷ்டங்கள் ஏற்படலாம். மன அமைதியின்றி தூக்கமின்மை (Insomnia), படுக்கை சுகமின்மை மற்றும் தேவையின்றி வெளியூர்களில் அலைந்து திரியும் நிலை வரலாம். வெளிநாடு சென்றாலும் ஏமாற்றங்கள் ஏற்பட வாய்ப்புண்டு என்பதால் விழிப்புணர்வு தேவை.",
+      remedy: "செவ்வாய் மற்றும் வெள்ளிக்கிழமைகளில் துர்க்கை அம்மனுக்கு எலுமிச்சம்பழ விளக்கு ஏற்றுதல், தூங்கும் முன் ஓம் நமச்சிவாய மந்திரம் உச்சரித்தல் மற்றும் அனாதை இல்லங்களுக்கு மருந்து தானம் செய்தல்."
+    }
+  };
+
+  // Sign Lord & Name helpers
+  const SIGN_LORDS = {
+    1: "செவ்வாய்", 2: "சுக்கிரன்", 3: "புதன்", 4: "சந்திரன்", 5: "சூரியன்", 6: "புதன்",
+    7: "சுக்கிரன்", 8: "செவ்வாய்", 9: "குரு", 10: "சனி", 11: "சனி", 12: "குரு"
+  };
+
+  const SIGN_NAMES = {
+    1: "மேஷம்", 2: "ரிஷபம்", 3: "மிதுனம்", 4: "கடகம்", 5: "சிம்மம்", 6: "கன்னி",
+    7: "துலாம்", 8: "விருச்சிகம்", 9: "தனுசு", 10: "மகரம்", 11: "கும்பம்", 12: "மீனம்"
+  };
+
+  // 12 Bhavas Subhathuvam & Papathuvam Evaluator
+  function evaluate12BhavasSubhathuvam(chartInput, lagnaRasiId = 1, planetResults = [], context = {}) {
+    if (!chartInput || Object.keys(chartInput).length === 0) return [];
+
+    const effectiveLagna = parseInt(lagnaRasiId) || 1;
+    const isWaxingMoon = context.isWaxingMoon !== undefined ? context.isWaxingMoon : true;
+
+    // Collect sign -> planets
+    const signPlanets = {};
+    const planetPositions = {}; // planet -> signId
+    for (let s = 1; s <= 12; s++) {
+      signPlanets[s] = [];
+      const items = chartInput[s] || [];
+      items.forEach(it => {
+        const pName = typeof it === "string" ? it : it.planet;
+        if (pName) {
+          signPlanets[s].push(typeof it === "object" ? it : { planet: pName, degree: 15 });
+          planetPositions[pName] = {
+            signId: s,
+            degree: it.degree !== undefined ? parseFloat(it.degree) : 15.0,
+            isExalted: !!it.isExalted,
+            isDebilitated: !!it.isDebilitated,
+            isCombust: !!it.isCombust
+          };
+        }
+      });
+    }
+
+    const planetScoresMap = {};
+    (planetResults || []).forEach(p => {
+      planetScoresMap[p.planet] = p;
+    });
+
+    const jupPos = planetPositions["குரு"];
+    const moonPos = planetPositions["சந்திரன்"];
+    const venPos = planetPositions["சுக்கிரன்"];
+    const mercPos = planetPositions["புதன்"];
+    const satPos = planetPositions["சனி"];
+    const marsPos = planetPositions["செவ்வாய்"];
+    const sunPos = planetPositions["சூரியன்"];
+    const rahuPos = planetPositions["ராகு"];
+    const ketuPos = planetPositions["கேது"];
+
+    const bhavasEvaluated = [];
+
+    for (let bNum = 1; bNum <= 12; bNum++) {
+      const bhavaSignId = ((effectiveLagna - 1 + (bNum - 1)) % 12) + 1;
+      const bhavaSignName = SIGN_NAMES[bhavaSignId] || "";
+      const bhavaLordName = SIGN_LORDS[bhavaSignId] || "";
+      const ruleData = BHAVA_RULES_DATA[bNum] || {};
+
+      let subhaScore = 0;
+      let papaScore = 0;
+      const subhaReasons = [];
+      const papaReasons = [];
+      const sittingPlanetsList = [];
+      const aspectingList = [];
+
+      // 1. Evaluate Planets Sitting in this Bhava
+      const occupants = signPlanets[bhavaSignId] || [];
+      occupants.forEach(occ => {
+        const p = occ.planet;
+        sittingPlanetsList.push(p);
+
+        if (p === "குரு") {
+          subhaScore += 4;
+          subhaReasons.push("குருவின் சுப அமர்வு (+4 சுபத்துவம்)");
+        } else if (p === "சந்திரன்") {
+          if (isWaxingMoon) {
+            subhaScore += 4;
+            subhaReasons.push("வளர்பிறை சந்திரனின் அமர்வு (+4 சுபத்துவம்)");
+          } else {
+            papaScore += 2;
+            papaReasons.push("தேய்பிறை / அமாவாசை சந்திரன் அமர்வு (-2 பாபத்துவம்)");
+          }
+        } else if (p === "சுக்கிரன்") {
+          subhaScore += 3;
+          subhaReasons.push("சுக்கிரனின் சுப அமர்வு (+3 சுபத்துவம்)");
+        } else if (p === "புதன்") {
+          const hasMaleficInSign = occupants.some(o => ["சனி", "செவ்வாய்", "ராகு"].includes(o.planet));
+          if (!hasMaleficInSign) {
+            subhaScore += 2;
+            subhaReasons.push("தனித்த சுப புதன் அமர்வு (+2 சுபத்துவம்)");
+          }
+        } else if (p === "சனி") {
+          const hasKetuOrJup = occupants.some(o => o.planet === "கேது" || o.planet === "குரு");
+          if (hasKetuOrJup) {
+            papaScore += 1;
+            papaReasons.push("சனி அமர்வு (கேது/சுபத் தொடர்பால் பாபத்துவம் தணிந்தது: -1)");
+          } else {
+            papaScore += 3;
+            papaReasons.push("சனியின் பாப அமர்வு (-3 பாபத்துவம்)");
+          }
+        } else if (p === "செவ்வாய்") {
+          const hasKetuOrJup = occupants.some(o => o.planet === "கேது" || o.planet === "குரு");
+          if (hasKetuOrJup) {
+            papaScore += 1;
+            papaReasons.push("செவ்வாய் அமர்வு (கேது/சுபத் தொடர்பால் பாபத்துவம் தணிந்தது: -1)");
+          } else {
+            papaScore += 3;
+            papaReasons.push("செவ்வாயின் பாப அமர்வு (-3 பாபத்துவம்)");
+          }
+        } else if (p === "ராகு") {
+          papaScore += 3;
+          papaReasons.push("ராகுவின் நேரடி அமர்வு (-3 பாபத்துவம்)");
+        } else if (p === "கேது") {
+          papaScore += 2;
+          papaReasons.push("கேதுவின் அமர்வு (-2 பாபத்துவம்)");
+        } else if (p === "சூரியன்") {
+          // Upachaya houses 3, 6, 10, 11
+          if ([3, 6, 10, 11].includes(bNum)) {
+            subhaScore += 1;
+            subhaReasons.push("உபசய ஸ்தானத்தில் சூரியன் சுப பலம் (+1)");
+          } else {
+            papaScore += 1;
+            papaReasons.push("சூரியனின் இயற்கை வெப்ப கிரண அழுத்தம் (-1)");
+          }
+        }
+
+        // Special Dignity inside Bhava
+        if (occ.isExalted) {
+          subhaScore += 2;
+          subhaReasons.push(`${p} உச்ச பலம் பெற்று பாவத்திற்கு வலிமை (+2)`);
+        }
+        if (occ.isDebilitated) {
+          papaScore += 2;
+          papaReasons.push(`${p} நீச பலவீனம் பெற்று பாவத்திற்கு குறைவு (-2)`);
+        }
+        if (occ.isCombust) {
+          papaScore += 2;
+          papaReasons.push(`${p} அஸ்தமனம் அடைந்து பலவீனம் (-2)`);
+        }
+      });
+
+      // 2. Evaluate Aspects on this Bhava
+      // Jupiter 5, 7, 9
+      if (jupPos && jupPos.signId !== bhavaSignId) {
+        const jupAspects = [
+          (jupPos.signId + 4 - 1) % 12 + 1,
+          (jupPos.signId + 6 - 1) % 12 + 1,
+          (jupPos.signId + 8 - 1) % 12 + 1
+        ];
+        if (jupAspects.includes(bhavaSignId)) {
+          subhaScore += 5;
+          const rText = "குருவின் நேரடி அருட்பார்வை (+5 அதி சுபத்துவம்)";
+          subhaReasons.push(rText);
+          aspectingList.push({ planet: "குரு", text: "குரு பார்வை" });
+        }
+      }
+
+      // Waxing Moon 7
+      if (moonPos && moonPos.signId !== bhavaSignId) {
+        const moon7th = (moonPos.signId + 6 - 1) % 12 + 1;
+        if (moon7th === bhavaSignId) {
+          if (isWaxingMoon) {
+            subhaScore += 4;
+            subhaReasons.push("வளர்பிறை சந்திரனின் நேர் பார்வை (+4 சுபத்துவம்)");
+            aspectingList.push({ planet: "சந்திரன்", text: "வளர்பிறை சந்திரன் பார்வை" });
+          } else {
+            papaScore += 1;
+            papaReasons.push("தேய்பிறை சந்திரனின் நேர் பார்வை (-1)");
+          }
+        }
+      }
+
+      // Venus 7
+      if (venPos && venPos.signId !== bhavaSignId) {
+        const ven7th = (venPos.signId + 6 - 1) % 12 + 1;
+        if (ven7th === bhavaSignId) {
+          subhaScore += 3;
+          subhaReasons.push("சுக்கிரனின் சுப ஏழாம் பார்வை (+3 சுபத்துவம்)");
+          aspectingList.push({ planet: "சுக்கிரன்", text: "சுக்கிரன் பார்வை" });
+        }
+      }
+
+      // Mercury 7
+      if (mercPos && mercPos.signId !== bhavaSignId) {
+        const merc7th = (mercPos.signId + 6 - 1) % 12 + 1;
+        if (merc7th === bhavaSignId) {
+          const hasMal = signPlanets[mercPos.signId]?.some(o => ["சனி", "செவ்வாய்", "ராகு"].includes(o.planet));
+          if (!hasMal) {
+            subhaScore += 2;
+            subhaReasons.push("சுப புதனின் நேர் பார்வை (+2 சுபத்துவம்)");
+            aspectingList.push({ planet: "புதன்", text: "புதன் பார்வை" });
+          }
+        }
+      }
+
+      // Saturn 3, 7, 10
+      if (satPos && satPos.signId !== bhavaSignId) {
+        const satAspects = [
+          (satPos.signId + 2 - 1) % 12 + 1, // 3rd
+          (satPos.signId + 6 - 1) % 12 + 1, // 7th
+          (satPos.signId + 9 - 1) % 12 + 1  // 10th
+        ];
+        if (satAspects.includes(bhavaSignId)) {
+          papaScore += 2;
+          const rText = "சனியின் பார்வை தாக்கம் (-2 பாபத்துவம்)";
+          papaReasons.push(rText);
+          aspectingList.push({ planet: "சனி", text: "சனி பார்வை" });
+        }
+      }
+
+      // Mars 4, 7, 8
+      if (marsPos && marsPos.signId !== bhavaSignId) {
+        const marsAspects = [
+          (marsPos.signId + 3 - 1) % 12 + 1, // 4th
+          (marsPos.signId + 6 - 1) % 12 + 1, // 7th
+          (marsPos.signId + 7 - 1) % 12 + 1  // 8th
+        ];
+        if (marsAspects.includes(bhavaSignId)) {
+          papaScore += 2;
+          const rText = "செவ்வாயின் பார்வை தாக்கம் (-2 பாபத்துவம்)";
+          papaReasons.push(rText);
+          aspectingList.push({ planet: "செவ்வாய்", text: "செவ்வாய் பார்வை" });
+        }
+      }
+
+      // 3. Evaluate Bhava Lord (பாவாதிபதி நிலை)
+      const lordPos = planetPositions[bhavaLordName];
+      let lordFromLagna = 0;
+      let lordPlacementText = "";
+
+      if (lordPos) {
+        lordFromLagna = ((lordPos.signId - effectiveLagna + 12) % 12) + 1;
+        lordPlacementText = `அதிபதி ${bhavaLordName} (${SIGN_NAMES[lordPos.signId] || ""} - லக்னத்திற்கு ${lordFromLagna}-ல்)`;
+
+        // Kendra / Trikona placement
+        if ([1, 4, 7, 10].includes(lordFromLagna)) {
+          subhaScore += 2;
+          subhaReasons.push(`பாவாதிபதி ${bhavaLordName} கேந்திரத்தில் அமர்ந்து பலம் (+2)`);
+        } else if ([5, 9].includes(lordFromLagna)) {
+          subhaScore += 3;
+          subhaReasons.push(`பாவாதிபதி ${bhavaLordName} திரிகோணத்தில் அமர்ந்து சுபத்துவம் (+3)`);
+        } else if ([6, 8, 12].includes(lordFromLagna)) {
+          // Dusthana placement
+          // Exception: 6th lord in 6, 8th lord in 8, 12th lord in 12
+          if (bNum === lordFromLagna) {
+            subhaScore += 2;
+            subhaReasons.push(`மறைவு பாவாதிபதி ${bhavaLordName} தன் வீட்டிலேயே அமர்ந்து விபரீத ராஜயோகம் (+2)`);
+          } else {
+            papaScore += 2;
+            papaReasons.push(`பாவாதிபதி ${bhavaLordName} மறைவு ஸ்தானத்தில் (${lordFromLagna}-ல்) அமர்வு (-2)`);
+          }
+        } else if ([2, 11].includes(lordFromLagna)) {
+          subhaScore += 2;
+          subhaReasons.push(`பாவாதிபதி ${bhavaLordName} தன/லாப ஸ்தானத்தில் அமர்வு (+2)`);
+        }
+
+        // Own house or Exaltation
+        if (lordPos.signId === bhavaSignId) {
+          subhaScore += 2;
+          subhaReasons.push(`பாவாதிபதி ${bhavaLordName} தனது சொந்த பாவத்திலேயே ஆட்சி பலம் (+2)`);
+        }
+        if (lordPos.isExalted) {
+          subhaScore += 2;
+          subhaReasons.push(`பாவாதிபதி ${bhavaLordName} உச்ச பலம் (+2)`);
+        }
+        if (lordPos.isDebilitated) {
+          papaScore += 2;
+          papaReasons.push(`பாவாதிபதி ${bhavaLordName} நீச பலவீனம் (-2)`);
+        }
+
+        // Lord's individual subhathuvam netScore
+        const lEval = planetScoresMap[bhavaLordName];
+        if (lEval) {
+          if (lEval.netScore >= 3) {
+            subhaScore += 2;
+            subhaReasons.push(`பாவாதிபதி ${bhavaLordName} உயர் சுபத்துவம் அடைந்துள்ளார் (+2)`);
+          } else if (lEval.netScore <= -3) {
+            papaScore += 2;
+            papaReasons.push(`பாவாதிபதி ${bhavaLordName} கடும் பாபத்துவத்தில் உள்ளார் (-2)`);
+          }
+        }
+      }
+
+      // 4. Paapa Kartari Yoga Check (இருபுறமும் பாவர்கள் அழுத்தம்)
+      const prevSign = ((bhavaSignId - 2 + 12) % 12) + 1;
+      const nextSign = (bhavaSignId % 12) + 1;
+      const prevHasMal = (signPlanets[prevSign] || []).some(o => ["சனி", "செவ்வாய்", "ராகு", "கேது", "சூரியன்"].includes(o.planet));
+      const nextHasMal = (signPlanets[nextSign] || []).some(o => ["சனி", "செவ்வாய்", "ராகு", "கேது", "சூரியன்"].includes(o.planet));
+      const prevHasBen = (signPlanets[prevSign] || []).some(o => ["குரு", "சுக்கிரன்", "சந்திரன்", "புதன்"].includes(o.planet));
+      const nextHasBen = (signPlanets[nextSign] || []).some(o => ["குரு", "சுக்கிரன்", "சந்திரன்", "புதன்"].includes(o.planet));
+
+      if (prevHasMal && nextHasMal && !prevHasBen && !nextHasBen) {
+        papaScore += 2;
+        papaReasons.push("பாவ கர்த்தாரி தோஷம்: பாவத்தின் இருபுறமும் பாப கிரகங்கள் அழுத்தம் (-2)");
+      }
+
+      // Calculate Net Score & Classify Good vs Not Good
+      const netScore = subhaScore - papaScore;
+
+      let status = "சமநிலை (Moderate)";
+      let verdict = ruleData.moderateVerdict || "சமநிலை";
+      let isGood = null;
+      let statusClass = "moderate";
+      let badgeClass = "badge-neutral";
+      let predictionText = ruleData.moderatePrediction || "";
+
+      if (netScore >= 4) {
+        status = "அதி சுபத்துவம் (Highly Benefic / Very Good)";
+        verdict = ruleData.goodVerdict || "அதி சுபத்துவம் (Good)";
+        isGood = true;
+        statusClass = "good";
+        badgeClass = "badge-exalted";
+        predictionText = ruleData.goodPrediction || "";
+      } else if (netScore >= 1) {
+        status = "சுபத்துவம் (Benefic / Good)";
+        verdict = ruleData.goodVerdict || "சுபத்துவம் (Good)";
+        isGood = true;
+        statusClass = "good";
+        badgeClass = "badge-benefic";
+        predictionText = ruleData.goodPrediction || "";
+      } else if (netScore <= -4) {
+        status = "கடும் பாபத்துவம் (Severely Afflicted / Not Good)";
+        verdict = ruleData.notGoodVerdict || "கடும் பாபத்துவம் (Not Good)";
+        isGood = false;
+        statusClass = "not_good";
+        badgeClass = "badge-debilitated";
+        predictionText = ruleData.notGoodPrediction || "";
+      } else if (netScore <= -1 || (netScore === 0 && papaScore >= 3 && subhaScore < 2)) {
+        status = "பாபத்துவம் (Afflicted / Not Good)";
+        verdict = ruleData.notGoodVerdict || "பாபத்துவம் (Not Good)";
+        isGood = false;
+        statusClass = "not_good";
+        badgeClass = "badge-border";
+        predictionText = ruleData.notGoodPrediction || "";
+      }
+
+      // Collect all reasons
+      const allReasons = [
+        ...subhaReasons.map(r => ({ type: "subha", text: r })),
+        ...papaReasons.map(r => ({ type: "papa", text: r }))
+      ];
+
+      bhavasEvaluated.push({
+        houseNum: bNum,
+        name: ruleData.name || `${bNum}-ஆம் பாவம்`,
+        shortName: ruleData.shortName || `${bNum}-ஆம் பாவம்`,
+        english: ruleData.english || `House ${bNum}`,
+        primaryTheme: ruleData.primaryTheme || "",
+        karaka: ruleData.karaka || "",
+        signId: bhavaSignId,
+        signName: bhavaSignName,
+        lord: bhavaLordName,
+        lordPlacementText: lordPlacementText,
+        sittingPlanets: sittingPlanetsList,
+        aspectingPlanets: aspectingList,
+        subhaScore: subhaScore,
+        papaScore: papaScore,
+        netScore: netScore,
+        status: status,
+        verdict: verdict,
+        isGood: isGood,
+        statusClass: statusClass,
+        badgeClass: badgeClass,
+        reasons: allReasons.length > 0 ? allReasons : [{ type: "neutral", text: "இயல்பு சமநிலை" }],
+        prediction: predictionText,
+        remedy: ruleData.remedy || null
+      });
+    }
+
+    return bhavasEvaluated;
   }
 
   // Public API
   window.PGAstro.subhathuvam = {
     data: SUBHATHUVAM_DATA,
-    evaluate: evaluateChartSubhathuvam
+    bhavaRules: BHAVA_RULES_DATA,
+    evaluate: evaluateChartSubhathuvam,
+    evaluateBhavas: evaluate12BhavasSubhathuvam
   };
 })();
+
 

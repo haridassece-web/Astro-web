@@ -601,6 +601,39 @@ window.PGAstroUI = window.PGAstroUI || {};
       html += `</div>`;
     }
 
+    // 12 Bhavas Subhathuvam Framework
+    html += `
+      <h3 style="color:var(--gold-primary); font-size:1.15rem; margin:1.5rem 0 0.75rem 0; display:flex; align-items:center; gap:0.5rem;">
+        <span>🏛️</span> 12 பாவங்களின் சுபத்துவம் & பாபத்துவ ஆய்வு நெறிகள் (Bhava Principles)
+      </h3>
+      <div class="cosmic-card" style="padding:1rem; margin-bottom:1.5rem;">
+        <p style="font-size:0.86rem; line-height:1.6; color:var(--text-main); margin-bottom:0.75rem;">
+          ஒரு பாவம் நன்மை தருமா (Good) அல்லது பாதிப்பைத் தருமா (Not Good) என்பதை தீர்மானிக்க <strong>3 பரிமாண சூத்திரம்</strong> பயன்படுகிறது:
+        </p>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:0.75rem;">
+          <div style="background:rgba(16, 185, 129, 0.08); border-left:3px solid #10b981; padding:0.65rem; border-radius:4px;">
+            <strong style="color:#34d399; font-size:0.85rem;">1. பாவ சுபத்துவம் (+புள்ளிகள்):</strong>
+            <div style="font-size:0.8rem; color:#e2e8f0; margin-top:3px; line-height:1.5;">
+              குரு, வளர்பிறை சந்திரன், சுக்கிரன், சுப புதன் அமர்வு அல்லது பார்வை; பாவாதிபதி கேந்திர/திரிகோணம் அல்லது உச்ச/ஆட்சி பெற்று சுபத்துவம் அடைவது.
+            </div>
+          </div>
+          <div style="background:rgba(239, 68, 68, 0.08); border-left:3px solid #ef4444; padding:0.65rem; border-radius:4px;">
+            <strong style="color:#f87171; font-size:0.85rem;">2. பாவ பாபத்துவம் (-புள்ளிகள்):</strong>
+            <div style="font-size:0.8rem; color:#e2e8f0; margin-top:3px; line-height:1.5;">
+              சனி, செவ்வாய், ராகு, கேது அமர்வு அல்லது பார்வை; பாவாதிபதி 6, 8, 12-ல் மறைதல் அல்லது நீசம்/அஸ்தமனம்; பாவ கர்த்தாரி யோகம்.
+            </div>
+          </div>
+          <div style="background:rgba(59, 130, 246, 0.08); border-left:3px solid #60a5fa; padding:0.65rem; border-radius:4px;">
+            <strong style="color:#93c5fd; font-size:0.85rem;">3. பாவ பலன் நிர்ணயம்:</strong>
+            <div style="font-size:0.8rem; color:#e2e8f0; margin-top:3px; line-height:1.5;">
+              நிகர மதிப்பு <strong>+1 அல்லது அதற்கு மேல்</strong>: நற்பலன் தரும் சுப பாவம் (Good).<br>
+              நிகர மதிப்பு <strong>-1 அல்லது அதற்கு கீழ்</strong>: எச்சரிக்கை மற்றும் பரிகாரம் தேவைப்படும் பாபத்துவ பாவம் (Not Good).
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
     // Real Case Study Horoscope
     if (subData.caseStudy) {
       const cs = subData.caseStudy;
