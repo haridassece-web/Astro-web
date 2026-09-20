@@ -106,11 +106,14 @@ export interface DasaPeriod {
   startYear?: number;
   endYear?: number;
   durationYears: number;
+  durationDays?: number;
   isCurrent: boolean;
   isStartingAtBirth?: boolean;
   isFuture?: boolean;
+  level?: 'dasa' | 'puthi' | 'andhraman' | 'suzisam';
   subDasas?: DasaPeriod[];
-  pratyantarDasas?: DasaPeriod[];
+  pratyantarDasas?: DasaPeriod[]; // Level 3: Andhraman (Antharam)
+  sookshmaDasas?: DasaPeriod[];   // Level 4: Suzisam (Sookshmam)
   daysRemaining?: number;
   progressPercent?: number;
 }
@@ -120,6 +123,10 @@ export interface StartingDasaInfo {
   mahadasaTa: string;
   puthi: PlanetName;
   puthiTa: string;
+  andhraman?: PlanetName;
+  andhramanTa?: string;
+  suzisam?: PlanetName;
+  suzisamTa?: string;
   balanceYears: number;
   balanceMonths: number;
   balanceDays: number;
@@ -134,6 +141,16 @@ export interface PresentDasaInfo {
   puthiTa: string;
   pratyantara?: PlanetName;
   pratyantaraTa?: string;
+  andhraman?: PlanetName;
+  andhramanTa?: string;
+  andhramanStartDate?: string;
+  andhramanEndDate?: string;
+  daysRemainingInAndhraman?: number;
+  suzisam?: PlanetName;
+  suzisamTa?: string;
+  suzisamStartDate?: string;
+  suzisamEndDate?: string;
+  daysRemainingInSuzisam?: number;
   startDate: string;
   endDate: string;
   puthiStartDate: string;

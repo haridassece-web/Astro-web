@@ -661,7 +661,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                   <div className="border border-indigo-300 rounded-lg p-3 bg-indigo-50/30">
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-900 font-mono">
-                        பிறப்பு தசா இருப்பு (At Birth)
+                        பிறப்பு தசா இருப்பு (At Birth Chain)
                       </span>
                       <span className="text-[9px] text-indigo-700 font-mono">ஜன்ம காலம்</span>
                     </div>
@@ -670,6 +670,16 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                       <div className="space-y-1">
                         <div className="text-sm font-bold text-indigo-950 font-serif">
                           {startingDasa.mahadasaTa} தசை → {startingDasa.puthiTa} புக்தி
+                          {startingDasa.andhramanTa && (
+                            <span className="text-slate-600 text-xs font-normal">
+                              {' '}→ {startingDasa.andhramanTa} அந்தரம்
+                            </span>
+                          )}
+                          {startingDasa.suzisamTa && (
+                            <span className="text-slate-600 text-xs font-normal">
+                              {' '}→ {startingDasa.suzisamTa} சூட்சுமம்
+                            </span>
+                          )}
                         </div>
                         <div className="text-slate-700 font-medium">
                           பிறப்பின் போது தசா இருப்பு:{' '}
@@ -691,7 +701,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                     <div className="flex items-center justify-between mb-1.5">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-amber-900 font-mono flex items-center gap-1">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        தற்போது நடக்கும் தசா–புக்தி (Present Active)
+                        தற்போது நடக்கும் தசா–புக்தி–அந்தரம்–சூட்சுமம்
                       </span>
                       {presentDasa && (
                         <span className="text-[10px] font-bold font-mono text-emerald-800 bg-emerald-100 px-1.5 py-0.2 rounded border border-emerald-300">
@@ -702,24 +712,35 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
 
                     {presentDasa ? (
                       <div className="space-y-1">
-                        <div className="text-sm font-bold text-amber-950 font-serif">
-                          {presentDasa.mahadasaTa} தசை → {presentDasa.puthiTa} புக்தி
-                          {presentDasa.pratyantaraTa && (
-                            <span className="text-slate-600 text-xs font-normal">
-                              {' '}
-                              ({presentDasa.pratyantaraTa} அந்தரம்)
+                        <div className="text-sm font-bold text-amber-950 font-serif flex items-center flex-wrap gap-1">
+                          <span>{presentDasa.mahadasaTa} தசை → {presentDasa.puthiTa} புக்தி</span>
+                          {presentDasa.andhramanTa && (
+                            <span className="text-cyan-800 text-xs font-semibold">
+                              {' '}→ {presentDasa.andhramanTa} அந்தரம்
+                            </span>
+                          )}
+                          {presentDasa.suzisamTa && (
+                            <span className="text-emerald-800 text-xs font-semibold">
+                              {' '}→ {presentDasa.suzisamTa} சூட்சுமம்
                             </span>
                           )}
                         </div>
-                        <div className="text-slate-700 font-medium">
+                        <div className="text-slate-700 font-medium text-xs">
                           புக்தி நடப்பு காலம்:{' '}
                           <strong className="text-amber-900 font-mono">
                             {presentDasa.puthiStartDate} முதல் {presentDasa.puthiEndDate} வரை
                           </strong>
                         </div>
-                        <div className="text-[10px] text-slate-500 font-mono">
-                          மகா தசை காலம்: {presentDasa.startDate} முதல் {presentDasa.endDate} வரை
-                        </div>
+                        {presentDasa.andhramanStartDate && (
+                          <div className="text-[11px] text-slate-600 font-mono">
+                            அந்தரம்: {presentDasa.andhramanStartDate} ~ {presentDasa.andhramanEndDate} ({presentDasa.daysRemainingInAndhraman ?? 0}d பாக்கி)
+                          </div>
+                        )}
+                        {presentDasa.suzisamStartDate && (
+                          <div className="text-[10px] text-slate-500 font-mono">
+                            சூட்சுமம்: {presentDasa.suzisamStartDate} ~ {presentDasa.suzisamEndDate} ({presentDasa.daysRemainingInSuzisam ?? 0}d பாக்கி)
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <span className="text-slate-500">விவரங்கள் கணிக்கப்படுகிறது...</span>

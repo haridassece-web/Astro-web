@@ -189,17 +189,35 @@ export function App() {
             </span>
           </div>
 
-          <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
+          <div
+            onClick={() => setActiveTab('dasa')}
+            className="bg-slate-900/80 hover:bg-slate-800/90 cursor-pointer transition-colors p-3 rounded-xl border border-slate-800 flex flex-col justify-center"
+            title={language === 'ta' ? 'தசா புக்தி அட்டவணையைப் பார்க்க கிளிக் செய்க' : 'Click to view Dasa Timeline'}
+          >
             <span className="text-[10px] text-slate-400 font-mono block">
-              {language === 'ta' ? 'நடப்பு மகா தசை' : 'Active Dasa'}
+              {language === 'ta' ? 'நடப்பு தசா புக்தி' : 'Active Dasa & Puthi'}
             </span>
-            <span className="text-xs font-bold text-emerald-400">
-              {horoscope.dasaPeriods.find((d) => d.isCurrent)
+            <span className="text-xs font-bold text-emerald-400 truncate">
+              {horoscope.presentDasaInfo
+                ? language === 'ta'
+                  ? `${horoscope.presentDasaInfo.mahadasaTa} - ${horoscope.presentDasaInfo.puthiTa}`
+                  : `${horoscope.presentDasaInfo.mahadasa} - ${horoscope.presentDasaInfo.puthi}`
+                : horoscope.dasaPeriods.find((d) => d.isCurrent)
                 ? language === 'ta'
                   ? `${horoscope.dasaPeriods.find((d) => d.isCurrent)?.planetTa} தசை`
                   : `${horoscope.dasaPeriods.find((d) => d.isCurrent)?.planet} Dasa`
                 : 'Vimshottari'}
             </span>
+            {horoscope.presentDasaInfo?.andhramanTa && (
+              <span className="text-[9px] text-cyan-400 font-mono truncate">
+                {language === 'ta'
+                  ? `${horoscope.presentDasaInfo.andhramanTa} அந்தரம்`
+                  : `${horoscope.presentDasaInfo.andhraman} Andh.`}
+                {horoscope.presentDasaInfo.suzisamTa
+                  ? ` • ${language === 'ta' ? horoscope.presentDasaInfo.suzisamTa + ' சூட்சுமம்' : horoscope.presentDasaInfo.suzisam + ' Sooksh.'}`
+                  : ''}
+              </span>
+            )}
           </div>
 
           <div className="bg-slate-900/80 p-3 rounded-xl border border-slate-800 flex flex-col justify-center">
