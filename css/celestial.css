@@ -69,7 +69,7 @@
   box-shadow: 0 0 16px var(--gold-glow);
   position: relative;
   overflow: hidden;
-  background: #060812;
+  background: #060812 url('../assets/logo.png') center/cover no-repeat;
   flex-shrink: 0;
   transition: all 0.3s ease;
 }
