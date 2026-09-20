@@ -1263,5 +1263,662 @@
   font-family: var(--font-mono, monospace);
 }
 
+/* ==========================================================================
+   Panchangam Overview Card & Age Badge Styles (1st Page Master Profile)
+   ========================================================================== */
+.panchangam-overview-card {
+  background: radial-gradient(circle at top right, rgba(212, 175, 55, 0.08) 0%, rgba(13, 18, 36, 0.95) 70%);
+  border: 1.5px solid var(--gold-primary);
+  border-radius: var(--radius-lg);
+  padding: 1rem 1.2rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(212, 175, 55, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.panchangam-overview-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ffd700, #ffb300, transparent);
+}
+
+.panchangam-age-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.2) 0%, rgba(245, 197, 24, 0.08) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.5);
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 15px rgba(212, 175, 55, 0.15);
+}
+
+.panchangam-native-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 0.55rem 0.85rem;
+  margin-bottom: 0.9rem;
+  font-size: 0.8rem;
+}
+
+.panchangam-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #e2e8f0;
+}
+
+.panchangam-pill .icon {
+  font-size: 0.95rem;
+}
+
+.panchangam-pill .label {
+  color: var(--text-dim);
+}
+
+.panchangam-tiles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+@media (min-width: 1200px) {
+  .panchangam-tiles-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+}
+
+.panchangam-tile {
+  background: rgba(18, 24, 45, 0.75);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.75rem;
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.panchangam-tile:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold-light);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4), 0 0 10px rgba(212, 175, 55, 0.15);
+}
+
+.tile-header {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tile-icon {
+  font-size: 0.95rem;
+}
+
+.tile-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--gold-light);
+  font-family: var(--font-tamil);
+  letter-spacing: 0.2px;
+}
+
+.tile-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.tile-primary-text {
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: var(--font-tamil);
+  line-height: 1.25;
+}
+
+.tile-sub-text {
+  font-size: 0.7rem;
+  font-family: var(--font-tamil);
+  line-height: 1.2;
+}
+
+.badge-chara {
+  display: inline-block;
+  font-family: var(--font-mono, monospace);
+  letter-spacing: 0.3px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+}
+
+.degrees-table th {
+  background: rgba(13, 18, 36, 0.9);
+  position: sticky;
+  top: 0;
+}
+
+.degrees-table tr:hover td {
+  background: rgba(212, 175, 55, 0.05);
+}
 
 
+
+
+/* ==========================================================================
+   DASA - BHUKTI - ANTHARAM (தசா, புத்தி, அந்தரம்) TIMELINE DASHBOARD
+   ========================================================================== */
+.dasa-antharam-card {
+  background: linear-gradient(135deg, rgba(13, 18, 36, 0.95), rgba(20, 28, 54, 0.95));
+  border: 1px solid rgba(212, 175, 55, 0.4);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+  margin-bottom: 1.25rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.dasa-antharam-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, #d4af37, #38bdf8, #4ade80, #f59e0b, #d4af37);
+  background-size: 200% 100%;
+  animation: shimmer 6s infinite linear;
+}
+
+.dasa-tier-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.dasa-tier-box {
+  background: rgba(7, 10, 24, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.dasa-tier-box:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.dasa-tier-box.maha {
+  border-top: 3px solid #d4af37;
+}
+
+.dasa-tier-box.bhukti {
+  border-top: 3px solid #38bdf8;
+}
+
+.dasa-tier-box.antharam {
+  border-top: 3px solid #4ade80;
+  box-shadow: 0 0 15px rgba(74, 222, 128, 0.12);
+}
+
+.tier-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.tier-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+}
+
+.tier-lord-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  font-family: var(--font-tamil);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tier-dates {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+.dasa-progress-container {
+  margin-top: 0.75rem;
+}
+
+.dasa-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  margin-bottom: 0.3rem;
+}
+
+.dasa-progress-track {
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.dasa-progress-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.dasa-progress-fill.maha {
+  background: linear-gradient(90deg, #b45309, #d4af37);
+}
+
+.dasa-progress-fill.bhukti {
+  background: linear-gradient(90deg, #0284c7, #38bdf8);
+}
+
+.dasa-progress-fill.antharam {
+  background: linear-gradient(90deg, #15803d, #4ade80);
+}
+
+.antharam-table-wrap {
+  margin-top: 1.25rem;
+  background: rgba(7, 10, 24, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  padding: 0.85rem;
+  overflow-x: auto;
+}
+
+.antharam-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(115px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.6rem;
+}
+
+.antharam-mini-card {
+  background: rgba(13, 18, 36, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  padding: 0.6rem 0.5rem;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.antharam-mini-card.active {
+  border: 1px solid #4ade80;
+  background: rgba(74, 222, 128, 0.12);
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.25);
+  transform: scale(1.03);
+}
+
+.antharam-mini-card.past {
+  opacity: 0.65;
+}
+
+.antharam-mini-lord {
+  font-weight: 700;
+  font-size: 0.86rem;
+  font-family: var(--font-tamil);
+}
+
+.antharam-mini-dates {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.antharam-mini-badge {
+  display: inline-block;
+  font-size: 0.62rem;
+  padding: 1px 6px;
+  border-radius: 10px;
+  margin-top: 4px;
+}
+
+/* ==========================================================================
+   TAB 7: HOROSCOPE Q&A (ஜாதகக் கேள்வி-பதில்) INTERACTIVE STYLES
+   ========================================================================== */
+.qa-filter-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.qa-filter-btn {
+  background: rgba(13, 18, 36, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-muted);
+  padding: 0.4rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-family: var(--font-tamil);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qa-filter-btn:hover {
+  border-color: var(--gold-primary);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.qa-filter-btn.active {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.25), rgba(212, 175, 55, 0.1));
+  border-color: var(--gold-primary);
+  color: var(--gold-light);
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(212, 175, 55, 0.25);
+}
+
+.qa-items-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.qa-item-card {
+  background: linear-gradient(135deg, rgba(13, 18, 36, 0.95), rgba(18, 25, 48, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  transition: all 0.25s ease;
+}
+
+.qa-item-card:hover {
+  border-color: rgba(212, 175, 55, 0.4);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+}
+
+.qa-item-card.expanded {
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(212, 175, 55, 0.12);
+}
+
+.qa-header {
+  padding: 1rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+  user-select: none;
+  gap: 1rem;
+}
+
+.qa-header:hover {
+  background: rgba(212, 175, 55, 0.05);
+}
+
+.qa-header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.qa-category-badge {
+  font-size: 0.72rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 4px;
+  background: rgba(212, 175, 55, 0.15);
+  color: var(--gold-light);
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.qa-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #fff;
+  font-family: var(--font-tamil);
+  margin: 0;
+  line-height: 1.4;
+}
+
+.qa-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.qa-highlight-badge {
+  font-size: 0.72rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 12px;
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.qa-toggle-icon {
+  font-size: 0.75rem;
+  color: var(--gold-primary);
+  transition: transform 0.25s ease;
+}
+
+.qa-item-card.expanded .qa-toggle-icon {
+  transform: rotate(180deg);
+}
+
+.qa-body {
+  display: none;
+  padding: 0 1.25rem 1.25rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  animation: fadeIn 0.25s ease;
+}
+
+.qa-item-card.expanded .qa-body {
+  display: block;
+}
+
+/* Direct Verdict Box */
+.qa-verdict-box {
+  background: linear-gradient(135deg, rgba(212, 175, 55, 0.12), rgba(13, 18, 36, 0.7));
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1.1rem;
+  margin-top: 1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.verdict-tag {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: var(--gold-light);
+  letter-spacing: 0.5px;
+  margin-bottom: 0.4rem;
+  text-transform: uppercase;
+}
+
+.verdict-content {
+  font-size: 0.92rem;
+  line-height: 1.65;
+  color: #f1f5f9;
+  font-family: var(--font-tamil);
+}
+
+.verdict-content strong {
+  color: var(--gold-light);
+}
+
+/* Past, Present, Future Timings Grid */
+.qa-timings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+
+.timing-tile {
+  background: rgba(7, 10, 24, 0.6);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.timing-tile.past {
+  border-left: 3px solid #818cf8;
+}
+
+.timing-tile.present {
+  border-left: 3px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.06);
+}
+
+.timing-tile.future {
+  border-left: 3px solid #4ade80;
+  background: rgba(74, 222, 128, 0.06);
+}
+
+.timing-header {
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.4rem;
+  font-family: var(--font-tamil);
+}
+
+.timing-tile.past .timing-header { color: #a5b4fc; }
+.timing-tile.present .timing-header { color: #fcd34d; }
+.timing-tile.future .timing-header { color: #86efac; }
+
+.timing-text {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-main);
+  font-family: var(--font-tamil);
+  flex: 1;
+}
+
+/* Astrological Logic & Reasoning (Subhathuvam, Paavathuvam, Sookshuma Valu) */
+.qa-astro-logic-box {
+  background: rgba(10, 14, 28, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  margin-top: 0.9rem;
+}
+
+.logic-header {
+  font-size: 0.76rem;
+  font-weight: 800;
+  color: var(--gold-light);
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.logic-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 0.75rem;
+}
+
+.logic-col {
+  padding: 0.6rem 0.75rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.logic-col.subhathuvam {
+  border-left: 3px solid #10b981;
+}
+
+.logic-col.paavathuvam {
+  border-left: 3px solid #ef4444;
+}
+
+.logic-col.sookshuma {
+  border-left: 3px solid #38bdf8;
+}
+
+.logic-col-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+  font-family: var(--font-tamil);
+}
+
+.logic-col.subhathuvam .logic-col-title { color: #34d399; }
+.logic-col.paavathuvam .logic-col-title { color: #f87171; }
+.logic-col.sookshuma .logic-col-title { color: #67e8f9; }
+
+.logic-col-text {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+  font-family: var(--font-tamil);
+}
+
+/* Remedies */
+.qa-remedy-box {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  background: rgba(212, 175, 55, 0.06);
+  border: 1px dashed rgba(212, 175, 55, 0.35);
+  border-radius: var(--radius-md);
+  padding: 0.7rem 0.9rem;
+  margin-top: 0.9rem;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: #fef08a;
+  font-family: var(--font-tamil);
+}
+
+.remedy-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.qa-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.85rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+  .qa-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .qa-header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

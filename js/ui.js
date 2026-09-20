@@ -15,6 +15,8 @@ window.PGAstroUI = window.PGAstroUI || {};
     setupKarakasViewer();
     setupReportGenerator();
     setupClock();
+    setupHoroscopeQA();
+    renderActiveDasaBhuktiAntharam();
   }
 
   // 1. Tab Navigation (Top desktop + Mobile bottom bar)
@@ -783,10 +785,190 @@ window.PGAstroUI = window.PGAstroUI || {};
   }
 
   // Public API
+  
+  // 4.1. Render Live Vimshottari Dasa - Bhukti - Antharam Dashboard
+  function renderActiveDasaBhuktiAntharam(customDasha) {
+    const container = document.getElementById("activeDasaBhuktiAntharamContainer");
+    if (!container) return;
+
+    let dasha = customDasha || (window.PGAstro && window.PGAstro.lastCalculatedHoroscope && window.PGAstro.lastCalculatedHoroscope.dasha);
+    if (!dasha && window.PGAstro && window.PGAstro.astronomy && window.PGAstro.astronomy.calculateVimshottariDasha) {
+      const dob = document.getElementById("birthCalcDate")?.value || "1988-04-30";
+      const time = document.getElementById("birthCalcTime")?.value || "12:00";
+      dasha = window.PGAstro.astronomy.calculateVimshottariDasha(dob, time, 195.5);
+    }
+    if (!dasha || !dasha.currentMahaDasa) return;
+
+    const m = dasha.currentMahaDasa;
+    const b = dasha.currentBhukti;
+    const a = dasha.currentAntharam;
+    const antharamsList = dasha.currentAntharamsList || [];
+
+    let html = `
+      <div class="dasa-antharam-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div>
+            <h3 style="font-size:1.15rem; color:var(--gold-primary); font-family:var(--font-tamil); margin:0; display:flex; align-items:center; gap:0.4rem;">
+              <span>⏳</span> நடப்பு விம்சோத்தரி தசா - புத்தி - அந்தரம் (Vimshottari Dasa - Bhukti - Antharam)
+            </h3>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
+              நாடி சுபத்துவ அடிப்படையில் கணிக்கப்பட்ட துல்லிய கால அளவுகள் &amp; மீதமுள்ள நாட்கள்
+            </div>
+          </div>
+          <span class="badge badge-gold" style="font-size:0.72rem;">துல்லிய கால நிர்ணயம்</span>
+        </div>
+
+        <!-- 3-Tier Grid -->
+        <div class="dasa-tier-grid">
+          <!-- 1. Maha Dasa -->
+          <div class="dasa-tier-box maha">
+            <div class="tier-title-row">
+              <span class="tier-label">1. மகா தசா (Maha Dasa)</span>
+              <span class="badge" style="background:rgba(212,175,55,0.2); color:var(--gold-light); font-size:0.68rem;">முக்கிய அதிபதி</span>
+            </div>
+            <div class="tier-lord-name" style="color:var(--gold-light);">
+              <span class="planet-tag tag-${m.lord}">${m.lord}</span> தசை
+            </div>
+            <div class="tier-dates">
+              📅 ${m.startDate} முதல் ${m.endDate} வரை
+            </div>
+            <div class="dasa-progress-container">
+              <div class="dasa-progress-meta">
+                <span style="color:var(--gold-light);">${m.percentElapsed}% முடிந்தது</span>
+                <span style="color:var(--text-muted);">${m.remainingDays} நாட்கள் மீதம்</span>
+              </div>
+              <div class="dasa-progress-track">
+                <div class="dasa-progress-fill maha" style="width: ${m.percentElapsed}%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Bhukti -->
+          <div class="dasa-tier-box bhukti">
+            <div class="tier-title-row">
+              <span class="tier-label">2. புக்தி (Bhukti / Sub-Period)</span>
+              <span class="badge" style="background:rgba(56,189,248,0.2); color:#38bdf8; font-size:0.68rem;">உள் காலம்</span>
+            </div>
+            <div class="tier-lord-name" style="color:#38bdf8;">
+              <span class="planet-tag tag-${b.lord}">${b.lord}</span> புக்தி
+            </div>
+            <div class="tier-dates">
+              📅 ${b.startDate} முதல் ${b.endDate} வரை
+            </div>
+            <div class="dasa-progress-container">
+              <div class="dasa-progress-meta">
+                <span style="color:#38bdf8;">${b.percentElapsed}% முடிந்தது</span>
+                <span style="color:var(--text-muted);">${b.remainingDays} நாட்கள் மீதம்</span>
+              </div>
+              <div class="dasa-progress-track">
+                <div class="dasa-progress-fill bhukti" style="width: ${b.percentElapsed}%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Antharam -->
+          <div class="dasa-tier-box antharam">
+            <div class="tier-title-row">
+              <span class="tier-label">3. அந்தரம் (Antharam / Micro-Period)</span>
+              <span class="badge" style="background:rgba(74,222,128,0.2); color:#4ade80; font-size:0.68rem; font-weight:700;">நடப்பு அந்தரம்</span>
+            </div>
+            <div class="tier-lord-name" style="color:#4ade80;">
+              <span class="planet-tag tag-${a.lord}">${a.lord}</span> அந்தரம்
+            </div>
+            <div class="tier-dates">
+              📅 ${a.startDate} முதல் ${a.endDate} வரை
+            </div>
+            <div class="dasa-progress-container">
+              <div class="dasa-progress-meta">
+                <span style="color:#4ade80;">${a.percentElapsed}% முடிந்தது</span>
+                <span style="color:var(--text-muted);">${a.remainingDays} நாட்கள் மீதம்</span>
+              </div>
+              <div class="dasa-progress-track">
+                <div class="dasa-progress-fill antharam" style="width: ${a.percentElapsed}%;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 9 Antharams of Current Bhukti -->
+        <div class="antharam-table-wrap">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+            <div style="font-size:0.82rem; font-weight:700; color:var(--gold-light); font-family:var(--font-tamil);">
+              🌀 நடப்பு ${b.lord} புக்தியின் 9 அந்தரங்கள் (All 9 Antharams):
+            </div>
+            <div style="font-size:0.72rem; color:var(--text-muted);">
+              நடப்பு அந்தரம் பச்சை நிறத்தில் சிறப்பிக்கப்பட்டுள்ளது
+            </div>
+          </div>
+
+          <div class="antharam-grid">
+            ${antharamsList.map(item => `
+              <div class="antharam-mini-card ${item.isCurrent ? 'active' : (item.isCurrent === false ? 'past' : '')}">
+                <div class="antharam-mini-lord" style="color: ${item.color || '#fff'};">
+                  ${item.lord}
+                </div>
+                <div class="antharam-mini-dates">
+                  ${item.startDate ? item.startDate.split(',')[0] : ''} - ${item.endDate ? item.endDate.split(',')[0] : ''}
+                </div>
+                <div style="font-size:0.65rem; color:var(--text-muted); margin-top:2px;">
+                  ${item.durationText || ''}
+                </div>
+                <span class="antharam-mini-badge" style="background:${item.isCurrent ? 'rgba(74,222,128,0.2)' : 'rgba(255,255,255,0.06)'}; color:${item.isCurrent ? '#4ade80' : 'var(--text-muted)'};">
+                  ${item.isCurrent ? '● நடப்பு' : 'அந்தரம்'}
+                </span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+
+    container.innerHTML = html;
+  }
+
+  // 7. Setup Horoscope Q&A Filters and Search
+  function setupHoroscopeQA() {
+    const searchInput = document.getElementById("horoscopeQASearch");
+    const categoryButtons = document.querySelectorAll("#qaCategoryFilters button");
+    
+    let activeCategory = "all";
+    let searchQuery = "";
+
+    function filterCards() {
+      const cards = document.querySelectorAll(".qa-item-card");
+      cards.forEach(card => {
+        const cardCat = card.getAttribute("data-category") || card.getAttribute("data-cat");
+        const catMatch = (activeCategory === "all" || cardCat === activeCategory);
+        const textMatch = !searchQuery || card.textContent.toLowerCase().includes(searchQuery);
+        if (catMatch && textMatch) {
+          card.style.display = "";
+        } else {
+          card.style.display = "none";
+        }
+      });
+    }
+
+    categoryButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        categoryButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        activeCategory = btn.getAttribute("data-cat") || btn.getAttribute("data-category") || "all";
+        filterCards();
+      });
+    });
+
+    searchInput?.addEventListener("input", (e) => {
+      searchQuery = e.target.value.trim().toLowerCase();
+      filterCards();
+    });
+  }
+
   window.PGAstroUI = {
     init: initUI,
     switchTab: switchTab,
     showToast: showToast,
-    sharePrediction: sharePrediction
+    sharePrediction: sharePrediction,
+    renderActiveDasaBhuktiAntharam: renderActiveDasaBhuktiAntharam,
+    setupHoroscopeQA: setupHoroscopeQA
   };
 })();

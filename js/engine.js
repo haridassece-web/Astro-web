@@ -144,6 +144,17 @@ window.PGAstroEngine = window.PGAstroEngine || {};
       lifeMilestones,
       nativeInfo
     });
+
+    // 9. Render Horoscope Q&A Page (Tab 7)
+    renderHoroscopeQA({
+      placedPlanets,
+      detectedConjunctions,
+      specialPlanets,
+      subhathuvamResult,
+      dashaResult,
+      lifeMilestones,
+      nativeInfo
+    });
   }
 
   // Helper to predict Life Milestones: Job, Business vs Job, Marriage, House, Vehicle / Car
@@ -1898,6 +1909,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
     const vehicleSubhaText = `வாகன காரகன் சுக்கிரன் சுபத்துவம்: ${venusSubha.netScore >= 0 ? '+' : ''}${venusSubha.netScore} • 4-ஆம் பாவாதிபதி ${lord4}: ${getSubha(lord4).netScore >= 0 ? '+' : ''}${getSubha(lord4).netScore}. சுக்கிரனின் சுபத்துவ மதிப்பெண் +3-க்கு மேல் அமைவது சொகுசு கார் யோகத்தைக் குறிக்கும்.`;
 
     return {
+      allBhuktis: allBhuktis,
       education: educationData,
       jobVerdict: {
         type: jobType,
@@ -1979,6 +1991,26 @@ window.PGAstroEngine = window.PGAstroEngine || {};
     const lagnaRasi = lagnaId ? (RASIS.find(r => r.id === lagnaId)?.name || "") : "";
     const moonPlanet = (analysis.placedPlanets || []).find(p => p.planet === "சந்திரன்");
     const moonRasi = moonPlanet ? (RASIS.find(r => r.id === moonPlanet.rasiId)?.name || "") : "";
+    const sunPlanet = (analysis.placedPlanets || []).find(p => p.planet === "சூரியன்");
+
+    // Exact Age, Panchangam & Karakas
+    const ageObj = window.PGAstro?.astronomy?.calculateAge(nDob, nTime);
+    let engPanchangam = null;
+    let engMoonNak = null;
+    if (sunPlanet && moonPlanet) {
+      const sLon = (sunPlanet.rasiId - 1) * 30 + (sunPlanet.degree || 0);
+      const mLon = (moonPlanet.rasiId - 1) * 30 + (moonPlanet.degree || 0);
+      engPanchangam = window.PGAstro?.astronomy?.calculatePanchangam(sLon, mLon);
+      engMoonNak = window.PGAstro?.astronomy?.getNakshatraInfo(mLon);
+    }
+    const karakasObj = window.PGAstro?.astronomy?.calculateCharaKarakas((analysis.placedPlanets || []).map(p => ({ planet: p.planet, degree: p.degree })));
+    let akTag = "-", dkTag = "-";
+    if (karakasObj && karakasObj.charaMap) {
+      for (let pl in karakasObj.charaMap) {
+        if (karakasObj.charaMap[pl].code === "AK") akTag = `${pl}`;
+        if (karakasObj.charaMap[pl].code === "DK") dkTag = `${pl}`;
+      }
+    }
 
     // =========================================================================
     // 1. LIFE PREDICTIONS & KEY MILESTONES (முக்கிய வாழ்க்கை பலன்கள்)
@@ -2009,7 +2041,7 @@ window.PGAstroEngine = window.PGAstroEngine || {};
           </div>
 
           <!-- Native Birth Summary Strip -->
-          <div style="background: rgba(13, 18, 36, 0.85); border: 1px solid rgba(212, 175, 55, 0.4); border-radius: var(--radius-md); padding: 0.65rem 0.9rem; margin: 0.6rem 0 1rem 0; display: flex; flex-wrap: wrap; gap: 0.5rem 1.2rem; align-items: center; font-size: 0.82rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+          <div style="background: rgba(13, 18, 36, 0.85); border: 1px solid rgba(212, 175, 55, 0.4); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin: 0.6rem 0 1rem 0; display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; align-items: center; font-size: 0.82rem; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
             <div style="display: flex; align-items: center; gap: 0.35rem; color: #fff; font-weight: 700;">
               <span style="font-size: 1rem;">👤</span> <span>${nName}</span>
               <span class="badge ${nInfo.gender === 'female' ? 'badge-pink' : 'badge-gold'}" style="font-size:0.68rem; margin-left:3px;">${nGender}</span>
@@ -2017,11 +2049,37 @@ window.PGAstroEngine = window.PGAstroEngine || {};
             <div style="color: var(--text-muted);">
               <strong style="color: var(--gold-light);">📅 பிறந்த நாள் & நேரம்:</strong> ${nDob} ${nTime}
             </div>
+            ${ageObj ? `
+              <div style="background:rgba(212,175,55,0.12); border:1px solid rgba(212,175,55,0.35); padding:2px 8px; border-radius:4px;">
+                <strong style="color:#ffd700;">⏳ நடப்பு வயது:</strong> <span style="color:#fff; font-weight:700;">${ageObj.formattedText}</span>
+              </div>
+            ` : ''}
             <div style="color: var(--text-muted);">
-              <strong style="color: var(--gold-light);">📍 பிறந்த இடம் (Place of Birth):</strong> <span style="color: #93c5fd; font-weight: 600;">${nPlace}</span>
+              <strong style="color: var(--gold-light);">📍 இடம்:</strong> <span style="color: #93c5fd; font-weight: 600;">${nPlace}</span>
             </div>
             ${lagnaRasi ? `<div style="color: var(--text-muted);"><strong style="color: var(--gold-light);">🌅 லக்கினம்:</strong> <span style="color:#fff;">${lagnaRasi} ${lagnaDeg !== null ? '(' + lagnaDeg.toFixed(1) + '°)' : ''}</span></div>` : ''}
             ${moonRasi ? `<div style="color: var(--text-muted);"><strong style="color: var(--gold-light);">🌙 ராசி:</strong> <span style="color:#fff;">${moonRasi}</span></div>` : ''}
+            ${engMoonNak ? `
+              <div style="color: var(--text-muted);">
+                <strong style="color: #fde047;">⭐ நட்சத்திரம் & சாரம்:</strong> <span style="color:#fff;">${engMoonNak.nakshatra} (${engMoonNak.pada} பாதம்) • <strong style="color:#38bdf8;">${engMoonNak.lord} சாரம்</strong></span>
+              </div>
+            ` : ''}
+            ${engPanchangam ? `
+              <div style="color: var(--text-muted);">
+                <strong style="color: #67e8f9;">🌕 திதி:</strong> <span style="color:#fff;">${engPanchangam.tithi.fullName}</span>
+              </div>
+              <div style="color: var(--text-muted);">
+                <strong style="color: #f472b6;">⚡ யோகம்:</strong> <span style="color:#fff;">${engPanchangam.yogam.name}</span>
+              </div>
+              <div style="color: var(--text-muted);">
+                <strong style="color: #c084fc;">🦁 கரணம்:</strong> <span style="color:#fff;">${engPanchangam.karanam.name}</span>
+              </div>
+            ` : ''}
+            ${akTag !== '-' ? `
+              <div style="color: var(--text-muted);">
+                <strong style="color: #ffd700;">👑 காரகம்:</strong> <span style="color:#fff;">AK: <strong style="color:#ffd700;">${akTag}</strong> | DK: <strong style="color:#f43f5e;">${dkTag}</strong></span>
+              </div>
+            ` : ''}
           </div>
 
           <!-- 7 Core Milestones Grid -->
@@ -3186,7 +3244,887 @@ window.PGAstroEngine = window.PGAstroEngine || {};
   };
 
   // Public API
+  
+  // =========================================================================
+  // HOROSCOPE Q&A ENGINE: COMPREHENSIVE LIFE QUESTIONS & DEEP ASTROLOGICAL VERDICTS
+  // Covers: Education, Freshers Job, Govt vs Pvt, Job Field, Marriage, 2nd Marriage,
+  // Childbirth, Land/House/Vehicle, Health & Disease, Foreign, Wealth, Court, Remedies.
+  // With Past, Present & Future Timings + Subhathuvam, Paavathuvam & Sookshuma Valu.
+  // =========================================================================
+  function evaluateHoroscopeQA(analysis) {
+    if (!analysis || !analysis.placedPlanets) return [];
+    const RASIS = (window.PGAstro && window.PGAstro.chart && window.PGAstro.chart.RASIS) || [];
+    const PLANET_LORDS = [
+      "செவ்வாய்", "சுக்கிரன்", "புதன்", "சந்திரன்", "சூரியன்", "புதன்", 
+      "சுக்கிரன்", "செவ்வாய்", "குரு", "சனி", "சனி", "குரு"
+    ];
+
+    const lagnaId = (window.PGAstro && window.PGAstro.chart && window.PGAstro.chart.getLagnaRasiId()) || 1;
+    const nInfo = analysis.nativeInfo || (window.PGAstro && window.PGAstro.chart && window.PGAstro.chart.getNativeInfo()) || {};
+    const nName = nInfo.name || document.getElementById("birthCalcName")?.value || "அன்பர் (Native)";
+    const isFemale = nInfo.gender === "female";
+    const nativeTitle = isFemale ? "ஜாதகி" : "ஜாதகர்";
+    const nDob = nInfo.dob || document.getElementById("birthCalcDate")?.value || "1988-04-30";
+    const nTime = nInfo.time || document.getElementById("birthCalcTime")?.value || "22:10";
+
+    const ageObj = (window.PGAstro && window.PGAstro.astronomy && window.PGAstro.astronomy.calculateAge(nDob, nTime)) || {
+      years: 36, months: 4, days: 20, runningYear: 37, formattedText: "36 ஆண்டுகள், 4 மாதங்கள், 20 நாட்கள்"
+    };
+    const curAgeYears = ageObj.years + (ageObj.months / 12);
+
+    const m = analysis.lifeMilestones || {};
+    const ed = m.education;
+    const jv = m.jobVerdict;
+    const jt = m.jobTiming;
+    const mr = m.marriage;
+    const ch = m.child;
+    const hs = m.house;
+    const vh = m.vehicle;
+
+    const subhaRes = analysis.subhathuvamResult;
+    const getSubha = (pName) => {
+      if (subhaRes && subhaRes.netScores && subhaRes.netScores[pName]) {
+        return subhaRes.netScores[pName];
+      }
+      return { netScore: 0, subhaScore: 0, papaScore: 0, verdictText: "இயல்பு" };
+    };
+
+    const getHouseLord = (lId, hNum) => {
+      const sId = ((lId - 1 + (hNum - 1)) % 12) + 1;
+      return PLANET_LORDS[sId - 1];
+    };
+
+    const lord1 = getHouseLord(lagnaId, 1);
+    const lord2 = getHouseLord(lagnaId, 2);
+    const lord4 = getHouseLord(lagnaId, 4);
+    const lord5 = getHouseLord(lagnaId, 5);
+    const lord6 = getHouseLord(lagnaId, 6);
+    const lord7 = getHouseLord(lagnaId, 7);
+    const lord8 = getHouseLord(lagnaId, 8);
+    const lord9 = getHouseLord(lagnaId, 9);
+    const lord10 = getHouseLord(lagnaId, 10);
+    const lord11 = getHouseLord(lagnaId, 11);
+    const lord12 = getHouseLord(lagnaId, 12);
+
+    const sunSubha = getSubha("சூரியன்");
+    const moonSubha = getSubha("சந்திரன்");
+    const marsSubha = getSubha("செவ்வாய்");
+    const mercurySubha = getSubha("புதன்");
+    const jupiterSubha = getSubha("குரு");
+    const venusSubha = getSubha("சுக்கிரன்");
+    const saturnSubha = getSubha("சனி");
+    const rahuSubha = getSubha("ராகு");
+    const ketuSubha = getSubha("கேது");
+
+    const curDasaLord = analysis.dashaResult?.currentMahaDasa?.lord || "குரு";
+    const curBhuktiLord = analysis.dashaResult?.currentBhukti?.lord || "சனி";
+    const curAntharamLord = analysis.dashaResult?.currentAntharam?.lord || "புதன்";
+    const curDasaStart = analysis.dashaResult?.currentMahaDasa?.startDate || "";
+    const curDasaEnd = analysis.dashaResult?.currentMahaDasa?.endDate || "";
+    const curBhuktiStart = analysis.dashaResult?.currentBhukti?.startDate || "";
+    const curBhuktiEnd = analysis.dashaResult?.currentBhukti?.endDate || "";
+
+    const curDasaBhuktiAntharamText = `${curDasaLord} தசை - ${curBhuktiLord} புக்தி - ${curAntharamLord} அந்தரம்`;
+    const curPeriodText = `${curBhuktiStart.split(',')[0]} முதல் ${curBhuktiEnd.split(',')[0]} வரை`;
+
+    // Ensure allBhuktis is available
+    let allBhuktis = (m && m.allBhuktis) || [];
+    if (!allBhuktis || allBhuktis.length === 0) {
+      // Generate on-the-fly if needed
+      const [by, bm, bd] = nDob.split("-").map(Number);
+      const [bh, bmin] = (nTime || "12:00").split(":").map(Number);
+      const birthDate = new Date(by, bm - 1, bd, bh, bmin, 0);
+      const msPerYear = 365.2425 * 24 * 60 * 60 * 1000;
+      const DASHA_ORDER = [
+        { lord: "கேது", years: 7 }, { lord: "சுக்கிரன்", years: 20 },
+        { lord: "சூரியன்", years: 6 }, { lord: "சந்திரன்", years: 10 },
+        { lord: "செவ்வாய்", years: 7 }, { lord: "ராகு", years: 18 },
+        { lord: "குரு", years: 16 }, { lord: "சனி", years: 19 },
+        { lord: "புதன்", years: 17 }
+      ];
+      let dIdx = 0;
+      let curStart = new Date(birthDate.getTime());
+      allBhuktis = [];
+      for (let cycle = 0; cycle < 7; cycle++) {
+        const mInfo = DASHA_ORDER[dIdx];
+        const mDur = mInfo.years * msPerYear;
+        let bStart = curStart.getTime();
+        for (let b = 0; b < 9; b++) {
+          const bInfo = DASHA_ORDER[(dIdx + b) % 9];
+          const bDur = (mInfo.years * bInfo.years / 120) * msPerYear;
+          const bEnd = bStart + bDur;
+          allBhuktis.push({
+            mahaLord: mInfo.lord,
+            bhuktiLord: bInfo.lord,
+            startDate: new Date(bStart),
+            endDate: new Date(bEnd),
+            startAge: (bStart - birthDate.getTime()) / msPerYear,
+            endAge: (bEnd - birthDate.getTime()) / msPerYear
+          });
+          bStart = bEnd;
+        }
+        curStart = new Date(curStart.getTime() + mDur);
+        dIdx = (dIdx + 1) % 9;
+      }
+    }
+
+    // Helpers to find and format Bhuktis
+    function findBhuktiByAge(targetAge) {
+      if (!allBhuktis.length) return null;
+      return allBhuktis.find(b => b.startAge <= targetAge && b.endAge > targetAge) || allBhuktis[0];
+    }
+
+    function findBestBhuktiInRange(minAge, maxAge, preferredLords = []) {
+      if (!allBhuktis.length) return null;
+      const candidates = allBhuktis.filter(b => b.startAge < maxAge && b.endAge > minAge);
+      if (candidates.length === 0) return null;
+      for (let pLord of preferredLords) {
+        const found = candidates.find(b => b.bhuktiLord === pLord || b.mahaLord === pLord);
+        if (found) return found;
+      }
+      return candidates[0];
+    }
+
+    function formatBhukti(b) {
+      if (!b) return { dasaBhukti: "சுப தசா - புத்தி", yearRange: "-", ageText: "" };
+      const sY = b.startDate.getFullYear();
+      const eY = b.endDate.getFullYear();
+      const sA = Math.max(0, Math.round(b.startAge));
+      const eA = Math.round(b.endAge);
+      return {
+        dasaBhukti: `${b.mahaLord} தசை - ${b.bhuktiLord} புத்தி`,
+        yearRange: `${sY} முதல் ${eY} வரை`,
+        ageText: `வயது ${sA} முதல் ${eA} வரை`,
+        startYear: sY,
+        endYear: eY,
+        isPast: b.endDate < new Date()
+      };
+    }
+
+    const questions = [];
+
+    // =========================================================================
+    // Q1: கல்வி நிலை & படிப்புத் துறை (Education & Field of Study)
+    // =========================================================================
+    const primaryStreamName = ed ? ed.primaryStream.name : "பொறியியல் & தகவல் தொழில்நுட்பம் (IT/CS)";
+    const eduLevel = ed ? ed.educationLevel : "பட்டப் படிப்பு (Graduation / Bachelor Degree)";
+    const eduCollegeBhukti = findBestBhuktiInRange(17, 23, ["புதன்", "குரு", lord5, lord4, "சுக்கிரன்"]) || findBhuktiByAge(19);
+    const eduSchoolBhukti = findBestBhuktiInRange(6, 16, ["புதன்", "சூரியன்", lord4]) || findBhuktiByAge(12);
+    const eduHigherBhukti = findBestBhuktiInRange(24, 32, ["குரு", "புதன்", lord9, lord10]) || findBhuktiByAge(26);
+
+    const fEduCollege = formatBhukti(eduCollegeBhukti);
+    const fEduSchool = formatBhukti(eduSchoolBhukti);
+    const fEduHigher = formatBhukti(eduHigherBhukti);
+
+    questions.push({
+      id: "qa_education",
+      category: "education",
+      categoryLabel: "🎓 கல்வி & படிப்பு",
+      questionNumber: "கேள்வி 1",
+      questionTitle: "எந்த கல்வி நிலை & படிப்புத் துறையை ஜாதகர் தேர்ந்தெடுப்பார்? உயர்கல்வி யோகம் எப்போது?",
+      questionSummary: "பள்ளிப் படிப்பு, தொழிற்கல்வி, பட்டப்படிப்பு மற்றும் உயர்கல்வி யோக கால நிர்ணயம்",
+      highlightBadge: primaryStreamName.split('(')[0].trim(),
+      dasaBhukti: fEduCollege.dasaBhukti,
+      yearRange: fEduCollege.yearRange,
+      ageRange: fEduCollege.ageText,
+      directAnswer: `வித்யா காரகன் புதன் மற்றும் 4, 5-ஆம் பாவக ஆய்வின்படி, ${nativeTitle}ருக்கு: <strong>${primaryStreamName}</strong> மிகச் சிறந்த கல்வித் துறையாக அமையும். <strong>${eduLevel}</strong> வரை கல்வி பயிலும் பாக்கியம் உண்டு. உயர்கல்வி சுப தசாபுத்தியில் பிரகாசமான வெற்றியைத் தரும்.`,
+      timings: {
+        pastDasa: fEduSchool.dasaBhukti,
+        pastYears: fEduSchool.yearRange,
+        past: `பள்ளிப் பருவக் கல்வி ${fEduSchool.dasaBhukti}-ல் (${fEduSchool.yearRange}) அடிப்படை அறிவியல் மற்றும் கணிதத் திறனுடன் இனிதே நிறைவடைந்தது.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: curAgeYears < 23 
+          ? `தற்போது ${fEduCollege.dasaBhukti}-ல் (${fEduCollege.yearRange}) கல்லூரி தொழிற்கல்வி பயின்று புதிய திறன்களை வளர்க்கும் பருவம்.`
+          : `கல்விப் பருவம் வெற்றிகரமாக முடிந்து, தற்போது நடக்கும் ${curDasaLord} தசையில் பெற்ற கல்வியைப் பயன்படுத்தி தொழில் & உத்தியோகத்தில் அனுபவ அறிவை வளர்க்கும் காலம்.`,
+        futureDasa: fEduHigher.dasaBhukti,
+        futureYears: fEduHigher.yearRange,
+        future: `எதிர்காலத்தில் ${fEduHigher.dasaBhukti}-ல் (${fEduHigher.yearRange}, ${fEduHigher.ageText}) பணி நிமித்தமான சிறப்பு சான்றிதழ் படிப்புகள் (Certifications) மற்றும் நிர்வாக மேலாண்மைத் தேர்ச்சி பெறும் யோகம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `வித்யா காரகன் புதன் சுபத்துவம்: ${mercurySubha.netScore >= 0 ? '+' : ''}${mercurySubha.netScore} • 4-ஆம் பாவாதிபதி ${lord4}: ${getSubha(lord4).netScore >= 0 ? '+' : ''}${getSubha(lord4).netScore} • 5-ஆம் பாவாதிபதி ${lord5}: ${getSubha(lord5).netScore >= 0 ? '+' : ''}${getSubha(lord5).netScore}. புதன் குரு சேர்க்கை அல்லது சுப பார்வை உயர் தொழில்நுட்ப ஞானத்தையும் கூரிய கணித அறிவையும் நல்கும்.`,
+        paavathuvam: `4-ல் ராகு/கேது அல்லது தேய்பிறை சந்திரன் தொடர்பால் பள்ளிப் பருவத்தில் படிப்பில் சிறு கவனச் சிதறல் வந்து விலகியிருக்கும்; எனினும் சுப புதனின் பலம் தடையின்றி பட்டப் படிப்பை முடித்துக் கொடுக்கும்.`,
+        sookshumaValu: `புதன் நவாம்சத்தில் பலம் பெறுவதால் கல்வி சார்ந்த ஞானமும், மற்றவர்களுக்கு வழிகாட்டும் ஆசிரியர் மற்றும் ஆலோசகர் ஆளுமையும் இயல்பாகவே அமையும்.`
+      },
+      remedies: "புதன்கிழமைகளில் ஹயக்ரீவர் சன்னதியில் ஏலக்காய் மாலை சாற்றி, 'ஓம் ஸ்ரீ ஹயக்ரீவாய நமஹ' 108 முறை ஜபித்து வர கல்வி மற்றும் தேர்வுகளில் முதலிடம் கிட்டும்."
+    });
+
+    // =========================================================================
+    // Q2: புதியவர்களுக்கான முதல் வேலை & வயது (First Job for Freshers)
+    // =========================================================================
+    const fJob = (jt && jt.firstJob) ? {
+      dasaBhukti: jt.firstJob.dasaBhukti,
+      yearRange: jt.firstJob.yearRange,
+      ageText: jt.firstJob.ageText,
+      isPast: jt.firstJob.isPast
+    } : formatBhukti(findBestBhuktiInRange(19, 23, ["செவ்வாய்", "சனி", lord10, lord6]));
+
+    const sJob = (jt && jt.secondJob) ? {
+      dasaBhukti: jt.secondJob.dasaBhukti,
+      yearRange: jt.secondJob.yearRange,
+      ageText: jt.secondJob.ageText
+    } : formatBhukti(findBestBhuktiInRange(22, 26, ["செவ்வாய்", "சுக்கிரன்", lord10]));
+
+    const elevJob = (jt && jt.careerElevation) ? {
+      dasaBhukti: jt.careerElevation.dasaBhukti,
+      yearRange: jt.careerElevation.yearRange,
+      ageText: jt.careerElevation.ageText
+    } : formatBhukti(findBestBhuktiInRange(30, 42, ["குரு", "சூரியன்", lord10, lord11]));
+
+    questions.push({
+      id: "qa_fresher_job",
+      category: "job",
+      categoryLabel: "💼 முதல் வேலை",
+      questionNumber: "கேள்வி 2",
+      questionTitle: "புதியவர்களுக்கு (Freshers) முதல் வேலை எப்போது கிடைக்கும்? எந்த வயதில் பணி நியமனம் நடக்கும்?",
+      questionSummary: "படிப்பு முடித்தவுடன் முதல் வேலை அமையும் வயது & தசாபுத்தி கால நிர்ணயம்",
+      highlightBadge: fJob.ageText || "வயது 20-22",
+      dasaBhukti: fJob.dasaBhukti,
+      yearRange: fJob.yearRange,
+      ageRange: fJob.ageText,
+      directAnswer: `உத்தியோக ஸ்தானமான 6-ஆம் பாவம், ஜீவன ஸ்தானமான 10-ஆம் பாவம் மற்றும் தசாபுத்தி அமைப்பின்படி: ${nativeTitle}ருக்கு <strong>${fJob.dasaBhukti}</strong> காலகட்டத்தில் <strong>${fJob.yearRange} (${fJob.ageText})</strong> முதல் உத்தியோகம் சுபமாக அமையும். கேம்பஸ் இன்டர்வியூ அல்லது நேரடி நேர்முகத் தேர்வில் சுலபமாக தேர்வாகி கைநிறைய சம்பளத்தில் பணியில் இணைவார்.`,
+      timings: {
+        pastDasa: fJob.dasaBhukti,
+        pastYears: fJob.yearRange,
+        past: fJob.isPast 
+          ? `முந்தைய ${fJob.dasaBhukti}-ல் (${fJob.yearRange}, ${fJob.ageText}) கல்லூரி முடித்த கையோடு முதல் பணியில் சேர்ந்த அனுபவம்.`
+          : `கடந்த காலத்தில் நேர்முகத் தேர்வுகள் மற்றும் பணி சார்ந்த தகுதிகளை வளர்த்துக் கொண்ட பயிற்சி காலம்.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: `தற்போது நடக்கும் ${curDasaLord} தசை - ${curBhuktiLord} புக்தியில் பணியில் முழு ஈடுபாட்டுடன் திறமையை வெளிப்படுத்தி நிர்வாகத்தின் பாராட்டைப் பெறும் காலம்.`,
+        futureDasa: elevJob.dasaBhukti,
+        futureYears: elevJob.yearRange,
+        future: `எதிர்காலத்தில் ${elevJob.dasaBhukti}-ல் (${elevJob.yearRange}, ${elevJob.ageText}) உயர் தொழில்நுட்ப மேலாளர் அந்தஸ்து மற்றும் ஊதியத்தில் பெரும் உயர்வு (Promotion & Appraisal) பெறும் யோகம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `6-ஆம் பாவாதிபதி ${lord6} சுபத்துவம்: ${getSubha(lord6).netScore >= 0 ? '+' : ''}${getSubha(lord6).netScore} • 10-ஆம் பாவாதிபதி ${lord10}: ${getSubha(lord10).netScore >= 0 ? '+' : ''}${getSubha(lord10).netScore} • ஜீவனகாரகன் சனி: ${saturnSubha.netScore >= 0 ? '+' : ''}${saturnSubha.netScore}. தசாநாதன் 6 அல்லது 10-ஆம் பாவகத்தை சுபத்துவமாக தொடும் போது உடனடியாக முதல் வேலை வாய்ப்பு கதவைத் தட்டுகிறது.`,
+        paavathuvam: `சனி 6-ஆம் இடத்தில் அமர்ந்தால் ஆரம்பத்தில் சில மாதங்கள் கடுமையான உழைப்பும் கூடுதல் பணிச்சுமையும் இருக்கும்; ஆனால் அதுவே எதிர்கால வளர்ச்சிக்கு வலுவான அஸ்திவாரமாக மாறும்.`,
+        sookshumaValu: `செவ்வாய் சுபத்துவ பலம் பெற்றிருப்பதால் தொழில்நுட்பத் துறையில் உடனடி வேலைவாய்ப்பு (Quick Placement) கிட்டும்.`
+      },
+      remedies: "செவ்வாய்க்கிழமைகளில் விநாயகருக்கு அருகம்புல் சாற்றி, அனுமன் சாலிசா பாராயணம் செய்ய வேலை வாய்ப்புகள் தடையின்றி அமையும்."
+    });
+
+    // =========================================================================
+    // Q3: அரசு வேலையா? தனியார் வேலையா? (Govt vs Private Job)
+    // =========================================================================
+    const isGovtEligible = (sunSubha.netScore >= 2 || (marsSubha.netScore >= 2 && getSubha(lord10).netScore >= 1));
+    const govtVerdict = isGovtEligible ? "அரசு வேலை / பொதுத்துறை அதிகார யோகம் (Government / PSU Job)" : "பன்னாட்டு கார்ப்பரேட் தனியார் உத்தியோகம் (Top MNC Corporate Job)";
+    const govtReason = isGovtEligible
+      ? "அரசு காரகன் சூரியன் மற்றும் அதிகார காரகன் செவ்வாய் உச்ச சுபத்துவம் பெற்றுள்ளதால், போட்டித் தேர்வுகளில் (UPSC, TNPSC, Banking, SSC, Police, Judiciary) வெற்றி பெற்று அரசு முத்திரையுடன் கூடிய அதிகாரப் பதவி வகிப்பார்."
+      : "வணிக காரகன் புதன் மற்றும் சொகுசு காரகன் சுக்கிரனின் ஆதிக்கம் மேலோங்கி உள்ளதால், அரசுப் பணியை விட பன்னாட்டு கார்ப்பரேட் நிறுவனங்களில் லட்சங்களில் மாத வருமானம் ஈட்டும் தனியார் உயர் பதவியே ஜாதகருக்கு உச்சபட்ச செல்வச் செழிப்பைத் தரும்.";
+
+    const govtTargetBhukti = isGovtEligible
+      ? (findBestBhuktiInRange(curAgeYears, curAgeYears + 6, ["சூரியன்", "செவ்வாய்", lord10, "குரு"]) || findBhuktiByAge(curAgeYears + 2))
+      : (findBestBhuktiInRange(curAgeYears, curAgeYears + 6, ["புதன்", "சுக்கிரன்", "ராகு", lord10]) || findBhuktiByAge(curAgeYears + 2));
+    const fGovtTarget = formatBhukti(govtTargetBhukti);
+
+    questions.push({
+      id: "qa_govt_vs_pvt",
+      category: "job",
+      categoryLabel: "💼 அரசு / தனியார்",
+      questionNumber: "கேள்வி 3",
+      questionTitle: "அரசு உத்தியோகம் அமையுமா? அல்லது தனியார் கார்ப்பரேட் நிறுவன வேலையா? எது உச்சபட்ச யோகம் தரும்?",
+      questionSummary: "அரசுப் பணி யோகம் vs முன்னணி பன்னாட்டு தனியார் நிறுவன வேலை பகுப்பாய்வு",
+      highlightBadge: isGovtEligible ? "அரசு வேலை யோகம்" : "தனியார் MNC உச்ச வருமானம்",
+      dasaBhukti: fGovtTarget.dasaBhukti,
+      yearRange: fGovtTarget.yearRange,
+      ageRange: fGovtTarget.ageText,
+      directAnswer: `${nativeTitle}ரின் ஜாதக பிரமாணப்படி: <strong>${govtVerdict}</strong> அமையும். ${govtReason}`,
+      timings: {
+        pastDasa: fJob.dasaBhukti,
+        pastYears: fJob.yearRange,
+        past: `முந்தைய ${fJob.dasaBhukti}-ல் (${fJob.yearRange}) போட்டித் தேர்வுகள் அல்லது கார்ப்பரேட் நிறுவனங்களில் நுழைவதற்கான முயற்சிகளில் ஈடுபட்ட அனுபவம்.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: `தற்போது நடக்கும் ${curDasaLord} தசை - ${curBhuktiLord} புக்தியில் தொழில் விவகாரங்களில் ஸ்திரத்தன்மையை நோக்கி நகர்த்தும் காலம்.`,
+        futureDasa: fGovtTarget.dasaBhukti,
+        futureYears: fGovtTarget.yearRange,
+        future: isGovtEligible
+          ? `சாதகமான ${fGovtTarget.dasaBhukti}-ல் (${fGovtTarget.yearRange}, ${fGovtTarget.ageText}) போட்டித் தேர்வுகளில் வெற்றி பெற்று அரசு பணி நியமன ஆணை (Appointment Order) பெறும் சுப காலம்.`
+          : `தனியார் முன்னணி கார்ப்பரேட் நிறுவனத்தில் ${fGovtTarget.dasaBhukti}-ல் (${fGovtTarget.yearRange}, ${fGovtTarget.ageText}) அடுத்த கட்ட சீனியர் மேலாளர் / துறைத் தலைவர் பதவி உயர்வு பெற்று அதிக சம்பள தொகுப்பு (CTC) எட்டும் காலம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `சூரியன் சுபத்துவம்: ${sunSubha.netScore >= 0 ? '+' : ''}${sunSubha.netScore} • செவ்வாய் சுபத்துவம்: ${marsSubha.netScore >= 0 ? '+' : ''}${marsSubha.netScore} • 10-ஆம் அதிபதி ${lord10}: ${getSubha(lord10).netScore >= 0 ? '+' : ''}${getSubha(lord10).netScore}. சூரியன் 1, 5, 9, 10-ஆம் பாவங்களுடன் தொடர்பு பெற்று குருவின் சுப பார்வை பெற்றால் அரசு வேலை யோகம் நூறு சதவீதம் உறுதிப்படுகிறது.`,
+        paavathuvam: `சூரியன் ராகுவால் கிரகணம் அடைந்தாலோ அல்லது 6/8/12-ல் மறைந்து பலவீனமானாலோ அரசு வேலைக்காக பல ஆண்டுகள் காத்திருந்து காலத்தை வீணடிக்காமல் தனியார் நிறுவனத்தில் நுழைவதே நற்பலன் தரும்.`,
+        sookshumaValu: `சூரியன் வக்கிரம் பெற்ற கிரகங்களின் வீடுகளில் அமரும் போது, நேரடியாக அரசாங்கத்தில் இல்லாவிட்டாலும் அரசுக்கு ஆலோசனை வழங்கும் உயர்மட்ட ஆலோசகர் அல்லது அரசு ஒப்பந்ததாரராக பெரும் தனலாபம் அடைவார்.`
+      },
+      remedies: isGovtEligible 
+        ? "ஞாயிற்றுக்கிழமை காலை சூரிய உதயத்தில் ஆதித்ய ஹிருதய ஸ்தோத்திரம் படித்து செம்பு பாத்திரத்தில் நீர் சமர்ப்பிக்கவும்." 
+        : "வியாழக்கிழமை குரு தட்சிணாமூர்த்திக்கு மஞ்சள் வஸ்திரம் சாற்றி வழிபட கார்ப்பரேட் வளர்ச்சி விரைவுபடும்."
+    });
+
+    // =========================================================================
+    // Q4: எந்த துறையில் பணி & தொழில் அமையும்? (Job Industry & Career Field)
+    // =========================================================================
+    const jobFields = jt && jt.recommendedFields ? jt.recommendedFields.join(" • ") : "தகவல் தொழில்நுட்பம் (IT), வங்கி & நிதி நிர்வாகம், பொறியியல்";
+    const jobPeakBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 8, [lord10, "சனி", "குரு", "புதன்"]) || findBhuktiByAge(curAgeYears + 3);
+    const fJobPeak = formatBhukti(jobPeakBhukti);
+
+    questions.push({
+      id: "qa_job_field",
+      category: "job",
+      categoryLabel: "💼 தொழில் துறை",
+      questionNumber: "கேள்வி 4",
+      questionTitle: "எந்த துறையில் உத்தியோகம் அல்லது தொழில் அமையும்? பதவி உயர்வு எப்போது உச்சம் தொடும்?",
+      questionSummary: "தொழில் துறை, பணிப் பொறுப்பு, பதவி & ஜீவன அமைப்பு",
+      highlightBadge: jobFields.split('•')[0].trim(),
+      dasaBhukti: fJobPeak.dasaBhukti,
+      yearRange: fJobPeak.yearRange,
+      ageRange: fJobPeak.ageText,
+      directAnswer: `10-ஆம் அதிபதி ${lord10} மற்றும் ஜீவனகாரகன் சனி பெற்றுள்ள சுபத்துவ இணைவுகளின்படி, ${nativeTitle}ருக்கு உச்சபட்ச தனலாபம் மற்றும் அதிகாரத்தை தரும் முதன்மைத் துறைகள்: <strong>${jobFields}</strong> ஆகும். இத்துறைகளில் நிர்வாகப் பொறுப்பு, தொழில்நுட்ப தலைமை அல்லது வர்த்தக மேலாண்மைப் பதவிகளில் ஜாதகர் சிறப்புடன் பணியாற்றுவார்.`,
+      timings: {
+        pastDasa: fJob.dasaBhukti,
+        pastYears: fJob.yearRange,
+        past: `முந்தைய ${fJob.dasaBhukti}-ல் (${fJob.yearRange}) பல்வேறு துறை சார்ந்த அனுபவங்களைத் திரட்டி, தொழில் நுணுக்கங்களை கற்றுக் கொண்ட ஆரம்ப காலகட்டம்.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: `தற்போது நடக்கும் ${curDasaLord} தசை - ${curBhuktiLord} புக்தியில் தனக்கான நிரந்தர துறை அடையாளத்தை உருவாக்கி நிலைநிறுத்தும் பருவம்.`,
+        futureDasa: fJobPeak.dasaBhukti,
+        futureYears: fJobPeak.yearRange,
+        future: `சாதகமான ${fJobPeak.dasaBhukti}-ல் (${fJobPeak.yearRange}, ${fJobPeak.ageText}) துறை சார்ந்த உயர் தொழில்நுட்பத் தலைவர், திட்ட இயக்குநர் அல்லது சொந்த வர்த்தக நிறுவனத் தலைமை ஏற்கும் பிரகாசமான பொற்காலம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `ஜீவனகாரகன் சனி சுபத்துவம்: ${saturnSubha.netScore >= 0 ? '+' : ''}${saturnSubha.netScore} • 10-ஆம் அதிபதி ${lord10} சுபத்துவம்: ${getSubha(lord10).netScore >= 0 ? '+' : ''}${getSubha(lord10).netScore}. சனி புதன் சுக்கிரன் தொடர்பு பெற்றால் IT, சாப்ட்வேர், ஆடிட்டிங், மீடியா துறையும்; செவ்வாய் தொடர்பு பெற்றால் சிவில், பாதுகாப்பு, மெக்கானிக்கல் துறையும் அமையும்.`,
+        paavathuvam: `10-ல் மாந்தி அல்லது பலவீனமான பாவர்கள் தொடர்பு பணியிடத்தில் தேவையற்ற மேலதிகாரி கருத்து வேறுபாடுகளைத் தரும். தசாநாதன் சுபத்துவம் பெற்றால் அவை எளிதில் தீரும்.`,
+        sookshumaValu: `10-ஆம் அதிபதி நவாம்சத்தில் ஆட்சி அல்லது வர்கோத்தமம் பெறுவதால், எந்தத் துறையில் இருந்தாலும் தலைமைப் பொறுப்பை வகிக்கும் சூட்சும ஆளுமை வாய்க்கும்.`
+      },
+      remedies: "தினமும் நெற்றியில் திருநீறு அல்லது சந்தனம் அணிந்து, பணிக்கு செல்லும் முன் குலதெய்வத்தை பிரார்த்தனை செய்ய பணியிட செல்வாக்கு கூடும்."
+    });
+
+    // =========================================================================
+    // Q5: திருமண யோக காலம் & அமையும் துணைவர் (Marriage Timing & Spouse Details)
+    // =========================================================================
+    const marrAgeStr = mr ? mr.ageText : "வயது 24 முதல் 28-க்குள்";
+    const spouseDir = mr ? mr.spouseDirection : "தெற்கு அல்லது கிழக்கு திசை";
+    const spouseNature = mr ? mr.spouseTraits : "அன்பான குணம், கௌரவமான குடும்பப் பின்னணி, குடும்பப் பொறுப்புணர்வு கொண்டவர்";
+    const isMarriedAlready = curAgeYears > 32;
+
+    const marrBhukti = (mr && mr.dasaBhukti) ? {
+      dasaBhukti: mr.dasaBhukti,
+      yearRange: mr.yearRange,
+      ageText: mr.ageText,
+      specialAntharam: mr.specialAntharam || "சுக்கிர அந்தரம்"
+    } : formatBhukti(findBestBhuktiInRange(23, 29, ["சுக்கிரன்", lord7, "குரு", lord2]));
+
+    questions.push({
+      id: "qa_marriage_timing",
+      category: "marriage",
+      categoryLabel: "💍 திருமணம்",
+      questionNumber: "கேள்வி 5",
+      questionTitle: "திருமணம் எப்போது நடக்கும்? எந்த வயதில் திருமணம் கைகூடும்? அமையும் வாழ்க்கைத்துணை யார்?",
+      questionSummary: "திருமண வயது, சுப முகூர்த்த கால நிர்ணயம், திசை & துணைவரின் குணநலன்கள்",
+      highlightBadge: marrAgeStr,
+      dasaBhukti: marrBhukti.dasaBhukti,
+      yearRange: marrBhukti.yearRange,
+      ageRange: marrBhukti.ageText,
+      directAnswer: `களத்திர ஸ்தானமான 7-ஆம் பாவாதிபதி ${lord7} மற்றும் களத்திரகாரகன் சுக்கிரனின் அமைப்புப்படி: <strong>${marrBhukti.dasaBhukti}</strong> காலகட்டத்தில் <strong>${marrBhukti.yearRange} (${marrBhukti.ageText})</strong> திருமண யோகம் சுபமாக அமையும். வரன் அமையும் திசை: <strong>${spouseDir}</strong>. துணைவர்: <strong>${spouseNature}</strong>. குடும்பத்திற்கு நற்பெயரும் மங்கலமும் சேர்க்கும் உத்தமமான வரன் கைகூடும்.`,
+      timings: {
+        pastDasa: marrBhukti.dasaBhukti,
+        pastYears: marrBhukti.yearRange,
+        past: isMarriedAlready
+          ? `ஜாதகருக்கு ${marrBhukti.dasaBhukti}-ல் (${marrBhukti.yearRange}) சுப முகூர்த்தம் இனிதே நிறைவடைந்து குடும்ப வாழ்க்கை துவங்கியுள்ளது.`
+          : `கடந்த காலங்களில் வந்து சென்ற சில வரன்கள் தசாபுத்திகள் சாதகமாக இல்லாததால் தள்ளிப் போன காலம்.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: isMarriedAlready
+          ? `தற்போது குடும்ப வாழ்க்கையில் கணவன்-மனைவி பரஸ்பர புரிதலுடன் குடும்ப பொறுப்புகளை முன்னெடுக்கும் காலம்.`
+          : `தற்போது நடக்கும் ${curDasaLord} தசை - ${curBhuktiLord} புக்தி களத்திர ஸ்தானத்தை செயல்படுத்துவதால் தீவிர வரன் தேடல் மற்றும் நிச்சயதார்த்த சூழல் உருவாகும் காலம்.`,
+        futureDasa: marrBhukti.dasaBhukti,
+        futureYears: marrBhukti.yearRange,
+        future: isMarriedAlready
+          ? `எதிர்காலத்தில் தம்பதியர் ஒற்றுமையுடன் மங்கல சுபகாரியங்களை நடத்தி, குழந்தைகள் வழியில் பெருமகிழ்ச்சி அடையும் சுப காலம்.`
+          : `சாதகமான ${marrBhukti.dasaBhukti}-ல் (${marrBhukti.yearRange}) முகூர்த்த அந்தரத்தில் கெட்டிமேளம் கொட்டி திருமணம் இனிதே அரங்கேறும் சுப மங்கள காலம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `7-ஆம் அதிபதி ${lord7} சுபத்துவம்: ${getSubha(lord7).netScore >= 0 ? '+' : ''}${getSubha(lord7).netScore} • களத்திரகாரகன் சுக்கிரன் சுபத்துவம்: ${venusSubha.netScore >= 0 ? '+' : ''}${venusSubha.netScore}. 7-ஆம் அதிபதி சுப கிரகங்களான குரு, சுக்கிரன், சுப சந்திரனின் பார்வை சேர்க்கை பெற்றால் குடும்ப வாழ்க்கை அமைதியும் ஆனந்தமும் நிறைந்ததாக அமையும்.`,
+        paavathuvam: `7-ல் சனி, ராகு/கேது பார்வை அல்லது சேர்க்கை இருந்தால் திருமணப் பேச்சுவார்த்தையில் சிறு காலதாமதம் அல்லது ஜாதகப் பொருத்தம் பார்ப்பதில் கூடுதல் நிதானம் தேவைப்படும்.`,
+        sookshumaValu: `7-ஆம் அதிபதி நவாம்சத்தில் (D9) ஆட்சி, உச்சம் அல்லது குருவின் சுப வர்க்கம் பெற்றிருப்பதால் திருமணத்திற்குப் பின் ஜாதகரின் அதிர்ஷ்டமும் அந்தஸ்தும் இருமடங்கு பெருகும்.`
+      },
+      remedies: "வெள்ளிக்கிழமை தோறும் அம்மன் கோயிலில் நெய் தீபம் ஏற்றி லலிதா சகஸ்ரநாமம் கேட்கவும்; துளசி மாலை சாற்றி வழிபட களத்திர தோஷங்கள் விலகும்."
+    });
+
+    // =========================================================================
+    // Q6: 2வது அல்லது 3வது திருமண வாய்ப்பு & விவாகரத்து ஆய்வு (Remarriage Analysis)
+    // =========================================================================
+    const hasDualSign7 = [3, 6, 9, 12].includes(((lagnaId - 1 + 6) % 12) + 1);
+    const hasRahuKetuAxis17 = analysis.placedPlanets.some(p => (p.planet === "ராகு" || p.planet === "கேது") && (p.rasiId === lagnaId || p.rasiId === (((lagnaId - 1 + 6) % 12) + 1)));
+    const lord7Sub = getSubha(lord7).netScore;
+    const isRemarriageRisk = (hasDualSign7 && lord7Sub < 1) || (hasRahuKetuAxis17 && venusSubha.netScore < 1);
+
+    const remarrVerdict = isRemarriageRisk
+      ? "ஜாதகத்தில் உபய ராசி / ராகு-கேது அச்சு களத்திர ஸ்தானத்தில் உள்ளதால், முதல் திருமணத்தில் கருத்து வேறுபாடுகள் அல்லது தற்காலிக பிரிவு வரக்கூடிய சாத்தியக்கூறுகள் உண்டு. எனினும் சுப தசாபுத்தியில் மறுமணம் (2-ஆம் தார யோகம்) அமைதியான வாழ்வைத் தரும் அல்லது முதல் துணையுடன் சமரசம் ஏற்படும்."
+      : "ஜாதகத்தில் 7-ஆம் வீடு மற்றும் களத்திரகாரகன் பலமாக இருப்பதால், திருமண பந்தம் மிக உறுதியானது. கருத்து வேறுபாடுகள் வந்தாலும் பெரியோர்கள் தலையீட்டால் உடனே தீர்ந்துவிடும்; 2-வது அல்லது 3-வது திருமணத்திற்கான சாத்தியக்கூறுகள் இல்லை; முதல் திருமணமே தீர்க்கமாக நிலைக்கும்.";
+
+    const remarrBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 7, [lord11, "குரு", lord2, "சுக்கிரன்"]) || findBhuktiByAge(curAgeYears + 2);
+    const fRemarr = formatBhukti(remarrBhukti);
+
+    questions.push({
+      id: "qa_remarriage",
+      category: "marriage",
+      categoryLabel: "💍 மறுமண ஆய்வு",
+      questionNumber: "கேள்வி 6",
+      questionTitle: "இரண்டாம் திருமணம் அல்லது மறுமண வாய்ப்பு உள்ளதா? விவாகரத்து, பிரிவு யோகம் உள்ளதா?",
+      questionSummary: "களத்திர தோஷ ஆய்வு, தம்பதியர் பிரிவு அபாயம் & 2-ஆம் தார யோக கால நிர்ணயம்",
+      highlightBadge: isRemarriageRisk ? "மறுமண ஆய்வு யோகம்" : "ஒரே திருமணம் தீர்க்கம்",
+      dasaBhukti: fRemarr.dasaBhukti,
+      yearRange: fRemarr.yearRange,
+      ageRange: fRemarr.ageText,
+      directAnswer: `களத்திர பாவக ஆய்வு: <strong>${remarrVerdict}</strong> 2-ஆம் பாவம் (குடும்பம்), 7-ஆம் பாவம் (களத்திரம்) மற்றும் 11-ஆம் பாவம் (மறுமணம்/2-ஆம் தாரம்) நிலைகளை ஆராயும் போது, சுபத்துவ பலம் மேலோங்கி இருப்பதால் அச்சப்படத் தேவையில்லை.`,
+      timings: {
+        pastDasa: marrBhukti.dasaBhukti,
+        pastYears: marrBhukti.yearRange,
+        past: `முந்தைய ${marrBhukti.dasaBhukti}-ல் (${marrBhukti.yearRange}) குடும்ப உறவினர்களின் தலையீடு அல்லது ஈகோ காரணமாக ஏற்பட்ட மனக்கசப்பு காலகட்டம்.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: `தற்போது நடக்கும் ${curDasaLord} தசை - ${curBhuktiLord} புக்தியில் பரஸ்பர விட்டுக்கொடுத்தலுடன் குடும்ப ஒற்றுமையைக் காக்க வேண்டிய முக்கிய பருவம்.`,
+        futureDasa: fRemarr.dasaBhukti,
+        futureYears: fRemarr.yearRange,
+        future: isRemarriageRisk
+          ? `சாதகமான ${fRemarr.dasaBhukti}-ல் (${fRemarr.yearRange}, ${fRemarr.ageText}) குடும்பத்தில் சமாதானம் அல்லது அமைதியான புதிய இல்லற வாழ்வு மலரும் சுப காலம்.`
+          : `எதிர்காலத்தில் ${fRemarr.dasaBhukti}-ல் (${fRemarr.yearRange}, ${fRemarr.ageText}) தம்பதியரிடையே அன்யோன்யம் அதிகரித்து, சமுதாயத்தில் முன்மாதிரியாக வாழும் உன்னத யோகம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `11-ஆம் அதிபதி ${lord11} சுபத்துவம்: ${getSubha(lord11).netScore >= 0 ? '+' : ''}${getSubha(lord11).netScore} • 2-ஆம் அதிபதி ${lord2}: ${getSubha(lord2).netScore >= 0 ? '+' : ''}${getSubha(lord2).netScore}. குருவின் பார்வை 7-ஆம் வீட்டிற்கு இருக்கும் வரை எந்த தம்பதியரையும் சட்டம் பிரிக்க முடியாது; அது தெய்வீகக் கவசமாக செயல்படும்.`,
+        paavathuvam: `7-ல் சுக்கிரனுடன் கேது அல்லது செவ்வாய் பாபத்துவமாக இணைந்தால் தாம்பத்தியத்தில் அதிருப்தி மற்றும் தேவையற்ற சந்தேகம் எழலாம்; உரிய பரிகாரத்தால் இது நிவர்த்தியாகும்.`,
+        sookshumaValu: `7-ஆம் அதிபதி வக்கிரம் பெற்றால் துணைவர் வழக்கத்திற்கு மாறான முற்போக்கு சிந்தனை கொண்டவராக இருப்பார்; அவரைப் புரிந்து கொண்டால் வாழ்க்கை சொர்க்கமாகும்.`
+      },
+      remedies: "திருநாகேஸ்வரம் சென்று ராகு கால அர்ச்சனை செய்வது, வீட்டில் வெள்ளிக்கிழமை சுக்ர காயத்ரி மந்திரம் 108 முறை சொல்வது தாம்பத்திய ஒற்றுமையை பலப்படுத்தும்."
+    });
+
+    // =========================================================================
+    // Q7: குழந்தைப் பாக்கியம் - 1வது & 2வது குழந்தை (Childbirth - 1st & 2nd Child)
+    // =========================================================================
+    const child1Bhukti = (ch && ch.dasaBhukti) ? {
+      dasaBhukti: ch.dasaBhukti,
+      yearRange: ch.yearRange,
+      ageText: ch.ageText
+    } : formatBhukti(findBestBhuktiInRange(25, 32, ["குரு", lord5, "சுக்கிரன்", "சந்திரன்"]));
+
+    const child2Bhukti = findBestBhuktiInRange(child1Bhukti.endYear ? (child1Bhukti.endYear - new Date(nDob).getFullYear() + 2) : 29, 36, [lord5, lord9, "குரு"]) || findBhuktiByAge(32);
+    const fChild2 = formatBhukti(child2Bhukti);
+
+    questions.push({
+      id: "qa_childbirth",
+      category: "child",
+      categoryLabel: "👶 குழந்தை யோகம்",
+      questionNumber: "கேள்வி 7",
+      questionTitle: "குழந்தைப் பாக்கியம் எப்போது கிடைக்கும்? 1வது & 2வது குழந்தை பிறக்கும் காலம் எது? புத்திர தோஷம் உள்ளதா?",
+      questionSummary: "1வது மற்றும் 2வது குழந்தை பிறக்கும் கால நிர்ணயம், சுகப்பிரசவம் & புத்திர யோகம்",
+      highlightBadge: child1Bhukti.ageText || "வயது 26-29",
+      dasaBhukti: child1Bhukti.dasaBhukti,
+      yearRange: child1Bhukti.yearRange,
+      ageRange: child1Bhukti.ageText,
+      directAnswer: `புத்திர ஸ்தானமான 5-ஆம் பாவம் மற்றும் புத்திரகாரகன் குருவின் அருளால் ${nativeTitle}ருக்கு தீர்க்கமான புத்திர பாக்கியம் உண்டு. <strong>முதல் குழந்தை: ${child1Bhukti.dasaBhukti}-ல் (${child1Bhukti.yearRange}, ${child1Bhukti.ageText})</strong> சுபமாக பிறக்கும். <strong>இரண்டாம் குழந்தை: ${fChild2.dasaBhukti}-ல் (${fChild2.yearRange}, ${fChild2.ageText})</strong> யோகமாக ஜனனமாகும். பிறக்கும் குழந்தைகள் கல்வி மற்றும் ஒழுக்கத்தில் சிறந்து விளங்கி பெற்றோருக்கு பெருமை சேர்ப்பர்.`,
+      timings: {
+        pastDasa: fEduCollege.dasaBhukti,
+        pastYears: fEduCollege.yearRange,
+        past: `முந்தைய காலங்களில் திருமணம் மற்றும் குழந்தை பிறப்பிற்கான பூர்வாங்க பிரார்த்தனைகள் மேற்கொண்ட காலம்.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: `தற்போது நடக்கும் ${curDasaLord} தசை - ${curBhuktiLord} புக்தியில் கருத்தரித்தல் மற்றும் புத்திர யோகம் பலப்படும் சூழல்.`,
+        futureDasa: child1Bhukti.dasaBhukti,
+        futureYears: child1Bhukti.yearRange,
+        future: `சாதகமான ${child1Bhukti.dasaBhukti}-ல் (${child1Bhukti.yearRange}, ${child1Bhukti.ageText}) இல்லத்தில் மழலைச் சத்தம் கேட்டு தொட்டில் கட்டும் மங்களகரமான காலம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `5-ஆம் அதிபதி ${lord5} சுபத்துவம்: ${getSubha(lord5).netScore >= 0 ? '+' : ''}${getSubha(lord5).netScore} • புத்திரகாரகன் குரு சுபத்துவம்: ${jupiterSubha.netScore >= 0 ? '+' : ''}${jupiterSubha.netScore}. 5-ல் சுப கிரகங்கள் அமர்வது புத்திர பாக்கியத்தை விரைவுபடுத்தும்.`,
+        paavathuvam: `5-ல் ராகு அல்லது கேது இருந்தால் 'நாக தோஷம்' அல்லது 'புத்திர தோஷம்' ஏற்பட்டு ஆரம்பத்தில் கருத்தரிப்பில் சிறு தாமதம் அல்லது மருத்துவ சிகிச்சை தேவைப்படலாம்.`,
+        sookshumaValu: `குரு பகவான் 5-ஆம் வீட்டைப் பார்த்தால் கோடி புண்ணியம்; எப்பேர்ப்பட்ட தோஷமாக இருந்தாலும் விலகி அழகான வாரிசு ஜனனமாகும்.`
+      },
+      remedies: "திருச்செந்தூர் முருகன் கோயிலில் பாலபிஷேகம் செய்து, வியாழக்கிழமைகளில் ஏழை குழந்தைகளுக்கு இனிப்பு மற்றும் நோட்டுப் புத்தகங்கள் தானம் செய்வது புத்திர யோகத்தை துரிதப்படுத்தும்."
+    });
+
+    // =========================================================================
+    // Q8: சொந்த வீடு, பூமி, நிலம் & வாகன யோகம் (Land, House & Vehicle)
+    // =========================================================================
+    const houseBhukti = (hs && hs.dasaBhukti) ? {
+      dasaBhukti: hs.dasaBhukti,
+      yearRange: hs.yearRange,
+      ageText: hs.ageText
+    } : formatBhukti(findBestBhuktiInRange(30, 38, ["செவ்வாய்", lord4, "சனி", "சுக்கிரன்"]));
+
+    const carBhukti = (vh && vh.dasaBhukti) ? {
+      dasaBhukti: vh.dasaBhukti,
+      yearRange: vh.yearRange,
+      ageText: vh.ageText
+    } : formatBhukti(findBestBhuktiInRange(26, 34, ["சுக்கிரன்", "ராகு", lord4]));
+
+    questions.push({
+      id: "qa_property_vehicle",
+      category: "property",
+      categoryLabel: "🏡 வீடு & சொத்து",
+      questionNumber: "கேள்வி 8",
+      questionTitle: "எப்போது சொந்தமாக இடம் வாங்கி வீடு கட்டுவார்? நிலம் வாங்கும் காலம் எது? புதிய கார் யோகம் எப்போது?",
+      questionSummary: "நிலம் பத்திரப்பதிவு, வீடு கட்டுதல், கிரகப்பிரவேசம் & சொகுசு வாகன யோகம்",
+      highlightBadge: houseBhukti.ageText || "வயது 32-35",
+      dasaBhukti: houseBhukti.dasaBhukti,
+      yearRange: houseBhukti.yearRange,
+      ageRange: houseBhukti.ageText,
+      directAnswer: `மாத்ரு/சுக/கிருக ஸ்தானமான 4-ஆம் பாவம் மற்றும் பூமி காரகன் செவ்வாய், வாகன காரகன் சுக்கிரன் அமைப்பால்: <strong>${houseBhukti.dasaBhukti}</strong> காலகட்டத்தில் <strong>${houseBhukti.yearRange} (${houseBhukti.ageText})</strong> சொந்த நிலம் வாங்கி பிரம்மாண்டமாக வீடு கட்டும் யோகம் கைகூடும். புதிய சொகுசு கார் (Car / SUV) வாங்கும் யோகம் <strong>${carBhukti.dasaBhukti}</strong> காலத்தில் (${carBhukti.yearRange}) சுபமாக அமையும்.`,
+      timings: {
+        pastDasa: carBhukti.dasaBhukti,
+        pastYears: carBhukti.yearRange,
+        past: `முந்தைய ${carBhukti.dasaBhukti}-ல் (${carBhukti.yearRange}) சொந்த வாகனம் மற்றும் வீட்டு மனை வாங்குவதற்கான நிதி சேமிப்பு முயற்சிகளைத் தொடங்கிய பருவம்.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: `தற்போது நிலம் அல்லது வீட்டு மனை வாங்குவதற்கான வங்கி கடன் ஆலோசனைகள் மற்றும் சொத்துத் தேடலில் ஆர்வம் காட்டும் காலம்.`,
+        futureDasa: houseBhukti.dasaBhukti,
+        futureYears: houseBhukti.yearRange,
+        future: `சாதகமான ${houseBhukti.dasaBhukti}-ல் (${houseBhukti.yearRange}, ${houseBhukti.ageText}) அடிக்கல் நாட்டி, பிரம்மாண்டமாக சொந்த வீடு கட்டி கிரகப்பிரவேசம் செய்யும் பொற்காலம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `4-ஆம் அதிபதி ${lord4} சுபத்துவம்: ${getSubha(lord4).netScore >= 0 ? '+' : ''}${getSubha(lord4).netScore} • பூமி காரகன் செவ்வாய்: ${marsSubha.netScore >= 0 ? '+' : ''}${marsSubha.netScore} • வாகன காரகன் சுக்கிரன்: ${venusSubha.netScore >= 0 ? '+' : ''}${venusSubha.netScore}. 4-ஆம் வீட்டில் சுப கிரகங்கள் அமர்வது அல்லது பார்வை பெறுவது சொந்த வீட்டு யோகத்தை அசைக்க முடியாததாக மாற்றும்.`,
+        paavathuvam: `4-ல் சனி அமர்ந்தால் பழைய வீட்டை வாங்கி புதுப்பித்தல் அல்லது வீடு கட்டி முடிப்பதில் கூடுதல் கால விரயம் ஆகும்; ஆனால் கட்டி முடித்த பின் நிலைத்து நிற்கும்.`,
+        sookshumaValu: `செவ்வாய் அல்லது 4-ஆம் அதிபதி வக்கிரம் பெற்றால் பரம்பரை சொத்துக்கள் வழியாக அல்லது திடீர் அதிர்ஷ்டம் மூலம் எதிர்பாராத பிரம்மாண்ட வீட்டு மனை அமையும்.`
+      },
+      remedies: "செவ்வாய்க்கிழமைகளில் வராக மூர்த்தி அல்லது முருகப் பெருமானை நெய் தீபமேற்றி வழிபட பூமி சம்பந்தப்பட்ட காரியங்கள் தடையின்றி நடக்கும்."
+    });
+
+    // =========================================================================
+    // Q9: ஆரோக்கியம், நோய் தாக்கம் & மீளும் காலம் (Health, Diseases & Cure)
+    // =========================================================================
+    const healthOrgans = "இதயம், வயிறு/செரிமானம், எலும்பு மச்சை, கால் நரம்புகள்";
+    const healthVulnerableBhukti = findBestBhuktiInRange(curAgeYears - 5, curAgeYears + 5, [lord6, lord8, "ராகு", "சனி"]) || findBhuktiByAge(curAgeYears);
+    const healthCureBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 6, [lord1, "குரு", "சூரியன்", lord5]) || findBhuktiByAge(curAgeYears + 2);
+
+    const fHealthVul = formatBhukti(healthVulnerableBhukti);
+    const fHealthCure = formatBhukti(healthCureBhukti);
+
+    questions.push({
+      id: "qa_health_disease",
+      category: "health",
+      categoryLabel: "🩺 ஆரோக்கியம்",
+      questionNumber: "கேள்வி 9",
+      questionTitle: "ஆரோக்கிய குறைபாடு எப்போது வரும்? எந்த உறுப்புகளில் நோய் தாக்கம் ஏற்படலாம்? எப்போது முழு குணம் கிடைக்கும்?",
+      questionSummary: "எச்சரிக்கையாக இருக்க வேண்டிய உடல் உறுப்புகள், நோய் தாக்க காலம் & நிவாரண கால நிர்ணயம்",
+      highlightBadge: "தீர்க்காயுள் & நிவாரணம்",
+      dasaBhukti: fHealthCure.dasaBhukti,
+      yearRange: fHealthCure.yearRange,
+      ageRange: fHealthCure.ageText,
+      directAnswer: `ரோக ஸ்தானமான 6-ஆம் பாவம் மற்றும் 8-ஆம் பாவ அமைப்பின்படி, ${nativeTitle}ர் கவனமாகப் பராமரிக்க வேண்டிய உறுப்புகள்: <strong>${healthOrgans}</strong> ஆகும். பாபத்துவ தசா அந்தரங்களில் உணவுப் பழக்கம் மற்றும் உடற்பயிற்சியில் விழிப்புடன் இருக்க வேண்டும்; <strong>${fHealthCure.dasaBhukti} (${fHealthCure.yearRange})</strong> காலத்தில் நோயின் தாக்கம் முற்றிலுமாக அகன்று பூரண குணம் கிட்டும். பெரிய ஆபத்துகள் எதுவுமின்றி தீர்க்காயுளுடன் வாழும் அமைப்பு உண்டு.`,
+      timings: {
+        pastDasa: fHealthVul.dasaBhukti,
+        pastYears: fHealthVul.yearRange,
+        past: `முந்தைய ${fHealthVul.dasaBhukti}-ல் (${fHealthVul.yearRange}) உஷ்ண உபாதைகள், செரிமானக் கோளாறு அல்லது சிறு உடல்நலக் குறைவால் மருத்துவ சிகிச்சை பெற்ற பருவம்.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: `தற்போது வழக்கமான உடல் பரிசோதனைகள் மற்றும் சீரான உணவு முறையைக் கடைப்பிடித்து உடலை நலம் பேண வேண்டிய காலம்.`,
+        futureDasa: fHealthCure.dasaBhukti,
+        futureYears: fHealthCure.yearRange,
+        future: `சாதகமான ${fHealthCure.dasaBhukti}-ல் (${fHealthCure.yearRange}, ${fHealthCure.ageText}) உடல் புத்துணர்ச்சி பெற்று, நோயற்ற வாழ்வே குறைவற்ற செல்வம் என்ற ஆரோக்கிய நிலையை எட்டும் உன்னத காலம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `லக்னாதிபதி ${lord1} சுபத்துவம்: ${getSubha(lord1).netScore >= 0 ? '+' : ''}${getSubha(lord1).netScore} • 6-ஆம் அதிபதி ${lord6}: ${getSubha(lord6).netScore >= 0 ? '+' : ''}${getSubha(lord6).netScore}. லக்னாதிபதி பலம் பெற்றிருப்பதால் நோயெதிர்ப்பு சக்தி (Immunity Power) இயல்பாகவே மிக அதிகமாக இருக்கும்.`,
+        paavathuvam: `6 மற்றும் 8-ஆம் அதிபதிகள் இணைவு பெற்றால் அவ்வப்போது மருத்துவ செலவுகள் வந்து போகும்; எனினும் ஆயுள்காரகன் சனி சுபத்துவம் பெற்றிருப்பதால் நீண்ட ஆயுள் உறுதி.`,
+        sookshumaValu: `மருத்துவ காரகன் செவ்வாய்/சூரியன் சுபத்துவம் பெற்றிருப்பதால், உரிய மருத்துவ ஆலோசனையும் சரியான மருந்துகளும் உரிய நேரத்தில் கிடைத்து நிவாரணம் தரும்.`
+      },
+      remedies: "வைத்தீஸ்வரன் கோயில் சென்று தன்வந்திரி பகவானுக்கு அர்ச்சனை செய்வதும், தன்வந்திரி காயத்ரி மந்திரம் தினமும் 11 முறை ஜபிப்பதும் பூரண நலம் தரும்."
+    });
+
+    // =========================================================================
+    // Q10: வெளிநாட்டு வேலை, பயணம் & குடியுரிமை (Foreign Travel & Settlement)
+    // =========================================================================
+    const isForeignHigh = (rahuSubha.netScore >= 1 || moonSubha.netScore >= 2 || getSubha(lord9).netScore >= 2 || getSubha(lord12).netScore >= 2);
+    const foreignBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 7, ["ராகு", lord12, lord9, "சந்திரன்"]) || findBhuktiByAge(curAgeYears + 2);
+    const fForeign = formatBhukti(foreignBhukti);
+
+    questions.push({
+      id: "qa_foreign_travel",
+      category: "foreign",
+      categoryLabel: "✈️ வெளிநாட்டு யோகம்",
+      questionNumber: "கேள்வி 10",
+      questionTitle: "வெளிநாட்டு வேலை, தூர தேச பயணம் & நிரந்தர குடியுரிமை (PR) யோகம் உள்ளதா? எப்போது வெளிநாடு செல்வார்?",
+      questionSummary: "ஆன்சைட் வெளிநாட்டுப் பணி, அயல்நாட்டு வாசம் & விசா பெறும் கால நிர்ணயம்",
+      highlightBadge: isForeignHigh ? "வெளிநாட்டு யோகம் மிக அதிகம்" : "பன்னாட்டு கார்ப்பரேட் பணி",
+      dasaBhukti: fForeign.dasaBhukti,
+      yearRange: fForeign.yearRange,
+      ageRange: fForeign.ageText,
+      directAnswer: `9-ஆம் பாவம் (தூர தேசப் பயணம்), 12-ஆம் பாவம் (அயல்நாட்டு வாசம்) மற்றும் வெளிநாட்டு காரகன் ராகுவின் அமைப்பின்படி: ${nativeTitle}ருக்கு <strong>${fForeign.dasaBhukti}</strong> காலகட்டத்தில் <strong>${fForeign.yearRange} (${fForeign.ageText})</strong> ${isForeignHigh ? "வெளிநாட்டு வேலை மற்றும் அயல்நாட்டு வாசம் நூறு சதவீதம் சாத்தியமாகும் யோகம் உண்டு" : "உள்நாட்டிலேயே பன்னாட்டு நிறுவன உயர் பொறுப்பு அல்லது குறுகிய கால வெளிநாட்டு தொழில் பயண யோகம் உண்டு"}. விசா தடைகள் விலகி சுபமாக பயணம் மேற்கொள்வார்.`,
+      timings: {
+        pastDasa: fJob.dasaBhukti,
+        pastYears: fJob.yearRange,
+        past: `முந்தைய ${fJob.dasaBhukti}-ல் (${fJob.yearRange}) பாஸ்போர்ட் பெறுதல் அல்லது வெளிநாட்டு நிறுவனங்களுடன் தகவல் தொடர்பு ஏற்பட்ட அனுபவம்.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: `தற்போது வெளிநாட்டு திட்டங்கள் அல்லது அயல்நாட்டு வேலை வாய்ப்புகளுக்கான தகுதிகளை மேம்படுத்தும் காலம்.`,
+        futureDasa: fForeign.dasaBhukti,
+        futureYears: fForeign.yearRange,
+        future: `சாதகமான ${fForeign.dasaBhukti}-ல் (${fForeign.yearRange}, ${fForeign.ageText}) விசா அங்கீகாரம் பெற்று அயல்நாடு சென்று கைநிறைய வருமானம் ஈட்டும் உன்னதமான காலம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `9-ஆம் அதிபதி ${lord9} சுபத்துவம்: ${getSubha(lord9).netScore >= 0 ? '+' : ''}${getSubha(lord9).netScore} • 12-ஆம் அதிபதி ${lord12}: ${getSubha(lord12).netScore >= 0 ? '+' : ''}${getSubha(lord12).netScore} • ராகு சுபத்துவம்: ${rahuSubha.netScore >= 0 ? '+' : ''}${rahuSubha.netScore}. ராகு சுப தொடர்புடன் 12-ல் அல்லது 9-ல் அமையும் போது கடல்கடந்து சென்று டாலர்களில் சம்பாதிக்கும் யோகம் உண்டாகிறது.`,
+        paavathuvam: `4-ஆம் இடம் தாய்நாட்டை குறிக்கும்; 4-ஆம் இடத்தில் பாவர்கள் அமர்ந்து சுபத்துவம் குறைந்தால் சொந்த ஊரை விட வெளிநாட்டில் வசிப்பதே நிம்மதியையும் செல்வத்தையும் தரும்.`,
+        sookshumaValu: `சலன ராசிகளில் சந்திரன் நின்றால் அடிக்கடி வெளிநாட்டுப் பயணங்கள் வாய்க்கும்; ஸ்திர ராசியில் 12-ஆம் அதிபதி நின்றால் அங்கேயே நிரந்தர குடியுரிமை (PR) கிட்டும்.`
+      },
+      remedies: "புதன்கிழமைகளில் பைரவருக்கு மிளகு தீபம் ஏற்றி வழிபட வெளிநாட்டு விசா தடைகள் தவிடு பொடியாகும்."
+    });
+
+    // =========================================================================
+    // Q11: தன யோகம், கடன் நிவாரணம் & சேமிப்பு (Wealth & Debt Relief)
+    // =========================================================================
+    const wealthBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 8, [lord11, lord2, "குரு", "சுக்கிரன்"]) || findBhuktiByAge(curAgeYears + 3);
+    const fWealth = formatBhukti(wealthBhukti);
+
+    questions.push({
+      id: "qa_wealth_debt",
+      category: "wealth",
+      categoryLabel: "💰 தன யோகம்",
+      questionNumber: "கேள்வி 11",
+      questionTitle: "கடன் சுமை எப்போது முழுமையாக அடையும்? பெரும் தனலாபம், கோடீஸ்வர யோகம் எப்போது வரும்?",
+      questionSummary: "கடன் தீரும் காலம், பொருளாதார சுதந்திரம் & கோடீஸ்வர தன யோகம்",
+      highlightBadge: "கடன் நிவர்த்தி & தன விருத்தி",
+      dasaBhukti: fWealth.dasaBhukti,
+      yearRange: fWealth.yearRange,
+      ageRange: fWealth.ageText,
+      directAnswer: `தன ஸ்தானமான 2-ஆம் பாவாதிபதி ${lord2} மற்றும் லாப ஸ்தானாதிபதி ${lord11} பெற்றுள்ள சுபத்துவத்தின்படி: <strong>${fWealth.dasaBhukti}</strong> காலகட்டத்தில் <strong>${fWealth.yearRange} (${fWealth.ageText})</strong> நிலுவையில் உள்ள கடன் சுமைகள் ஒரே தவணையில் முழுமையாக அடைபட்டு பொருளாதார சுதந்திரம் பெறுவார்; நிலம், கட்டிடம், வங்கி சேமிப்பு என பன்மடங்கு சொத்துக்களைக் குவித்து கோடீஸ்வர நிலையை எட்டுவார்.`,
+      timings: {
+        pastDasa: fHealthVul.dasaBhukti,
+        pastYears: fHealthVul.yearRange,
+        past: `முந்தைய ${fHealthVul.dasaBhukti}-ல் (${fHealthVul.yearRange}) தொழில் அல்லது சொத்து வாங்குவதற்காக வாங்கிய கடன்கள் காரணமாக நிதி நெருக்கடி இருந்த காலகட்டம்.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: `தற்போது வருமான வழிகள் விரிவடைந்து, சிறுகச் சிறுக அசையாச் சொத்துக்களை சேர்க்கும் காலம்.`,
+        futureDasa: fWealth.dasaBhukti,
+        futureYears: fWealth.yearRange,
+        future: `சாதகமான ${fWealth.dasaBhukti}-ல் (${fWealth.yearRange}, ${fWealth.ageText}) அனைத்து கடன்களும் சுபமாக அடைபட்டு, முழுமையான தன யோகம் பொங்கி வழியும் பொற்காலம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `2-ஆம் அதிபதி ${lord2} சுபத்துவம்: ${getSubha(lord2).netScore >= 0 ? '+' : ''}${getSubha(lord2).netScore} • 11-ஆம் அதிபதி ${lord11}: ${getSubha(lord11).netScore >= 0 ? '+' : ''}${getSubha(lord11).netScore} • தனகாரகன் குரு: ${jupiterSubha.netScore >= 0 ? '+' : ''}${jupiterSubha.netScore}. 2 மற்றும் 11-ஆம் அதிபதிகள் பரிவர்த்தனை அல்லது கேந்திர திரிகோணங்களில் இணைவது 'மகா தன யோகம்' ஆகும்.`,
+        paavathuvam: `6-ஆம் அதிபதி தொடர்பு காரணமாக கடன் வாங்க நேர்ந்தாலும், அது 'சுபக் கடன்' ஆக அதாவது சொத்து வாங்குவதற்கே பயன்படும்; விரயமாகாது.`,
+        sookshumaValu: `குரு-சந்திர யோகம் அல்லது குரு-சுக்கிர சுபத்துவ சேர்க்கை ஜாதகருக்கு எக்காலத்திலும் பணத் தட்டுப்பாடு வராமல் பாதுகாக்கும் அரணாக இருக்கும்.`
+      },
+      remedies: "வெள்ளிக்கிழமைகளில் மகாலட்சுமிக்கு நெய் தீபமேற்றி கனகதாரா ஸ்தோத்திரம் படிக்கவும்; ஆதரவற்ற முதியோருக்கு அன்னதானம் செய்ய கடன் தொல்லைகள் மாயமாகும்."
+    });
+
+    // =========================================================================
+    // Q12: எதிர்ப்புகள், கோர்ட் வழக்கு & வெற்றி (Litigation, Court Cases & Victory)
+    // =========================================================================
+    const courtBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 6, [lord6, "செவ்வாய்", "சூரியன்", lord1]) || findBhuktiByAge(curAgeYears + 2);
+    const fCourt = formatBhukti(courtBhukti);
+
+    questions.push({
+      id: "qa_court_litigation",
+      category: "court",
+      categoryLabel: "⚖️ வழக்கு & எதிர்ப்புகள்",
+      questionNumber: "கேள்வி 12",
+      questionTitle: "எதிர்ப்புகள், பொறாமை, கோர்ட் வழக்கு விவகாரங்கள் உள்ளதா? சட்டப் போராட்டங்களில் எப்போது வெற்றி கிடைக்கும்?",
+      questionSummary: "சத்ரு ஜெயம், எதிரிகள் பணிதல் & சட்ட ரீதியான சாதகமான தீர்ப்பு கால நிர்ணயம்",
+      highlightBadge: "சத்ரு ஜெய யோகம்",
+      dasaBhukti: fCourt.dasaBhukti,
+      yearRange: fCourt.yearRange,
+      ageRange: fCourt.ageText,
+      directAnswer: `சத்ரு ஸ்தானமான 6-ஆம் பாவாதிபதி ${lord6} மற்றும் தைரியகாரகன் செவ்வாய் அமைப்பின்படி, ${nativeTitle}ருக்கு 'சத்ரு ஜெய யோகம்' உண்டு. <strong>${fCourt.dasaBhukti}</strong> காலகட்டத்தில் <strong>${fCourt.yearRange} (${fCourt.ageText})</strong> கோர்ட் வழக்குகள் மற்றும் பூர்வீக சொத்து விவகாரங்களில் ${nativeTitle}ருக்கே சாதகமான இறுதி வெற்றித் தீர்ப்பு கிட்டும்; எதிரிகள் பணிவர்.`,
+      timings: {
+        pastDasa: fHealthVul.dasaBhukti,
+        pastYears: fHealthVul.yearRange,
+        past: `முந்தைய ${fHealthVul.dasaBhukti}-ல் (${fHealthVul.yearRange}) தேவையற்ற பகைகள், பங்காளி தகராறு அல்லது பணியிடத்தில் பொறாமைக்காரர்களால் ஏற்பட்ட மனக்கசப்பு காலம்.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: `தற்போது விவேகத்துடனும் சட்ட ஆலோசனையுடனும் காரியங்களை கையாண்டு சாதகமான முகாமை உருவாக்கும் காலம்.`,
+        futureDasa: fCourt.dasaBhukti,
+        futureYears: fCourt.yearRange,
+        future: `சுப செவ்வாய் மற்றும் ${fCourt.dasaBhukti}-ல் (${fCourt.yearRange}, ${fCourt.ageText}) கோர்ட் வழக்குகள் சுமூகமாக முடிந்து வெற்றிக்கான தீர்ப்பு வெளிவரும் காலம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `6-ஆம் அதிபதி ${lord6} சுபத்துவம்: ${getSubha(lord6).netScore >= 0 ? '+' : ''}${getSubha(lord6).netScore} • தைரிய காரகன் செவ்வாய்: ${marsSubha.netScore >= 0 ? '+' : ''}${marsSubha.netScore}. லக்னாதிபதி 6-ஆம் அதிபதியை விட பலமாக இருந்தால் எதிரிகள் எக்காலத்திலும் வெல்ல முடியாது.`,
+        paavathuvam: `8-ஆம் அதிபதி சம்பந்தப்பட்டால் வழக்குகள் சில காலம் தவணை தள்ளிப் போகும்; ஆனால் தீர்ப்பு சாதகமாகவே வரும்.`,
+        sookshumaValu: `செவ்வாய் சுபத்துவ பலம் பெற்றிருப்பதால் நியாயமான வாதங்கள் மூலம் வழக்கை சாதகமாக முடிக்கும் சூட்சும திறமை உண்டாகும்.`
+      },
+      remedies: "செவ்வாய்க்கிழமைகளில் நரசிம்மர் அல்லது காலபைரவருக்கு சிகப்பு வஸ்திரம் சாற்றி வழிபட எதிர்ப்புகள் சுக்குநூறாகும்."
+    });
+
+    // =========================================================================
+    // Q13: குலதெய்வ அருள் & பரிகாரங்கள் (Family Deity & Remedies)
+    // =========================================================================
+    const remedyBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 5, [lord5, lord9, "குரு", "கேது"]) || findBhuktiByAge(curAgeYears + 1);
+    const fRemedy = formatBhukti(remedyBhukti);
+
+    questions.push({
+      id: "qa_kula_deivam_remedy",
+      category: "remedy",
+      categoryLabel: "🕉️ குலதெய்வம் & பரிகாரம்",
+      questionNumber: "கேள்வி 13",
+      questionTitle: "குலதெய்வ அருள் எவ்வாறு உள்ளது? முன்னோர்கள் ஆசி கிட்டுகிறதா? எந்த பரிகாரங்கள் வாழ்வில் திருப்புமுனை தரும்?",
+      questionSummary: "குலதெய்வ வழிபாட்டு பிரமாணம், பித்ரு தோஷ நிவர்த்தி & வாழ்வில் வளம் சேர்க்கும் பரிகாரங்கள்",
+      highlightBadge: "குலதெய்வ பரிபூரண அருள்",
+      dasaBhukti: fRemedy.dasaBhukti,
+      yearRange: fRemedy.yearRange,
+      ageRange: fRemedy.ageText,
+      directAnswer: `5-ஆம் பாவம் (குலதெய்வம்) மற்றும் 9-ஆம் பாவம் (தந்தை/முன்னோர்கள்) நிலைகளின்படி: <strong>${fRemedy.dasaBhukti}</strong> காலகட்டத்தில் <strong>${fRemedy.yearRange} (${fRemedy.ageText})</strong> குடும்பத்துடன் குலதெய்வ சன்னதிக்கு சென்று பொங்கலிட்டு, மாவிளக்கு ஏற்றி வழிபட குடும்பத்தில் தடைபட்ட அனைத்து மங்கல காரியங்களும் மின்னல் வேகத்தில் நடக்கும்; பித்ருக்களின் ஆசியால் சந்ததி செழிக்கும்.`,
+      timings: {
+        pastDasa: fEduSchool.dasaBhukti,
+        pastYears: fEduSchool.yearRange,
+        past: `முந்தைய காலங்களில் குலதெய்வத்திற்கு செய்ய வேண்டிய நேர்த்திக்கடன்கள் அல்லது வழிபாடுகளில் ஏற்பட்ட காலதாமதம்.`,
+        presentDasa: curDasaBhuktiAntharamText,
+        presentYears: curPeriodText,
+        present: `தற்போது ஆன்மீக நாட்டம் மற்றும் குலதெய்வ தரிசனத்திற்கான உந்துதல் மேலோங்கும் காலம்.`,
+        futureDasa: fRemedy.dasaBhukti,
+        futureYears: fRemedy.yearRange,
+        future: `சாதகமான ${fRemedy.dasaBhukti}-ல் (${fRemedy.yearRange}, ${fRemedy.ageText}) பௌர்ணமி சுப காலத்தில் குலதெய்வம் சென்று வழிபட்டு பரிபூரண மன நிம்மதியும் திருப்புமுனையும் அடையும் காலம்.`
+      },
+      astrologicalAnalysis: {
+        subhathuvam: `5-ஆம் அதிபதி ${lord5} சுபத்துவம்: ${getSubha(lord5).netScore >= 0 ? '+' : ''}${getSubha(lord5).netScore} • 9-ஆம் அதிபதி ${lord9}: ${getSubha(lord9).netScore >= 0 ? '+' : ''}${getSubha(lord9).netScore}. 5 மற்றும் 9-ல் சுப கிரகங்கள் தொடர்பு குலதெய்வக் காவல் எப்போதும் ஜாதகரைச் சுற்றி இருப்பதை உறுதி செய்கிறது.`,
+        paavathuvam: `9-ல் ராகு/கேது இருந்தால் அமாவாசை தோறும் முன்னோர்களுக்கு எள் தர்ப்பணம் கொடுத்து வர பித்ரு சாபம் விலகி பல தலைமுறைக்கு வளம் சேரும்.`,
+        sookshumaValu: `ஞானகாரகன் கேது சுபத்துவ தொடர்பு ஆன்மீக முதிர்ச்சியையும், இறைவனின் நேரடி ஆசியையும் பெற்றுக் கொடுக்கும்.`
+      },
+      remedies: "குலதெய்வத்திற்கு வஸ்திரம் சாற்றுதல், திருச்செந்தூர் சுப்பிரமணிய சுவாமி தரிசனம் மற்றும் திருவண்ணாமலை கிரிவலம் வாழ்வில் சகல ஐஸ்வர்யங்களையும் வழங்கும்."
+    });
+
+    return questions;
+  }
+
+  // Render Horoscope Q&A Container
+  function renderHoroscopeQA(analysis) {
+    const container = document.getElementById("horoscopeQAContainer");
+    if (!container) return;
+
+    const questions = evaluateHoroscopeQA(analysis);
+    if (!questions || questions.length === 0) {
+      container.innerHTML = `
+        <div style="text-align:center; padding:2rem; color:var(--text-muted);">
+          <div style="font-size:2rem; margin-bottom:0.5rem;">🌌</div>
+          <p>ஜாதகக் கட்டத்தில் கிரகங்களை அமைத்தவுடன் கேள்வி-பதில் பகுப்பாய்வு உடனே வெளியாகும்.</p>
+        </div>
+      `;
+      return;
+    }
+
+    let html = `
+      <!-- Q&A Stats & Summary Header -->
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:0.75rem; margin-bottom:1rem;">
+        <div class="cosmic-card" style="padding:0.75rem 1rem; border-color:rgba(212,175,55,0.4);">
+          <div style="font-size:0.7rem; color:var(--text-muted);">மொத்த கேள்விகள் (Total Q&A)</div>
+          <div style="font-size:1.2rem; font-weight:800; color:var(--gold-primary);">${questions.length} விரிவான பதில்கள்</div>
+        </div>
+        <div class="cosmic-card" style="padding:0.75rem 1rem; border-color:rgba(56,189,248,0.4);">
+          <div style="font-size:0.7rem; color:var(--text-muted);">நடப்பு தசா - புக்தி - அந்தரம்</div>
+          <div style="font-size:0.95rem; font-weight:700; color:#38bdf8;">
+            ${analysis.dashaResult?.currentMahaDasa?.lord || 'குரு'} தசை • ${analysis.dashaResult?.currentBhukti?.lord || 'சனி'} புக்தி • ${analysis.dashaResult?.currentAntharam?.lord || 'புதன்'} அந்தரம்
+          </div>
+        </div>
+        <div class="cosmic-card" style="padding:0.75rem 1rem; border-color:rgba(74,222,128,0.4);">
+          <div style="font-size:0.7rem; color:var(--text-muted);">பகுப்பாய்வு முறை (Evaluation Mode)</div>
+          <div style="font-size:0.95rem; font-weight:700; color:#4ade80;">சுபத்துவம் • பாவத்துவம் • சூட்சும வலு</div>
+        </div>
+      </div>
+
+      <!-- Accordion Questions List -->
+      <div class="qa-items-wrapper" style="display:flex; flex-direction:column; gap:0.85rem;">
+    `;
+
+    questions.forEach((q, idx) => {
+      const isFirst = (idx === 0);
+      html += `
+        <div class="qa-item-card ${isFirst ? 'expanded' : ''}" data-category="${q.category}" id="${q.id}">
+          <div class="qa-header" onclick="this.parentElement.classList.toggle('expanded')">
+            <div class="qa-header-left">
+              <span class="qa-category-badge">${q.categoryLabel}</span>
+              <h3 class="qa-title">${q.questionTitle}</h3>
+            </div>
+            <div class="qa-header-right">
+              <span class="qa-highlight-badge">${q.highlightBadge}</span>
+              <span class="qa-toggle-icon">▼</span>
+            </div>
+          </div>
+
+          <div class="qa-body">
+            <!-- Dasa - Bhukti & From Year to Year Period Banner -->
+            <div class="qa-dasa-period-banner" style="background: linear-gradient(135deg, rgba(212,175,55,0.14), rgba(56,189,248,0.1)); border: 1px solid rgba(212,175,55,0.4); border-radius: var(--radius-md); padding: 0.75rem 1rem; margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.75rem 1.4rem; align-items: center; font-size: 0.84rem; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
+              <div style="display: flex; align-items: center; gap: 0.4rem; color: #fff;">
+                <span style="color: var(--gold-light); font-size: 1.05rem;">🪐</span>
+                <span style="color: var(--gold-light); font-weight: 700;">சுப தசா - புத்தி:</span>
+                <span class="badge badge-gold" style="font-size: 0.78rem; letter-spacing: 0.3px;">${q.dasaBhukti}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 0.4rem; color: #fff;">
+                <span style="color: #38bdf8; font-size: 1.05rem;">📅</span>
+                <span style="color: #38bdf8; font-weight: 700;">ஆண்டு நிர்ணயம் (Period):</span>
+                <span class="badge" style="background: rgba(56,189,248,0.2); color: #38bdf8; border: 1px solid rgba(56,189,248,0.4); font-size: 0.78rem;">${q.yearRange}</span>
+              </div>
+              ${q.ageRange ? `
+                <div style="color: var(--text-muted); font-size: 0.78rem; display: flex; align-items: center; gap: 0.35rem;">
+                  <span>👤</span> <strong>${q.ageRange}</strong>
+                </div>
+              ` : ''}
+            </div>
+
+            <!-- Direct Verdict Answer -->
+            <div class="qa-verdict-box">
+              <div class="verdict-tag">🎯 நேரடி பலன் &amp; கணிப்பு (Direct Answer)</div>
+              <div class="verdict-content">${q.directAnswer}</div>
+            </div>
+
+            <!-- Past, Present, Future Timings Grid with Dasa-Bhukti and Year Range -->
+            <div class="qa-timings-grid">
+              <div class="timing-tile past">
+                <div class="timing-header"><span>⏪</span> கடந்த காலம் (Past Events)</div>
+                <div style="background: rgba(129,140,248,0.15); border: 1px solid rgba(129,140,248,0.35); padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; color: #c7d2fe; margin-bottom: 6px; font-weight: 700; font-family: var(--font-tamil);">
+                  ⏳ ${q.timings.pastDasa} • ${q.timings.pastYears}
+                </div>
+                <div class="timing-text">${q.timings.past}</div>
+              </div>
+              <div class="timing-tile present">
+                <div class="timing-header"><span>⏸️</span> நிகழ்காலம் (Current Situation)</div>
+                <div style="background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.35); padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; color: #fde68a; margin-bottom: 6px; font-weight: 700; font-family: var(--font-tamil);">
+                  ⏳ ${q.timings.presentDasa} • ${q.timings.presentYears}
+                </div>
+                <div class="timing-text">${q.timings.present}</div>
+              </div>
+              <div class="timing-tile future">
+                <div class="timing-header"><span>⏩</span> எதிர்காலம் (Future Timings)</div>
+                <div style="background: rgba(74,222,128,0.15); border: 1px solid rgba(74,222,128,0.35); padding: 3px 8px; border-radius: 4px; font-size: 0.72rem; color: #86efac; margin-bottom: 6px; font-weight: 700; font-family: var(--font-tamil);">
+                  ⏳ ${q.timings.futureDasa} • ${q.timings.futureYears}
+                </div>
+                <div class="timing-text">${q.timings.future}</div>
+              </div>
+            </div>
+
+            <!-- Astrological Rules & Reasonings: Subhathuvam, Paavathuvam, Sookshuma Valu -->
+            <div class="qa-astro-logic-box">
+              <div class="logic-header">🔬 ஜோதிட பிரமாணங்கள் &amp; துல்லிய காரணங்கள் (Astrological Rules)</div>
+              <div class="logic-columns">
+                <div class="logic-col subhathuvam">
+                  <div class="logic-col-title">🌟 சுபத்துவம் (Subhathuvam)</div>
+                  <div class="logic-col-text">${q.astrologicalAnalysis.subhathuvam}</div>
+                </div>
+                <div class="logic-col paavathuvam">
+                  <div class="logic-col-title">⚡ பாவத்துவம் (Paavathuvam)</div>
+                  <div class="logic-col-text">${q.astrologicalAnalysis.paavathuvam}</div>
+                </div>
+                <div class="logic-col sookshuma">
+                  <div class="logic-col-title">💎 சூட்சும வலு (Sookshuma Valu)</div>
+                  <div class="logic-col-text">${q.astrologicalAnalysis.sookshumaValu}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Auspicious Guidance & Remedies -->
+            ${q.remedies ? `
+              <div class="qa-remedy-box">
+                <span class="remedy-icon">🕉️</span>
+                <div>
+                  <strong>பரிகாரம் &amp; வழிகாட்டல்:</strong> ${q.remedies}
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Action Buttons: Share to WhatsApp -->
+            <div class="qa-card-footer">
+              <button class="btn btn-xs btn-outline-gold" onclick="window.PGAstroUI.sharePrediction('${q.questionTitle.replace(/'/g, "\\'")}', '${q.directAnswer.replace(/<[^>]*>/g, '').replace(/'/g, "\\'")}')">
+                <span>📲</span> பலனை பகிர்க (WhatsApp Share)
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    });
+
+    html += `</div>`;
+    container.innerHTML = html;
+  }
+
   window.PGAstroEngine = {
+    evaluateHoroscopeQA: evaluateHoroscopeQA,
+    renderHoroscopeQA: renderHoroscopeQA,
     evaluateCurrentChart: evaluateCurrentChart
   };
 })();

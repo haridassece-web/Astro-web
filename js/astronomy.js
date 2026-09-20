@@ -339,6 +339,10 @@ window.PGAstro = window.PGAstro || {};
     // Dasa Bhukti Antharam Calculation from Moon's Longitude
     const dashaResult = calculateVimshottariDasha(birthDate, birthTime, moonSid);
 
+    // Panchangam (Thithi, Yogam, Karanam, Nakshatram) and Age
+    const panchangam = calculatePanchangam(sunSid, moonSid);
+    const ageInfo = calculateAge(birthDate, birthTime);
+
     return {
       ayanamsa: cur.ayanamsa.toFixed(2),
       isWaxingMoon: isWaxing,
@@ -351,7 +355,9 @@ window.PGAstro = window.PGAstro || {};
         totalLon: lagnaLon
       },
       planets: computedList,
-      dasha: dashaResult
+      dasha: dashaResult,
+      panchangam: panchangam,
+      age: ageInfo
     };
   }
 
@@ -386,6 +392,278 @@ window.PGAstro = window.PGAstro || {};
     { id: 27, name: "ரேவதி", english: "Revati", lord: "புதன்" }
   ];
 
+  // 27 Nitya Yogas
+  const NITYA_YOGAS = [
+    { id: 1, name: "விஷ்கம்பம்", english: "Vishkambha", nature: "அசுபம்" },
+    { id: 2, name: "பிரீதி", english: "Priti", nature: "சுபம்" },
+    { id: 3, name: "ஆயுஷ்மான்", english: "Ayushman", nature: "சுபம்" },
+    { id: 4, name: "சௌபாக்யம்", english: "Saubhagya", nature: "சுபம்" },
+    { id: 5, name: "சோபனம்", english: "Shobhana", nature: "சுபம்" },
+    { id: 6, name: "அதிகண்டம்", english: "Atiganda", nature: "அசுபம்" },
+    { id: 7, name: "சுகர்மம்", english: "Sukarma", nature: "சுபம்" },
+    { id: 8, name: "திருதி", english: "Dhriti", nature: "சுபம்" },
+    { id: 9, name: "சூலம்", english: "Shula", nature: "அசுபம்" },
+    { id: 10, name: "கண்டம்", english: "Ganda", nature: "அசுபம்" },
+    { id: 11, name: "விருத்தி", english: "Vriddhi", nature: "சுபம்" },
+    { id: 12, name: "துருவம்", english: "Dhruva", nature: "சுபம்" },
+    { id: 13, name: "வியாகாதம்", english: "Vyaghata", nature: "அசுபம்" },
+    { id: 14, name: "ஹர்ஷணம்", english: "Harshana", nature: "சுபம்" },
+    { id: 15, name: "வஜ்ரம்", english: "Vajra", nature: "அசுபம்" },
+    { id: 16, name: "சித்தி", english: "Siddhi", nature: "சுபம்" },
+    { id: 17, name: "வியதிபாதம்", english: "Vyatipata", nature: "அசுபம்" },
+    { id: 18, name: "வரீயான்", english: "Variyan", nature: "சுபம்" },
+    { id: 19, name: "பரிகம்", english: "Parigha", nature: "அசுபம்" },
+    { id: 20, name: "சிவம்", english: "Shiva", nature: "சுபம்" },
+    { id: 21, name: "சித்தம்", english: "Siddha", nature: "சுபம்" },
+    { id: 22, name: "சாத்தியம்", english: "Sadhya", nature: "சுபம்" },
+    { id: 23, name: "சுபம்", english: "Shubha", nature: "சுபம்" },
+    { id: 24, name: "சுப்பிரம்", english: "Shukla", nature: "சுபம்" },
+    { id: 25, name: "பிரம்மம்", english: "Brahma", nature: "சுபம்" },
+    { id: 26, name: "ஐந்திரம்", english: "Indra", nature: "சுபம்" },
+    { id: 27, name: "வைதிருதி", english: "Vaidhriti", nature: "அசுபம்" }
+  ];
+
+  const TITHI_NAMES = [
+    "பிரதமை (Prathama)",
+    "துவிதியை (Dvitiya)",
+    "திருதியை (Tritiya)",
+    "சதுர்த்தி (Chaturthi)",
+    "பஞ்சமி (Panchami)",
+    "சஷ்டி (Shashti)",
+    "சப்தமி (Saptami)",
+    "அஷ்டமி (Ashtami)",
+    "நவமி (Navami)",
+    "தசமி (Dashami)",
+    "ஏகாதசி (Ekadashi)",
+    "துவாதசி (Dvadashi)",
+    "திரயோதசி (Trayodashi)",
+    "சதுர்தசி (Chaturdashi)"
+  ];
+
+  const MOVABLE_KARANAS = [
+    { name: "பவம் (Bava)", lord: "சூரியன்", animal: "சிங்கம்" },
+    { name: "பாலவம் (Balava)", lord: "சந்திரன்", animal: "புலி" },
+    { name: "கௌலவம் (Kaulava)", lord: "செவ்வாய்", animal: "பன்றி" },
+    { name: "தைதுலை (Taitila)", lord: "புதன்", animal: "கழுதை" },
+    { name: "கரசை (Garaja)", lord: "குரு", animal: "யானை" },
+    { name: "வணிசை (Vanija)", lord: "சுக்கிரன்", animal: "பசு" },
+    { name: "பத்திரை (Bhadra / Vishti)", lord: "சனி", animal: "நாய்" }
+  ];
+
+  // Jaimini Chara Karakas: 7 Karakas based on descending degrees within sign (0°-30°)
+  const CHARA_KARAKA_TITLES = [
+    { code: "AK", name: "ஆத்மகாரகன்", desc: "தலைமை, ஆன்மா, ஆளுமை", color: "#ffd700" },
+    { code: "AmK", name: "அமாத்தியகாரகன்", desc: "அறிவு, தொழில், செயல்", color: "#38bdf8" },
+    { code: "BK", name: "பிராத்ருகாரகன்", desc: "சகோதரன், வழிகாட்டி", color: "#a855f7" },
+    { code: "MK", name: "மாத்ருகாரகன்", desc: "தாய், கல்வி, சுகம்", color: "#ec4899" },
+    { code: "PK", name: "புத்ரகாரகன்", desc: "பிள்ளைகள், ஞானம்", color: "#34d399" },
+    { code: "GK", name: "ஞாதிகாரகன்", desc: "போராட்டம், பங்காளி, தடை", color: "#f97316" },
+    { code: "DK", name: "தாரகாரகன்", desc: "களத்திரம், துணைவர்", color: "#f43f5e" }
+  ];
+
+  // Classical Nadi & Sthira Karakatvas
+  const STHIRA_KARAKAS = {
+    "சூரியன்": { title: "பித்ருகாரகன்", details: "தந்தை, ஆத்மா, அரசு, நிர்வாகம்" },
+    "சந்திரன்": { title: "மாத்ருகாரகன்", details: "தாய், மனம், நீர், மாற்றம்" },
+    "செவ்வாய்": { title: "சகோதர / கணவன் காரகன்", details: "சகோதரன், கணவன், நிலம், வீரம்" },
+    "புதன்": { title: "வித்யாகாரகன்", details: "கல்வி, புத்தி, மாமன், வர்த்தகம்" },
+    "குரு": { title: "ஜீவகாரகன் / புத்திரகாரகன்", details: "ஜாதகர் (ஜீவன்), ஞானம், குழந்தைகள்" },
+    "சுக்கிரன்": { title: "களத்திர / சுககாரகன்", details: "மனைவி, சொகுசு, வாகனம், செல்வம்" },
+    "சனி": { title: "கர்ம / ஆயுள்காரகன்", details: "தொழில், வேலை, ஆயுள், உழைப்பு" },
+    "ராகு": { title: "போக / பாட்டன் காரகன்", details: "தந்தைவழி பாட்டன், மாயை, வெளிநாடு" },
+    "கேது": { title: "மோக்ஷ / ஞானகாரகன்", details: "தாய்வழி பாட்டன், ஞானம், முக்தி, ஆன்மீகம்" },
+    "லக்கினம்": { title: "தேககாரகம்", details: "உடல், உயிர், சுய கௌரவம், ஆயுள்" }
+  };
+
+  // Calculate Panchangam (Thithi, Yogam, Karanam, Nakshatram)
+  function calculatePanchangam(sunLon, moonLon) {
+    if (sunLon === undefined || moonLon === undefined) return null;
+    const diff = norm360(moonLon - sunSidSafe(sunLon));
+    
+    // 1. Thithi
+    const tithiIdx = Math.floor(diff / 12); // 0 to 29
+    const isWaxing = tithiIdx < 15;
+    const paksha = isWaxing ? "சுக்கில பக்ஷம் (வளர்பிறை)" : "கிருஷ்ண பக்ஷம் (தேய்பிறை)";
+    const pakshaShort = isWaxing ? "வளர்பிறை" : "தேய்பிறை";
+    
+    let tithiName = "";
+    const indexInPaksha = tithiIdx % 15;
+    if (indexInPaksha < 14) {
+      tithiName = TITHI_NAMES[indexInPaksha];
+    } else {
+      tithiName = isWaxing ? "பௌர்ணமி (Purnima)" : "அமாவாசை (Amavasya)";
+    }
+    
+    const degInTithi = diff % 12;
+    const tithiFractionElapsed = degInTithi / 12;
+    const tithiPct = Math.round(tithiFractionElapsed * 100);
+
+    // 2. Yogam (Nitya Yoga)
+    const sumLon = norm360(sunLon + moonLon);
+    const yogaSpan = 360 / 27; // 13.333333333333334
+    const yogaIdx = Math.min(26, Math.floor(sumLon / yogaSpan));
+    const yoga = NITYA_YOGAS[yogaIdx] || NITYA_YOGAS[0];
+    const degInYoga = sumLon % yogaSpan;
+    const yogaPct = Math.round((degInYoga / yogaSpan) * 100);
+
+    // 3. Karanam (11 Karanas across 60 half-tithis)
+    const karanaIdx = Math.floor(diff / 6); // 0 to 59
+    let karanaName = "";
+    let karanaType = "Movable";
+    if (karanaIdx === 0) {
+      karanaName = "கிம்துக்கினம் (Kimstughna)";
+      karanaType = "Fixed (ஸ்திரம்)";
+    } else if (karanaIdx === 57) {
+      karanaName = "சகுனி (Shakuni)";
+      karanaType = "Fixed (ஸ்திரம்)";
+    } else if (karanaIdx === 58) {
+      karanaName = "சதுஷ்பாதம் (Chatushpada)";
+      karanaType = "Fixed (ஸ்திரம்)";
+    } else if (karanaIdx === 59) {
+      karanaName = "நாகவம் (Nagava)";
+      karanaType = "Fixed (ஸ்திரம்)";
+    } else {
+      const mIdx = (karanaIdx - 1) % 7;
+      karanaName = MOVABLE_KARANAS[mIdx].name;
+      karanaType = "Movable (சரம்)";
+    }
+    const degInKarana = diff % 6;
+    const karanaPct = Math.round((degInKarana / 6) * 100);
+
+    // 4. Moon Nakshatra, Pada, and Saram
+    const moonNak = getNakshatraInfo(moonLon);
+
+    return {
+      tithi: {
+        index: tithiIdx + 1,
+        name: tithiName,
+        fullName: `${pakshaShort} ${tithiName}`,
+        paksha: paksha,
+        pakshaShort: pakshaShort,
+        isWaxing: isWaxing,
+        percentElapsed: tithiPct,
+        degInTithi: degInTithi.toFixed(2)
+      },
+      yogam: {
+        index: yogaIdx + 1,
+        name: yoga.name,
+        english: yoga.english,
+        nature: yoga.nature,
+        percentElapsed: yogaPct
+      },
+      karanam: {
+        index: karanaIdx + 1,
+        name: karanaName,
+        type: karanaType,
+        percentElapsed: karanaPct
+      },
+      nakshatra: {
+        name: moonNak.nakshatra,
+        english: moonNak.english,
+        pada: moonNak.pada,
+        saram: `${moonNak.lord} சாரம்`,
+        lord: moonNak.lord,
+        balanceText: moonNak.balanceText
+      }
+    };
+  }
+
+  function sunSidSafe(s) {
+    return s || 0;
+  }
+
+  // Calculate Nakshatra, Pada, and Saram for any longitude
+  function getNakshatraPadaSaram(totalLon) {
+    const norm = norm360(totalLon);
+    const nakSpan = 360 / 27;
+    const nakIndex = Math.min(26, Math.max(0, Math.floor(norm / nakSpan)));
+    const degInNak = norm % nakSpan;
+    const pada = Math.min(4, Math.floor(degInNak / (nakSpan / 4)) + 1);
+    const nak = NAKSHATRAS[nakIndex] || NAKSHATRAS[0];
+    return {
+      nakshatra: nak.name,
+      english: nak.english,
+      pada: pada,
+      lord: nak.lord,
+      saram: `${nak.lord} சாரம்`,
+      degInNak: degInNak
+    };
+  }
+
+  // Calculate exact Age based on Date of Birth and Time
+  function calculateAge(dobStr, timeStr = "12:00", targetDate = new Date()) {
+    if (!dobStr) return null;
+    const parts = dobStr.split("-").map(Number);
+    if (parts.length < 3) return null;
+    const [by, bm, bd] = parts;
+    const timeParts = (timeStr || "12:00").split(":").map(Number);
+    const bh = timeParts[0] || 0;
+    const bmin = timeParts[1] || 0;
+
+    const birth = new Date(by, bm - 1, bd, bh, bmin, 0);
+    const now = targetDate instanceof Date ? targetDate : new Date(targetDate);
+
+    let years = now.getFullYear() - birth.getFullYear();
+    let months = now.getMonth() - birth.getMonth();
+    let days = now.getDate() - birth.getDate();
+
+    if (days < 0) {
+      months -= 1;
+      const prevMonthLastDate = new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+      days += prevMonthLastDate;
+    }
+    if (months < 0) {
+      years -= 1;
+      months += 12;
+    }
+    const runningYear = years + 1;
+    const totalDecimalYears = (now.getTime() - birth.getTime()) / (365.2425 * 86400000);
+
+    return {
+      years: Math.max(0, years),
+      months: Math.max(0, months),
+      days: Math.max(0, days),
+      runningYear: Math.max(1, runningYear),
+      totalDecimalYears: Math.max(0, totalDecimalYears),
+      formattedText: `${years} ஆண்டுகள், ${months} மாதங்கள், ${days} நாட்கள் (${runningYear}-வது வயது நடக்கிறது)`,
+      shortText: `${years} வயது (${years}Y ${months}M ${days}D)`
+    };
+  }
+
+  // Calculate Jaimini Chara Karakas (AK, AmK, BK, MK, PK, GK, DK) and Sthira/Nadi Karakas
+  function calculateCharaKarakas(planetsList) {
+    const SEVEN_PLANETS = ["சூரியன்", "சந்திரன்", "செவ்வாய்", "புதன்", "குரு", "சுக்கிரன்", "சனி"];
+    const eligible = [];
+    (planetsList || []).forEach(p => {
+      if (SEVEN_PLANETS.includes(p.planet) && p.degree !== undefined && p.degree !== null) {
+        eligible.push({
+          planet: p.planet,
+          degree: parseFloat(p.degree)
+        });
+      }
+    });
+
+    eligible.sort((a, b) => b.degree - a.degree);
+
+    const charaMap = {};
+    eligible.forEach((item, idx) => {
+      if (idx < CHARA_KARAKA_TITLES.length) {
+        charaMap[item.planet] = {
+          code: CHARA_KARAKA_TITLES[idx].code,
+          name: CHARA_KARAKA_TITLES[idx].name,
+          desc: CHARA_KARAKA_TITLES[idx].desc,
+          color: CHARA_KARAKA_TITLES[idx].color,
+          rank: idx + 1
+        };
+      }
+    });
+
+    return {
+      charaMap: charaMap,
+      sthiraMap: STHIRA_KARAKAS
+    };
+  }
+
   const DASHA_ORDER = [
     { lord: "கேது", years: 7, color: "#d97706" },
     { lord: "சுக்கிரன்", years: 20, color: "#ec4899" },
@@ -408,7 +686,7 @@ window.PGAstro = window.PGAstro || {};
     const fractionRemaining = 1 - fractionElapsed;
     const pada = Math.min(4, Math.floor(degInNak / (nakSpan / 4)) + 1);
 
-    const nak = NAKSHATRAS[nakIndex];
+    const nak = NAKSHATRAS[nakIndex] || NAKSHATRAS[0];
     const dashaInfo = DASHA_ORDER.find(d => d.lord === nak.lord);
     const totalYears = dashaInfo ? dashaInfo.years : 7;
     const balanceTotalYears = fractionRemaining * totalYears;
@@ -557,47 +835,153 @@ window.PGAstro = window.PGAstro || {};
       }
     };
 
+    // Calculate progress percentages & remaining days
+    const calcProgress = (startMs, endMs) => {
+      const total = endMs - startMs;
+      const elapsed = Math.max(0, Math.min(total, nowMs - startMs));
+      const pct = Math.round((elapsed / total) * 100);
+      const remMs = Math.max(0, endMs - nowMs);
+      const remDays = Math.ceil(remMs / (24 * 60 * 60 * 1000));
+      return { pct, remDays };
+    };
+
+    const mahaProg = calcProgress(activeDasa.startDate.getTime(), activeDasa.endDate.getTime());
+    const bhuktiProg = calcProgress(activeBhukti.startDate.getTime(), activeBhukti.endDate.getTime());
+    const antharamProg = calcProgress(activeAntharam.startDate.getTime(), activeAntharam.endDate.getTime());
+
+    // Helper to calculate Antharams for any Bhukti
+    function calculateAntharamsForBhukti(bLord, bStartMs, bDurationYears) {
+      const bLordIdx = DASHA_ORDER.findIndex(d => d.lord === bLord);
+      const res = [];
+      let curMs = bStartMs;
+      for (let i = 0; i < 9; i++) {
+        const aLord = DASHA_ORDER[(bLordIdx + i) % 9];
+        const aDurYears = (bDurationYears * aLord.years) / 120;
+        const aDurMs = aDurYears * msPerYear;
+        const aEndMs = curMs + aDurMs;
+        const isCur = nowMs >= curMs && nowMs < aEndMs;
+        const durDays = Math.round(aDurMs / (24 * 60 * 60 * 1000));
+        res.push({
+          lord: aLord.lord,
+          years: aDurYears,
+          durationDays: durDays,
+          durationText: durDays >= 30 ? `${Math.floor(durDays / 30)} மாதங்கள் ${durDays % 30} நாட்கள்` : `${durDays} நாட்கள்`,
+          startDate: formatDate(new Date(curMs)),
+          endDate: formatDate(new Date(aEndMs)),
+          startMs: curMs,
+          endMs: aEndMs,
+          isCurrent: isCur,
+          color: aLord.color
+        });
+        curMs = aEndMs;
+      }
+      return res;
+    }
+
+    const currentAntharamsList = calculateAntharamsForBhukti(activeBhukti.lord, activeBhukti.startDate.getTime(), activeBhukti.years);
+
     return {
       nakshatraInfo: nakInfo,
       currentMahaDasa: {
         lord: activeDasa.lord,
         startDate: formatDate(activeDasa.startDate),
         endDate: formatDate(activeDasa.endDate),
-        color: activeDasa.color
+        color: activeDasa.color,
+        percentElapsed: mahaProg.pct,
+        remainingDays: mahaProg.remDays
       },
       currentBhukti: {
         lord: activeBhukti.lord,
         startDate: formatDate(activeBhukti.startDate),
         endDate: formatDate(activeBhukti.endDate),
-        color: activeBhukti.color
+        color: activeBhukti.color,
+        percentElapsed: bhuktiProg.pct,
+        remainingDays: bhuktiProg.remDays
       },
       currentAntharam: {
         lord: activeAntharam.lord,
         startDate: formatDate(activeAntharam.startDate),
         endDate: formatDate(activeAntharam.endDate),
-        color: activeAntharam.color
+        color: activeAntharam.color,
+        percentElapsed: antharamProg.pct,
+        remainingDays: antharamProg.remDays
       },
+      currentAntharamsList: currentAntharamsList,
       dashaTimeline: dashaTimeline.map(d => ({
         lord: d.lord,
         years: d.years,
         startDate: formatDate(d.startDate),
-        endDate: formatDate(d.endDate)
+        endDate: formatDate(d.endDate),
+        startMs: d.startDate.getTime(),
+        endMs: d.endDate.getTime(),
+        isCurrent: (d.lord === activeDasa.lord)
       })),
       upcomingBhuktis: bhuktis.map(b => ({
         lord: b.lord,
+        years: b.years,
         startDate: formatDate(b.startDate),
         endDate: formatDate(b.endDate),
+        startMs: b.startDate.getTime(),
+        endMs: b.endDate.getTime(),
         isCurrent: (b.lord === activeBhukti.lord)
       }))
     };
+  }
+
+  // Calculate Antharams for any Bhukti on demand
+  function calculateAntharamsOnDemand(bhuktiLord, bhuktiStartDate, bhuktiDurationYears) {
+    const bLordIdx = DASHA_ORDER.findIndex(d => d.lord === bhuktiLord);
+    const msPerYear = 365.2425 * 24 * 60 * 60 * 1000;
+    const res = [];
+    const nowMs = Date.now();
+    let curMs = (bhuktiStartDate instanceof Date ? bhuktiStartDate : new Date(bhuktiStartDate)).getTime();
+    
+    for (let i = 0; i < 9; i++) {
+      const aLord = DASHA_ORDER[(bLordIdx + i) % 9];
+      const aDurYears = (bhuktiDurationYears * aLord.years) / 120;
+      const aDurMs = aDurYears * msPerYear;
+      const aEndMs = curMs + aDurMs;
+      const isCur = nowMs >= curMs && nowMs < aEndMs;
+      const durDays = Math.round(aDurMs / (24 * 60 * 60 * 1000));
+      const formatDate = (d) => {
+        try {
+          return d.toLocaleDateString("ta-IN", { year: 'numeric', month: 'short', day: 'numeric' });
+        } catch(e) {
+          return d.toISOString().split("T")[0];
+        }
+      };
+
+      res.push({
+        lord: aLord.lord,
+        years: aDurYears,
+        durationDays: durDays,
+        durationText: durDays >= 30 ? `${Math.floor(durDays / 30)} மாதங்கள் ${durDays % 30} நாட்கள்` : `${durDays} நாட்கள்`,
+        startDate: formatDate(new Date(curMs)),
+        endDate: formatDate(new Date(aEndMs)),
+        isCurrent: isCur,
+        color: aLord.color
+      });
+      curMs = aEndMs;
+    }
+    return res;
   }
 
   // Public API
   window.PGAstro.astronomy = {
     calculateSiderealPlanets: calculateSiderealPlanets,
     calculateVimshottariDasha: calculateVimshottariDasha,
+    calculateAntharamsOnDemand: calculateAntharamsOnDemand,
+    calculatePanchangam: calculatePanchangam,
+    calculateAge: calculateAge,
+    calculateCharaKarakas: calculateCharaKarakas,
+    getNakshatraPadaSaram: getNakshatraPadaSaram,
     getNakshatraInfo: getNakshatraInfo,
     NAKSHATRAS: NAKSHATRAS,
+    NITYA_YOGAS: NITYA_YOGAS,
+    TITHI_NAMES: TITHI_NAMES,
+    MOVABLE_KARANAS: MOVABLE_KARANAS,
+    CHARA_KARAKA_TITLES: CHARA_KARAKA_TITLES,
+    STHIRA_KARAKAS: STHIRA_KARAKAS,
     DASHA_ORDER: DASHA_ORDER,
     CITIES: CITIES
   };

@@ -473,6 +473,7 @@ window.PGAstro = window.PGAstro || {};
       updateCellGochara(r.id);
     });
     renderDegreesTable();
+    renderPanchangamOverviewCard();
     updateNavamsaCells();
   }
 
@@ -559,14 +560,273 @@ window.PGAstro = window.PGAstro || {};
     }
   }
 
-  // Planetary Degrees & Status Table Renderer
+  // Auspicious Birth Panchangam & Age Overview Renderer (1st Page Master Profile)
+  function renderPanchangamOverviewCard() {
+    const container = document.getElementById("panchangamOverviewCard");
+    if (!container) return;
+
+    // 1. Native Info
+    const nInfo = nativeInfo || {};
+    const nName = nInfo.name || document.getElementById("birthCalcName")?.value.trim() || "அன்பர் (Native)";
+    const nGenderVal = nInfo.gender || document.getElementById("birthCalcGender")?.value || "male";
+    const nGender = nGenderVal === "female" ? "பெண்" : (nGenderVal === "other" ? "மற்றவை" : "ஆண்");
+    const nDob = nInfo.dob || document.getElementById("birthCalcDate")?.value || "1988-04-30";
+    const nTime = nInfo.time || document.getElementById("birthCalcTime")?.value || "22:10";
+    let nPlace = nInfo.place || document.getElementById("birthCalcPlaceCustom")?.value.trim() || "";
+    if (!nPlace) {
+      const pSel = document.getElementById("birthCalcPlaceSelect");
+      if (pSel && pSel.value && window.PGAstro?.astronomy?.CITIES[pSel.value]) {
+        nPlace = window.PGAstro.astronomy.CITIES[pSel.value].name;
+      } else {
+        nPlace = "திருவண்ணாமலை (Tiruvannamalai)";
+      }
+    }
+
+    // 2. Exact Age based on Date of Birth
+    const ageInfo = window.PGAstro?.astronomy?.calculateAge(nDob, nTime) || {
+      years: 0,
+      months: 0,
+      days: 0,
+      runningYear: 1,
+      formattedText: "கணிக்கப்படவில்லை"
+    };
+
+    // 3. Find placed Sun, Moon, Lagna and other planets in chartState
+    let sunPlaced = null, sunRasiId = null;
+    let moonPlaced = null, moonRasiId = null;
+    const placedPlanetsForKarakas = [];
+
+    for (let rid in chartState) {
+      const list = chartState[rid];
+      list.forEach(item => {
+        if (item.planet === "சூரியன்") { sunPlaced = item; sunRasiId = parseInt(rid); }
+        if (item.planet === "சந்திரன்") { moonPlaced = item; moonRasiId = parseInt(rid); }
+        placedPlanetsForKarakas.push({ planet: item.planet, degree: item.degree });
+      });
+    }
+
+    // 4. Calculate Panchangam
+    let panchangam = null;
+    let moonNak = null;
+    let sunLon = null, moonLon = null;
+
+    if (sunPlaced && moonPlaced) {
+      sunLon = (sunRasiId - 1) * 30 + (sunPlaced.degree || 0);
+      moonLon = (moonRasiId - 1) * 30 + (moonPlaced.degree || 0);
+      panchangam = window.PGAstro?.astronomy?.calculatePanchangam(sunLon, moonLon);
+    } else if (window.PGAstro?.lastCalculatedHoroscope?.panchangam) {
+      panchangam = window.PGAstro.lastCalculatedHoroscope.panchangam;
+    }
+
+    if (moonPlaced) {
+      moonLon = (moonRasiId - 1) * 30 + (moonPlaced.degree || 0);
+      moonNak = window.PGAstro?.astronomy?.getNakshatraInfo(moonLon);
+    } else if (window.PGAstro?.lastCalculatedHoroscope?.dasha?.nakshatraInfo) {
+      moonNak = window.PGAstro.lastCalculatedHoroscope.dasha.nakshatraInfo;
+    }
+
+    // 5. Chara Karakas (AK, AmK, DK)
+    const karakas = window.PGAstro?.astronomy?.calculateCharaKarakas(placedPlanetsForKarakas) || { charaMap: {}, sthiraMap: {} };
+    let akPlanet = "-", dkPlanet = "-", amkPlanet = "-";
+    for (let p in karakas.charaMap) {
+      if (karakas.charaMap[p].code === "AK") akPlanet = `${p} (AK)`;
+      if (karakas.charaMap[p].code === "AmK") amkPlanet = `${p} (AmK)`;
+      if (karakas.charaMap[p].code === "DK") dkPlanet = `${p} (DK)`;
+    }
+
+    // 6. Lagna & Rasi Names
+    const lagnaRasi = lagnaRasiId ? RASIS.find(r => r.id === lagnaRasiId)?.name : "";
+    const moonRasi = moonRasiId ? RASIS.find(r => r.id === moonRasiId)?.name : "";
+
+    // 7. Dasha text
+    const dashaText = moonNak?.balanceText || (window.PGAstro?.lastCalculatedHoroscope?.dasha?.nakshatraInfo?.balanceText) || "-";
+    const currentDasaInfo = window.PGAstro?.lastCalculatedHoroscope?.dasha;
+    const curDasaStr = currentDasaInfo ? `${currentDasaInfo.currentMahaDasa?.lord} தசை • ${currentDasaInfo.currentBhukti?.lord} புக்தி • ${currentDasaInfo.currentAntharam?.lord} அந்தரம்` : "";
+
+    // Build HTML
+    container.innerHTML = `
+      <div class="card-header" style="padding-bottom: 0.5rem; margin-bottom: 0.75rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div class="card-title-group">
+          <div class="card-title-icon" style="font-size:1.15rem;">📜</div>
+          <div>
+            <h3 class="card-title" style="font-size:1.02rem; margin:0; display:flex; align-items:center; gap:6px;">
+              <span>பஞ்சாங்க விவரங்கள், சாதக அஷ்டாங்கம் &amp; நடப்பு வயது</span>
+            </h3>
+            <div class="card-subtitle" style="font-size:0.75rem; color:var(--text-muted);">பிறந்த நாள் அடிப்படையிலான துல்லியமான பஞ்சாங்கம், நட்சத்திர சாரம், திதி, யோகம், கரணம் &amp; காரகங்கள்</div>
+          </div>
+        </div>
+        <div class="panchangam-age-badge" title="பிறந்த தேதியின்படி துல்லியமாக கணிக்கப்பட்ட நடப்பு வயது">
+          <span style="font-size:1.2rem;">⏳</span>
+          <div>
+            <div style="font-size:0.65rem; color:var(--gold-light); text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">நடப்பு வயது (Exact Age)</div>
+            <div style="font-size:0.92rem; font-weight:800; color:#fff;">${ageInfo.formattedText}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Native Profile Summary Strip -->
+      <div class="panchangam-native-strip">
+        <div class="panchangam-pill">
+          <span class="icon">👤</span>
+          <span class="label">ஜாதகர்:</span>
+          <strong>${nName}</strong>
+          <span class="badge ${nGenderVal === 'female' ? 'badge-pink' : 'badge-gold'}" style="font-size:0.66rem; margin-left:3px;">${nGender}</span>
+        </div>
+        <div class="panchangam-pill">
+          <span class="icon">📅</span>
+          <span class="label">பிறந்த நாள் &amp; நேரம்:</span>
+          <strong>${nDob} ${nTime}</strong>
+        </div>
+        <div class="panchangam-pill">
+          <span class="icon">📍</span>
+          <span class="label">பிறந்த இடம்:</span>
+          <strong style="color:#93c5fd;">${nPlace}</strong>
+        </div>
+        ${lagnaRasi ? `
+          <div class="panchangam-pill">
+            <span class="icon">🌅</span>
+            <span class="label">லக்கினம்:</span>
+            <strong style="color:var(--gold-light);">${lagnaRasi} ${lagnaDegree !== null ? '(' + formatDegree(lagnaDegree, true) + ')' : ''}</strong>
+          </div>
+        ` : ''}
+        ${moonRasi ? `
+          <div class="panchangam-pill">
+            <span class="icon">🌙</span>
+            <span class="label">ராசி:</span>
+            <strong style="color:#38bdf8;">${moonRasi}</strong>
+          </div>
+        ` : ''}
+      </div>
+
+      <!-- 6 Panchangam & Karaka Feature Tiles -->
+      <div class="panchangam-tiles-grid">
+        
+        <!-- Tile 1: Nakshatra, Pada & Saram -->
+        <div class="panchangam-tile">
+          <div class="tile-header">
+            <span class="tile-icon">⭐</span>
+            <span class="tile-title">ஜன்ம நட்சத்திரம், பாதம் &amp; சாரம்</span>
+          </div>
+          <div class="tile-body">
+            <div class="tile-primary-text" style="color:#fcd34d;">
+              ${moonNak ? `${moonNak.nakshatra} - ${moonNak.pada}-ஆம் பாதம்` : '<span style="color:var(--text-muted); font-size:0.8rem;">சந்திரன் வைக்கப்படவில்லை</span>'}
+            </div>
+            <div class="tile-sub-text" style="color:#38bdf8; font-weight:700; margin-top:2px;">
+              ${moonNak ? `🌟 சாரம்: ${moonNak.lord} சாரம்` : '-'}
+            </div>
+          </div>
+        </div>
+
+        <!-- Tile 2: Thithi & Paksham -->
+        <div class="panchangam-tile">
+          <div class="tile-header">
+            <span class="tile-icon">🌕</span>
+            <span class="tile-title">திதி (Thithi) &amp; பக்ஷம்</span>
+          </div>
+          <div class="tile-body">
+            <div class="tile-primary-text" style="color:#67e8f9;">
+              ${panchangam ? panchangam.tithi.fullName : '<span style="color:var(--text-muted); font-size:0.8rem;">சூரியன்-சந்திரன் தேவை</span>'}
+            </div>
+            <div class="tile-sub-text" style="color:var(--text-muted); margin-top:2px;">
+              ${panchangam ? `${panchangam.tithi.paksha} (${panchangam.tithi.percentElapsed}% நிறைவு)` : '-'}
+            </div>
+          </div>
+        </div>
+
+        <!-- Tile 3: Nitya Yogam -->
+        <div class="panchangam-tile">
+          <div class="tile-header">
+            <span class="tile-icon">⚡</span>
+            <span class="tile-title">நித்ய யோகம் (Yogam)</span>
+          </div>
+          <div class="tile-body">
+            <div class="tile-primary-text" style="color:#f472b6;">
+              ${panchangam ? `${panchangam.yogam.name} யோகம்` : '<span style="color:var(--text-muted); font-size:0.8rem;">சூரியன்-சந்திரன் தேவை</span>'}
+            </div>
+            <div class="tile-sub-text" style="color:${panchangam?.yogam.nature === 'சுபம்' ? '#4ade80' : '#f87171'}; font-weight:700; margin-top:2px;">
+              ${panchangam ? `${panchangam.yogam.nature} • 27 யோகங்களில் ${panchangam.yogam.index}-வது` : '-'}
+            </div>
+          </div>
+        </div>
+
+        <!-- Tile 4: Karanam -->
+        <div class="panchangam-tile">
+          <div class="tile-header">
+            <span class="tile-icon">🦁</span>
+            <span class="tile-title">கரணம் (Karanam)</span>
+          </div>
+          <div class="tile-body">
+            <div class="tile-primary-text" style="color:#c084fc;">
+              ${panchangam ? panchangam.karanam.name : '<span style="color:var(--text-muted); font-size:0.8rem;">சூரியன்-சந்திரன் தேவை</span>'}
+            </div>
+            <div class="tile-sub-text" style="color:var(--text-muted); margin-top:2px;">
+              ${panchangam ? `${panchangam.karanam.type} (60-ல் ${panchangam.karanam.index}-வது)` : '-'}
+            </div>
+          </div>
+        </div>
+
+        <!-- Tile 5: Primary Karakas (AK, AmK, DK) -->
+        <div class="panchangam-tile">
+          <div class="tile-header">
+            <span class="tile-icon">👑</span>
+            <span class="tile-title">முக்கிய காரகங்கள் (Karakas)</span>
+          </div>
+          <div class="tile-body">
+            <div style="display:flex; flex-direction:column; gap:2px; font-size:0.75rem;">
+              <div><strong style="color:#ffd700;">ஆத்மகாரகன் (AK):</strong> <span style="color:#fff;">${akPlanet}</span></div>
+              <div><strong style="color:#f43f5e;">தாரகாரகன் (DK):</strong> <span style="color:#fff;">${dkPlanet}</span></div>
+              <div><strong style="color:#38bdf8;">அமாத்தியகாரகன் (AmK):</strong> <span style="color:#fff;">${amkPlanet}</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tile 6: Dasha Balance & Current Dasha -->
+        <div class="panchangam-tile">
+          <div class="tile-header">
+            <span class="tile-icon">⏳</span>
+            <span class="tile-title">தசா இருப்பு &amp; நடப்பு தசை</span>
+          </div>
+          <div class="tile-body">
+            <div class="tile-primary-text" style="font-size:0.75rem; color:#fde047; line-height:1.3;">
+              ${dashaText}
+            </div>
+            ${curDasaStr ? `
+              <div class="tile-sub-text" style="color:#a78bfa; font-weight:700; margin-top:3px; font-size:0.72rem;">
+                🔮 நடப்பு: ${curDasaStr}
+              </div>
+            ` : ''}
+          </div>
+        </div>
+
+      </div>
+    `;
+  }
+
+  // Planetary Degrees, Nakshatra, Pada, Saram & Karakas Table Renderer
   function renderDegreesTable() {
     const container = document.getElementById("planetaryDegreesTableContainer");
     if (!container) return;
 
+    // Collect all placed planets for Chara Karakas calculation
+    const placedPlanetsList = [];
+    PLANETS.forEach(p => {
+      for (let rid in chartState) {
+        const found = chartState[rid].find(item => item.planet === p.name);
+        if (found) {
+          placedPlanetsList.push({ planet: p.name, degree: found.degree });
+          break;
+        }
+      }
+    });
+
+    const karakaData = window.PGAstro?.astronomy?.calculateCharaKarakas(placedPlanetsList) || { charaMap: {}, sthiraMap: {} };
+
     const rows = [];
     if (lagnaRasiId) {
       const rasi = RASIS.find(r => r.id === lagnaRasiId);
+      const lagnaTotalLon = (lagnaRasiId - 1) * 30 + (lagnaDegree || 0);
+      const lagnaNak = window.PGAstro?.astronomy?.getNakshatraPadaSaram(lagnaTotalLon);
+
       rows.push({
         isLagna: true,
         name: "லக்கினம் (Lagna)",
@@ -576,6 +836,12 @@ window.PGAstro = window.PGAstro || {};
         rasiName: rasi ? rasi.name : "-",
         lord: rasi ? rasi.lord : "-",
         degree: lagnaDegree,
+        nakshatra: lagnaNak ? lagnaNak.nakshatra : "-",
+        pada: lagnaNak ? `${lagnaNak.pada}-ஆம் பாதம்` : "-",
+        saram: lagnaNak ? `${lagnaNak.lord} சாரம்` : "-",
+        saramColor: lagnaNak ? (PLANETS.find(p => p.name === lagnaNak.lord)?.color || "var(--gold-light)") : "var(--gold-light)",
+        charaKaraka: `<span class="badge badge-gold" style="font-size:0.68rem;">உதய லக்கினம்</span>`,
+        sthiraKaraka: "தேககாரகம் (உடல், உயிர்)",
         statusHtml: `<span class="badge badge-gold">லக்கினம்</span>`
       });
     }
@@ -594,11 +860,25 @@ window.PGAstro = window.PGAstro || {};
 
       const rasi = placedRasiId ? RASIS.find(r => r.id === placedRasiId) : null;
       let statusBadges = [];
-      if (placed) {
+      let nakInfo = null;
+
+      if (placed && placedRasiId) {
         if (placed.isRetrograde) statusBadges.push(`<span class="badge badge-red" style="font-size:0.68rem;">வக்கிரம்</span>`);
         if (placed.isExalted) statusBadges.push(`<span class="badge badge-green" style="font-size:0.68rem;">உச்சம்</span>`);
         if (placed.isDebilitated) statusBadges.push(`<span class="badge" style="background:#4b5563; color:#fff; font-size:0.68rem;">நீசம்</span>`);
         if (placed.isMarginal) statusBadges.push(`<span class="badge badge-gold" style="font-size:0.68rem;">விளிம்பு</span>`);
+
+        const totalLon = (placedRasiId - 1) * 30 + (placed.degree || 0);
+        nakInfo = window.PGAstro?.astronomy?.getNakshatraPadaSaram(totalLon);
+      }
+
+      // Karakas
+      const chara = karakaData.charaMap[p.name];
+      const sthira = karakaData.sthiraMap[p.name];
+
+      let charaHtml = "-";
+      if (chara) {
+        charaHtml = `<span class="badge-chara" style="background:${chara.color}22; border:1px solid ${chara.color}; color:${chara.color}; font-size:0.68rem; padding:2px 6px; border-radius:4px; font-weight:700;" title="${chara.desc}">${chara.code}: ${chara.name}</span>`;
       }
 
       rows.push({
@@ -610,18 +890,27 @@ window.PGAstro = window.PGAstro || {};
         rasiName: rasi ? rasi.name : "<span style='color:var(--text-muted);'>அமைக்கப்படவில்லை</span>",
         lord: rasi ? rasi.lord : "-",
         degree: placed ? placed.degree : null,
+        nakshatra: nakInfo ? nakInfo.nakshatra : "-",
+        pada: nakInfo ? `${nakInfo.pada}-ஆம் பாதம்` : "-",
+        saram: nakInfo ? `${nakInfo.lord} சாரம்` : "-",
+        saramColor: nakInfo ? (PLANETS.find(pl => pl.name === nakInfo.lord)?.color || "#38bdf8") : "#38bdf8",
+        charaKaraka: charaHtml,
+        sthiraKaraka: sthira ? sthira.title : "-",
         statusHtml: statusBadges.join(" ") || (placed ? "<span style='color:var(--text-muted); font-size:0.75rem;'>இயல்பு</span>" : "-")
       });
     });
 
     let html = `
       <div style="overflow-x:auto;">
-        <table class="degrees-table" style="width:100%; border-collapse:collapse; font-size:0.8rem; text-align:left;">
+        <table class="degrees-table" style="width:100%; border-collapse:collapse; font-size:0.78rem; text-align:left; min-width:720px;">
           <thead>
-            <tr style="border-bottom:1px solid rgba(212,175,55,0.25); color:var(--gold-light); font-size:0.74rem;">
+            <tr style="border-bottom:1px solid rgba(212,175,55,0.25); color:var(--gold-light); font-size:0.73rem;">
               <th style="padding:6px 8px;">கிரகம் / லக்கினம்</th>
-              <th style="padding:6px 8px;">அமர்ந்த ராசி</th>
-              <th style="padding:6px 8px;">துல்லிய பாகை (Degree)</th>
+              <th style="padding:6px 8px;">ராசி &amp; பாகை (Degree)</th>
+              <th style="padding:6px 8px;">நட்சத்திரம் (Nakshatra)</th>
+              <th style="padding:6px 8px;">பாதம் (Pada)</th>
+              <th style="padding:6px 8px;">சாரம் (Star Lord)</th>
+              <th style="padding:6px 8px;">காரகம் (Karakam)</th>
               <th style="padding:6px 8px;">வீட்டு அதிபதி</th>
               <th style="padding:6px 8px;">நிலை</th>
             </tr>
@@ -630,19 +919,32 @@ window.PGAstro = window.PGAstro || {};
     `;
 
     rows.forEach(r => {
-      const degStr = (r.degree !== null && r.degree !== undefined) ? `<strong>${formatDegree(r.degree)}</strong>` : "-";
+      const degStr = (r.degree !== null && r.degree !== undefined) ? `<strong>${formatDegree(r.degree)}</strong>` : "";
       const rowStyle = r.isLagna ? "background:rgba(212,175,55,0.08); font-weight:bold;" : "border-bottom:1px solid rgba(255,255,255,0.04);";
       const clickAction = r.rasiId ? `onclick="window.PGAstro.chart.highlightRasi(${r.rasiId})"` : "";
 
       html += `
         <tr style="${rowStyle} ${r.rasiId ? 'cursor:pointer;' : ''}" ${clickAction} title="${r.rasiId ? 'கட்டத்தில் ராசியை காண கிளிக் செய்க' : ''}">
-          <td style="padding:5px 8px; color:${r.color}; display:flex; align-items:center; gap:5px;">
-            <span>${r.icon}</span> <span>${r.name}</span>
+          <td style="padding:6px 8px; color:${r.color}; display:flex; align-items:center; gap:5px; font-weight:600;">
+            <span style="font-size:0.95rem;">${r.icon}</span> <span>${r.name}</span>
           </td>
-          <td style="padding:5px 8px; color:var(--text-main);">${r.rasiName}</td>
-          <td style="padding:5px 8px; color:var(--gold-primary); font-family:var(--font-mono, monospace); font-size:0.83rem;">${degStr}</td>
-          <td style="padding:5px 8px; color:var(--text-muted);">${r.lord}</td>
-          <td style="padding:5px 8px;">${r.statusHtml}</td>
+          <td style="padding:6px 8px; color:var(--text-main);">
+            <div style="font-weight:600;">${r.rasiName}</div>
+            ${degStr ? `<div style="color:var(--gold-primary); font-family:var(--font-mono, monospace); font-size:0.74rem;">${degStr}</div>` : ''}
+          </td>
+          <td style="padding:6px 8px; color:#fde047; font-weight:600;">${r.nakshatra}</td>
+          <td style="padding:6px 8px; color:#a78bfa; font-weight:600;">${r.pada}</td>
+          <td style="padding:6px 8px;">
+            <span style="color:${r.saramColor}; font-weight:700; background:rgba(255,255,255,0.04); padding:2px 6px; border-radius:4px; border:1px solid rgba(255,255,255,0.1);">
+              ${r.saram}
+            </span>
+          </td>
+          <td style="padding:6px 8px;">
+            <div style="margin-bottom:2px;">${r.charaKaraka}</div>
+            <div style="font-size:0.68rem; color:var(--text-muted);">${r.sthiraKaraka}</div>
+          </td>
+          <td style="padding:6px 8px; color:var(--text-muted);">${r.lord}</td>
+          <td style="padding:6px 8px;">${r.statusHtml}</td>
         </tr>
       `;
     });
@@ -790,6 +1092,7 @@ window.PGAstro = window.PGAstro || {};
     renderNavamsaChart: updateNavamsaCells,
     highlightRasi: highlightRasi,
     renderDegreesTable: renderDegreesTable,
+    renderPanchangamOverviewCard: renderPanchangamOverviewCard,
     setBirthHoroscope: setBirthHoroscope,
     loadPreset: loadPreset,
     clear: clearChart,

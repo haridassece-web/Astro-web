@@ -80,6 +80,10 @@
         <span class="nav-tab-icon">🩺</span>
         <span>காரகங்கள் & மருத்துவம்</span>
       </button>
+      <button class="nav-tab-btn" data-tab="qa">
+        <span class="nav-tab-icon">🔮</span>
+        <span>ஜாதகக் கேள்வி-பதில்</span>
+      </button>
     </div>
   </nav>
 
@@ -152,6 +156,11 @@
         </div>
       </div>
 
+      <!-- Auspicious Birth Panchangam, Age & Karakas Master Card (1st Page Master Profile) -->
+      <div class="cosmic-card panchangam-overview-card" id="panchangamOverviewCard" style="margin-bottom: 1.25rem;">
+        <!-- Populated dynamically by js/chart.js -->
+      </div>
+
       <div class="chart-section-wrapper">
 
         <!-- Left: South Indian 4x4 Grid -->
@@ -194,11 +203,11 @@
             </div>
           </div>
 
-          <!-- Planetary Degrees Table & Toggle -->
+          <!-- Planetary Degrees, Nakshatra, Pada, Saram & Karakas Table & Toggle -->
           <div class="cosmic-card degrees-summary-card" id="degreesSummaryCard" style="margin-top: 1rem;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem; flex-wrap:wrap; gap:6px;">
               <h3 style="color:var(--gold-primary); font-size:0.95rem; display:flex; align-items:center; gap:0.4rem; margin:0;">
-                <span>📐</span> கிரக நிலைகள் & பாகைகள் (Degrees & Status)
+                <span>📐</span> கிரக நிலைகள், நட்சத்திரம், பாதம், சாரம் &amp; காரகங்கள்
               </h3>
               <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <label style="font-size:0.75rem; color:#818cf8; display:flex; align-items:center; gap:5px; cursor:pointer; background:rgba(129,140,248,0.1); padding:3px 8px; border-radius:4px; border:1px solid rgba(129,140,248,0.3);">
@@ -337,6 +346,11 @@
          TAB 4: DASHA, RETROGRADE & SPECIAL RULES
          ========================================== -->
     <section class="tab-pane" id="tab_dasha">
+      <!-- Dasa, Bhukti & Antharam Live Dashboard Card -->
+      <div id="activeDasaBhuktiAntharamContainer" style="margin-bottom: 1.25rem;">
+        <!-- Populated dynamically by js/ui.js -->
+      </div>
+
       <div class="cosmic-card" style="margin-bottom: 1rem;">
         <div class="card-header">
           <div class="card-title-group">
@@ -394,6 +408,49 @@
       </div>
     </section>
 
+    <!-- ==========================================
+         TAB 7: COMPREHENSIVE HOROSCOPE Q&A (ஜாதகக் கேள்வி-பதில்)
+         ========================================== -->
+    <section class="tab-pane" id="tab_qa">
+      <div class="cosmic-card" style="margin-bottom: 1rem;">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div class="card-title-group">
+            <div class="card-title-icon" style="font-size:1.25rem;">🔮</div>
+            <div>
+              <h2 class="card-title" style="font-size:1.15rem; margin:0;">ஜாதகக் கேள்வி - பதில் ஆய்வி (Horoscope Q&A)</h2>
+              <div class="card-subtitle" style="font-size:0.75rem;">கல்வி, வேலை, அரசு/தனியார், திருமணம், மறுமணம், குழந்தை, வீடு, ஆரோக்கியம், கடந்த-நிகழ்-எதிர்கால நிர்ணயம் • சுபத்துவம் & பாவத்துவ ஆய்வு</div>
+            </div>
+          </div>
+          <span class="badge badge-gold" style="font-size:0.75rem;">நாடி & சுபத்துவ துல்லிய தீர்வு</span>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="search-filter-box" style="margin-top:0.75rem;">
+          <span>🔍</span>
+          <input type="text" id="horoscopeQASearch" placeholder="கேள்வியை தேடுக (எ.கா: படிப்பு, அரசு வேலை, திருமணம், மறுமணம், குழந்தை, வீடு, நோய், கடன், வெளிநாடு)...">
+        </div>
+
+        <!-- Category Filter Pills -->
+        <div class="qa-filter-pills" id="qaCategoryFilters" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:0.8rem;">
+          <button class="qa-filter-btn active" data-cat="all">🌟 அனைத்தும் (All Q&A)</button>
+          <button class="qa-filter-btn" data-cat="education">🎓 கல்வி & படிப்பு</button>
+          <button class="qa-filter-btn" data-cat="job">💼 வேலை (Fresher/Govt/Pvt)</button>
+          <button class="qa-filter-btn" data-cat="marriage">💍 திருமணம் & மறுமணம்</button>
+          <button class="qa-filter-btn" data-cat="child">👶 குழந்தை யோகம்</button>
+          <button class="qa-filter-btn" data-cat="property">🏡 வீடு, நிலம் & வாகனம்</button>
+          <button class="qa-filter-btn" data-cat="health">🩺 நோய் & ஆரோக்கியம்</button>
+          <button class="qa-filter-btn" data-cat="foreign">✈️ வெளிநாட்டு யோகம்</button>
+          <button class="qa-filter-btn" data-cat="wealth">💰 தன யோகம் & கடன்</button>
+          <button class="qa-filter-btn" data-cat="court">⚖️ வழக்கு & எதிர்ப்புகள்</button>
+          <button class="qa-filter-btn" data-cat="remedy">🕉️ குலதெய்வம் & பரிகாரம்</button>
+        </div>
+      </div>
+
+      <!-- Q&A Cards Container -->
+      <div id="horoscopeQAContainer">
+        <!-- Populated dynamically by js/engine.js & js/ui.js -->
+      </div>
+    </section>
 
   </main>
 
@@ -422,6 +479,10 @@
     <button class="mobile-nav-item" data-tab="karakas">
       <span class="m-icon">🩺</span>
       <span>காரகம்</span>
+    </button>
+    <button class="mobile-nav-item" data-tab="qa">
+      <span class="m-icon">🔮</span>
+      <span>கேள்வி</span>
     </button>
   </div>
 
