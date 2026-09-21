@@ -230,6 +230,9 @@ window.PGAstroUI = window.PGAstroUI || {};
     placeCustom?.addEventListener("input", () => doCalculate(true));
     placeCustom?.addEventListener("change", () => doCalculate(true));
 
+    // Auto calculate initial horoscope on page load
+    doCalculate(true);
+
     resetBtn?.addEventListener("click", () => {
       if (nameInput) nameInput.value = "";
       if (genderInput) genderInput.value = "male";
