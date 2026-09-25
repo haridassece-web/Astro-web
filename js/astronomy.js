@@ -827,6 +827,35 @@ window.PGAstro = window.PGAstro || {};
       activeAntharam = antharams[antharams.length - 1];
     }
 
+    // Divide active Antharam into 9 Sookshmams (சூட்சுமம்)
+    const antharamLordIdx = DASHA_ORDER.findIndex(d => d.lord === activeAntharam.lord);
+    const antharamTotalYears = (activeBhukti.years * DASHA_ORDER.find(d => d.lord === activeAntharam.lord).years) / 120;
+    const sookshmams = [];
+    let sookshmamStartMs = activeAntharam.startDate.getTime();
+
+    for (let s = 0; s < 9; s++) {
+      const sLordInfo = DASHA_ORDER[(antharamLordIdx + s) % 9];
+      const sDurationYears = (antharamTotalYears * sLordInfo.years) / 120;
+      const sDurationMs = sDurationYears * msPerYear;
+      const sEndMs = sookshmamStartMs + sDurationMs;
+
+      sookshmams.push({
+        lord: sLordInfo.lord,
+        antharamLord: activeAntharam.lord,
+        bhuktiLord: activeBhukti.lord,
+        mahaLord: activeDasa.lord,
+        startDate: new Date(sookshmamStartMs),
+        endDate: new Date(sEndMs),
+        color: sLordInfo.color
+      });
+      sookshmamStartMs = sEndMs;
+    }
+
+    let activeSookshmam = sookshmams.find(s => nowMs >= s.startDate.getTime() && nowMs < s.endDate.getTime());
+    if (!activeSookshmam) {
+      activeSookshmam = sookshmams[sookshmams.length - 1];
+    }
+
     const formatDate = (d) => {
       try {
         return d.toLocaleDateString("ta-IN", { year: 'numeric', month: 'short', day: 'numeric' });
@@ -848,6 +877,7 @@ window.PGAstro = window.PGAstro || {};
     const mahaProg = calcProgress(activeDasa.startDate.getTime(), activeDasa.endDate.getTime());
     const bhuktiProg = calcProgress(activeBhukti.startDate.getTime(), activeBhukti.endDate.getTime());
     const antharamProg = calcProgress(activeAntharam.startDate.getTime(), activeAntharam.endDate.getTime());
+    const sookshmamProg = calcProgress(activeSookshmam.startDate.getTime(), activeSookshmam.endDate.getTime());
 
     // Helper to calculate Antharams for any Bhukti
     function calculateAntharamsForBhukti(bLord, bStartMs, bDurationYears) {
@@ -878,7 +908,37 @@ window.PGAstro = window.PGAstro || {};
       return res;
     }
 
+    // Helper to calculate Sookshmams for any Antharam
+    function calculateSookshmamsForAntharam(aLord, aStartMs, aDurationYears) {
+      const aLordIdx = DASHA_ORDER.findIndex(d => d.lord === aLord);
+      const res = [];
+      let curMs = aStartMs;
+      for (let i = 0; i < 9; i++) {
+        const sLord = DASHA_ORDER[(aLordIdx + i) % 9];
+        const sDurYears = (aDurationYears * sLord.years) / 120;
+        const sDurMs = sDurYears * msPerYear;
+        const sEndMs = curMs + sDurMs;
+        const isCur = nowMs >= curMs && nowMs < sEndMs;
+        const durDays = Math.round(sDurMs / (24 * 60 * 60 * 1000));
+        res.push({
+          lord: sLord.lord,
+          years: sDurYears,
+          durationDays: durDays,
+          durationText: durDays >= 30 ? `${Math.floor(durDays / 30)} மாதங்கள் ${durDays % 30} நாட்கள்` : `${durDays} நாட்கள்`,
+          startDate: formatDate(new Date(curMs)),
+          endDate: formatDate(new Date(sEndMs)),
+          startMs: curMs,
+          endMs: sEndMs,
+          isCurrent: isCur,
+          color: sLord.color
+        });
+        curMs = sEndMs;
+      }
+      return res;
+    }
+
     const currentAntharamsList = calculateAntharamsForBhukti(activeBhukti.lord, activeBhukti.startDate.getTime(), activeBhukti.years);
+    const currentSookshmamsList = calculateSookshmamsForAntharam(activeAntharam.lord, activeAntharam.startDate.getTime(), antharamTotalYears);
 
     return {
       nakshatraInfo: nakInfo,
@@ -906,7 +966,16 @@ window.PGAstro = window.PGAstro || {};
         percentElapsed: antharamProg.pct,
         remainingDays: antharamProg.remDays
       },
+      currentSookshmam: {
+        lord: activeSookshmam.lord,
+        startDate: formatDate(activeSookshmam.startDate),
+        endDate: formatDate(activeSookshmam.endDate),
+        color: activeSookshmam.color,
+        percentElapsed: sookshmamProg.pct,
+        remainingDays: sookshmamProg.remDays
+      },
       currentAntharamsList: currentAntharamsList,
+      currentSookshmamsList: currentSookshmamsList,
       dashaTimeline: dashaTimeline.map(d => ({
         lord: d.lord,
         years: d.years,
@@ -966,11 +1035,50 @@ window.PGAstro = window.PGAstro || {};
     return res;
   }
 
+  // Calculate Sookshmams for any Antharam on demand
+  function calculateSookshmamsOnDemand(antharamLord, antharamStartDate, antharamDurationYears) {
+    const aLordIdx = DASHA_ORDER.findIndex(d => d.lord === antharamLord);
+    const msPerYear = 365.2425 * 24 * 60 * 60 * 1000;
+    const res = [];
+    const nowMs = Date.now();
+    let curMs = (antharamStartDate instanceof Date ? antharamStartDate : new Date(antharamStartDate)).getTime();
+    
+    for (let i = 0; i < 9; i++) {
+      const sLord = DASHA_ORDER[(aLordIdx + i) % 9];
+      const sDurYears = (antharamDurationYears * sLord.years) / 120;
+      const sDurMs = sDurYears * msPerYear;
+      const sEndMs = curMs + sDurMs;
+      const isCur = nowMs >= curMs && nowMs < sEndMs;
+      const durDays = Math.round(sDurMs / (24 * 60 * 60 * 1000));
+      const formatDate = (d) => {
+        try {
+          return d.toLocaleDateString("ta-IN", { year: 'numeric', month: 'short', day: 'numeric' });
+        } catch(e) {
+          return d.toISOString().split("T")[0];
+        }
+      };
+
+      res.push({
+        lord: sLord.lord,
+        years: sDurYears,
+        durationDays: durDays,
+        durationText: durDays >= 30 ? `${Math.floor(durDays / 30)} மாதங்கள் ${durDays % 30} நாட்கள்` : `${durDays} நாட்கள்`,
+        startDate: formatDate(new Date(curMs)),
+        endDate: formatDate(new Date(sEndMs)),
+        isCurrent: isCur,
+        color: sLord.color
+      });
+      curMs = sEndMs;
+    }
+    return res;
+  }
+
   // Public API
   window.PGAstro.astronomy = {
     calculateSiderealPlanets: calculateSiderealPlanets,
     calculateVimshottariDasha: calculateVimshottariDasha,
     calculateAntharamsOnDemand: calculateAntharamsOnDemand,
+    calculateSookshmamsOnDemand: calculateSookshmamsOnDemand,
     calculatePanchangam: calculatePanchangam,
     calculateAge: calculateAge,
     calculateCharaKarakas: calculateCharaKarakas,

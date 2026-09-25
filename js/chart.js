@@ -638,9 +638,14 @@ window.PGAstro = window.PGAstro || {};
     const lagnaRasi = lagnaRasiId ? RASIS.find(r => r.id === lagnaRasiId)?.name : "";
     const moonRasi = moonRasiId ? RASIS.find(r => r.id === moonRasiId)?.name : "";
 
-    // 7. Dasha text
-    const dashaText = moonNak?.balanceText || (window.PGAstro?.lastCalculatedHoroscope?.dasha?.nakshatraInfo?.balanceText) || "-";
-    const currentDasaInfo = window.PGAstro?.lastCalculatedHoroscope?.dasha;
+    // 7. Dasha text & Current Dasha Info
+    let currentDasaInfo = window.PGAstro?.lastCalculatedHoroscope?.dasha;
+    if (moonLon !== null && window.PGAstro?.astronomy?.calculateVimshottariDasha) {
+      const nDob = nInfo.dob || document.getElementById("birthCalcDate")?.value || "1988-04-30";
+      const nTime = nInfo.time || document.getElementById("birthCalcTime")?.value || "12:00";
+      currentDasaInfo = window.PGAstro.astronomy.calculateVimshottariDasha(nDob, nTime, moonLon);
+    }
+    const dashaText = currentDasaInfo?.nakshatraInfo?.balanceText || moonNak?.balanceText || "-";
     const curDasaStr = currentDasaInfo ? `${currentDasaInfo.currentMahaDasa?.lord} தசை • ${currentDasaInfo.currentBhukti?.lord} புக்தி • ${currentDasaInfo.currentAntharam?.lord} அந்தரம்` : "";
 
     // Build HTML

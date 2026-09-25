@@ -2201,6 +2201,237 @@ window.PGAstroRulesEngine = {
     };
   }
 
+  function parseDateOnly(val) {
+    if (!val) return new Date();
+    if (val instanceof Date) return val;
+    if (typeof val === 'string') {
+      if (val.includes('T')) return new Date(val);
+      if (val.includes('-')) {
+        const parts = val.split('-').map(Number);
+        if (parts.length === 3) return new Date(parts[0], parts[1] - 1, parts[2], 0, 0, 0);
+      } else if (val.includes('/')) {
+        const parts = val.split('/').map(Number);
+        if (parts.length === 3) return new Date(parts[2], parts[1] - 1, parts[0], 0, 0, 0);
+      }
+    }
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? new Date() : d;
+  }
+
+  function getPlanetAstroDetails(planetName, placedPlanets, lagnaRasiId, subhathuvamResult) {
+    if (!planetName) return { name: '-', house: '-', rasi: '-', dignity: 'சமம்', subhaText: '' };
+    const RASIS = (window.PGAstro && window.PGAstro.chart && window.PGAstro.chart.RASIS) || [];
+    const pl = (placedPlanets || []).find(p => p.planet === planetName);
+    if (!pl) return { name: planetName, house: '-', rasi: '-', dignity: 'சமம்', subhaText: '' };
+
+    const house = pl.house || (lagnaRasiId ? ((pl.rasiId - lagnaRasiId + 12) % 12 || 12) : '-');
+    const rasiObj = RASIS.find(r => r.id === pl.rasiId);
+    const rasiName = rasiObj ? rasiObj.name : '';
+
+    let dignity = pl.isExalted ? 'உச்சம்'
+      : pl.isOwnHouse ? 'ஆட்சி'
+      : pl.isMoolatrikona ? 'மூலத்திரிகோணம்'
+      : pl.isDebilitated ? 'நீசம்'
+      : pl.isRetrograde ? 'வக்ரம்'
+      : 'சுப பலம்';
+
+    let subhaText = '';
+    if (subhathuvamResult && subhathuvamResult.scores && subhathuvamResult.scores[planetName]) {
+      const sc = subhathuvamResult.scores[planetName];
+      const scoreVal = (sc.netScore !== undefined ? sc.netScore : (typeof sc === 'number' ? sc : 0)).toFixed(1);
+      subhaText = ` (சுபத்துவம்: ${scoreVal > 0 ? '+' + scoreVal : scoreVal})`;
+    }
+
+    return {
+      name: planetName,
+      house: house,
+      rasi: rasiName,
+      dignity: dignity,
+      subhaText: subhaText
+    };
+  }
+
+  function getChronologicalDasaPuthiTimeline(analysis) {
+    const dobStr = analysis?.nativeInfo?.dob || document.getElementById("birthCalcDate")?.value || "1989-05-15";
+    const timeStr = analysis?.nativeInfo?.time || document.getElementById("birthCalcTime")?.value || "12:00";
+    const dobDate = parseDateOnly(dobStr);
+
+    let allBhuktis = (analysis.milestones && analysis.milestones.allBhuktis) || [];
+    const msPerYear = 365.2425 * 24 * 60 * 60 * 1000;
+    const DASHA_ORDER = [
+      { lord: "கேது", years: 7 }, { lord: "சுக்கிரன்", years: 20 },
+      { lord: "சூரியன்", years: 6 }, { lord: "சந்திரன்", years: 10 },
+      { lord: "செவ்வாய்", years: 7 }, { lord: "ராகு", years: 18 },
+      { lord: "குரு", years: 16 }, { lord: "சனி", years: 19 },
+      { lord: "புதன்", years: 17 }
+    ];
+
+    if (!allBhuktis || allBhuktis.length === 0) {
+      allBhuktis = [];
+      if (analysis.dashaResult && analysis.dashaResult.dashaTimeline) {
+        analysis.dashaResult.dashaTimeline.forEach(dasa => {
+          const dIdx = DASHA_ORDER.findIndex(d => d.lord === dasa.lord);
+          if (dIdx !== -1) {
+            let bStart = dasa.startMs || (dasa.startDate ? new Date(dasa.startDate).getTime() : (dasa.start ? new Date(dasa.start).getTime() : null));
+            if (bStart) {
+              const mInfo = DASHA_ORDER[dIdx];
+              for (let b = 0; b < 9; b++) {
+                const bInfo = DASHA_ORDER[(dIdx + b) % 9];
+                const bDur = (mInfo.years * bInfo.years / 120) * msPerYear;
+                const bEnd = bStart + bDur;
+                allBhuktis.push({
+                  mahaLord: mInfo.lord,
+                  bhuktiLord: bInfo.lord,
+                  startDate: new Date(bStart),
+                  endDate: new Date(bEnd),
+                  startAge: (bStart - dobDate.getTime()) / msPerYear,
+                  endAge: (bEnd - dobDate.getTime()) / msPerYear
+                });
+                bStart = bEnd;
+              }
+            }
+          }
+        });
+      }
+
+      if (allBhuktis.length === 0) {
+        let dIdx = 0;
+        let curStart = new Date(dobDate.getTime());
+        for (let cycle = 0; cycle < 7; cycle++) {
+          const mInfo = DASHA_ORDER[dIdx];
+          const mDur = mInfo.years * msPerYear;
+          let bStart = curStart.getTime();
+          for (let b = 0; b < 9; b++) {
+            const bInfo = DASHA_ORDER[(dIdx + b) % 9];
+            const bDur = (mInfo.years * bInfo.years / 120) * msPerYear;
+            const bEnd = bStart + bDur;
+            allBhuktis.push({
+              mahaLord: mInfo.lord,
+              bhuktiLord: bInfo.lord,
+              startDate: new Date(bStart),
+              endDate: new Date(bEnd),
+              startAge: (bStart - dobDate.getTime()) / msPerYear,
+              endAge: (bEnd - dobDate.getTime()) / msPerYear
+            });
+            bStart = bEnd;
+          }
+          curStart = new Date(curStart.getTime() + mDur);
+          dIdx = (dIdx + 1) % 9;
+        }
+      }
+    }
+
+    allBhuktis.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+
+    const nowMs = new Date().getTime();
+    let curIdx = allBhuktis.findIndex(b => b.startDate.getTime() <= nowMs && nowMs < b.endDate.getTime());
+
+    if (curIdx === -1) {
+      const firstFut = allBhuktis.findIndex(b => b.startDate.getTime() > nowMs);
+      if (firstFut > 0) curIdx = firstFut - 1;
+      else if (firstFut === 0) curIdx = 0;
+      else curIdx = allBhuktis.length - 1;
+    }
+
+    const present = curIdx >= 0 ? allBhuktis[curIdx] : null;
+    const past = curIdx > 0 ? allBhuktis[curIdx - 1] : null;
+    const future = (curIdx >= 0 && curIdx < allBhuktis.length - 1) ? allBhuktis[curIdx + 1] : null;
+
+    return {
+      allBhuktis,
+      curIdx,
+      past,
+      present,
+      future
+    };
+  }
+
+  function renderDasaPuthiTimelineCard(analysis) {
+    const timeline = getChronologicalDasaPuthiTimeline(analysis);
+    if (!timeline.present) return '';
+
+    const formatD = (d) => {
+      if (!d || isNaN(d.getTime())) return '-';
+      const months = ["ஜனவரி", "பிப்ரவரி", "மார்ச்", "ஏப்ரல்", "மே", "ஜூன்", "ஜூலை", "ஆகஸ்ட்", "செப்டம்பர்", "அக்டோபர்", "நவம்பர்", "டிசம்பர்"];
+      return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    };
+
+    const lagnaId = (window.PGAstro && window.PGAstro.chart && window.PGAstro.chart.getLagnaRasiId()) || analysis.lagnaRasiId;
+    const placed = analysis.placedPlanets || [];
+    const subha = analysis.subhathuvamResult;
+
+    const buildTileHtml = (title, badgeClass, badgeText, puthi, isPresent = false) => {
+      if (!puthi) return '';
+      const mahaInfo = getPlanetAstroDetails(puthi.mahaLord, placed, lagnaId, subha);
+      const bhuktiInfo = getPlanetAstroDetails(puthi.bhuktiLord, placed, lagnaId, subha);
+
+      const dateStr = `${formatD(puthi.startDate)} முதல் ${formatD(puthi.endDate)} வரை`;
+      let sA = Math.max(0, puthi.startAge);
+      let eA = Math.max(0, puthi.endAge);
+      let startAgeInt = Math.floor(sA);
+      let endAgeInt = Math.ceil(eA);
+      if (startAgeInt === endAgeInt) endAgeInt = startAgeInt + 1;
+      const ageStr = (eA < 3) 
+        ? `வயது ${sA.toFixed(1)} – ${eA.toFixed(1)}` 
+        : `வயது ${startAgeInt} முதல் ${endAgeInt} வரை`;
+
+      let stateText = "";
+      if (badgeClass.includes("past") || badgeText.includes("கடந்த")) {
+        stateText = `கடந்த காலத்தில் மகாதசை அதிபதி <strong>${mahaInfo.name}</strong> (${mahaInfo.house}-ஆம் பாவம், ${mahaInfo.rasi}, ${mahaInfo.dignity}) மற்றும் புக்தி அதிபதி <strong>${bhuktiInfo.name}</strong> (${bhuktiInfo.house}-ஆம் பாவம், ${bhuktiInfo.rasi}, ${bhuktiInfo.dignity}) ஆதிக்கத்தில் ${mahaInfo.house} & ${bhuktiInfo.house}-ஆம் பாவக பலன்கள் நிறைவடைந்துள்ளன.`;
+      } else if (isPresent) {
+        stateText = `தற்போது மகாதசை அதிபதி <strong>${mahaInfo.name}</strong> (${mahaInfo.house}-ஆம் பாவம், ${mahaInfo.rasi}, ${mahaInfo.dignity}) மற்றும் புக்தி அதிபதி <strong>${bhuktiInfo.name}</strong> (${bhuktiInfo.house}-ஆம் பாவம், ${bhuktiInfo.rasi}, ${bhuktiInfo.dignity}) ஆதிக்கத்தில் ${mahaInfo.house} & ${bhuktiInfo.house}-ஆம் பாவக பலன்கள் உண்மையாக நடந்து வருகின்றன.`;
+      } else {
+        stateText = `அடுத்ததாக வரவிருக்கும் இந்த புக்தியில் மகாதசை அதிபதி <strong>${mahaInfo.name}</strong> (${mahaInfo.house}-ஆம் பாவம், ${mahaInfo.rasi}, ${mahaInfo.dignity}) மற்றும் புக்தி அதிபதி <strong>${bhuktiInfo.name}</strong> (${bhuktiInfo.house}-ஆம் பாவம், ${bhuktiInfo.rasi}, ${bhuktiInfo.dignity}) ஆதிக்கத்தில் ${bhuktiInfo.house}-ஆம் பாவகப் பலன்கள் புதிதாகத் தொடங்கும்.`;
+      }
+
+      return `
+        <div class="timing-tile ${badgeClass}" style="background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(212,175,55,0.3); border-radius: var(--radius-sm); padding: 0.85rem; display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+              <span style="font-weight: 700; font-size: 0.88rem; color: var(--gold-light);">${title}</span>
+              <span class="badge ${badgeText.includes('உண்மையாக') ? 'badge-gold' : (badgeText.includes('முடிவடைந்தது') ? 'badge-info' : 'badge-success')}" style="font-size: 0.68rem;">${badgeText}</span>
+            </div>
+
+            <div style="font-size: 1.05rem; font-weight: 800; color: #fff; margin-bottom: 0.3rem;">
+              ${puthi.mahaLord} தசை – ${puthi.bhuktiLord} புக்தி
+            </div>
+
+            <div style="font-size: 0.76rem; color: #93c5fd; background: rgba(30, 58, 138, 0.35); border: 1px solid rgba(59, 130, 246, 0.3); padding: 4px 8px; border-radius: 4px; margin-bottom: 0.5rem; display: flex; justify-content: space-between;">
+              <span>📅 ${dateStr}</span>
+              <span>👤 ${ageStr}</span>
+            </div>
+
+            <div style="font-size: 0.78rem; color: #e2e8f0; line-height: 1.45; background: rgba(0,0,0,0.25); padding: 0.5rem; border-radius: 4px; border-left: 3px solid var(--gold-primary); margin-bottom: 0.4rem;">
+              <div style="margin-bottom: 0.2rem;">🪐 <strong>மகாதசை (${mahaInfo.name}):</strong> ${mahaInfo.house}-ஆம் பாவம் (${mahaInfo.rasi}) • <span style="color:#fde047;">${mahaInfo.dignity}</span>${mahaInfo.subhaText}</div>
+              <div>🌙 <strong>புக்தி (${bhuktiInfo.name}):</strong> ${bhuktiInfo.house}-ஆம் பாவம் (${bhuktiInfo.rasi}) • <span style="color:#67e8f9;">${bhuktiInfo.dignity}</span>${bhuktiInfo.subhaText}</div>
+            </div>
+          </div>
+
+          <div style="font-size: 0.78rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.4rem; padding-top: 0.4rem; border-top: 1px solid rgba(255,255,255,0.1);">
+            ${stateText}
+          </div>
+        </div>
+      `;
+    };
+
+    return `
+      <div class="dasa-timeline-container-card" style="background: linear-gradient(135deg, rgba(13, 18, 36, 0.95), rgba(20, 26, 50, 0.9)); border: 1px solid rgba(212, 175, 55, 0.45); border-radius: var(--radius-md); padding: 1rem; margin-top: 0.8rem; margin-bottom: 1.2rem; box-shadow: 0 6px 20px rgba(0,0,0,0.35);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; border-bottom: 1px solid rgba(212,175,55,0.25); padding-bottom: 0.5rem;">
+          <h4 style="color: var(--gold-light); margin: 0; font-size: 1.05rem; display: flex; align-items: center; gap: 0.4rem;">
+            <span>🔮</span> தசா – புக்தி பலன்கள் & கால அட்டவணை (Dasa-Puthi Timeline)
+          </h4>
+          <span class="badge badge-gold" style="font-size: 0.72rem;">துல்லிய கால நிர்ணயம்</span>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.85rem;">
+          ${timeline.past ? buildTileHtml('⏪ கடந்த புக்தி (Past)', 'past', 'முடிவடைந்தது', timeline.past, false) : ''}
+          ${timeline.present ? buildTileHtml('⏸️ நிகழ்கால புக்தி (Present)', 'present', 'உண்மையாக நடப்பது', timeline.present, true) : ''}
+          ${timeline.future ? buildTileHtml('⏩ எதிர்கால புக்தி (Future)', 'future', 'அடுத்த முதல் புக்தி', timeline.future, false) : ''}
+        </div>
+      </div>
+    `;
+  }
+
   function renderEvaluationResults(analysis) {
     const container = document.getElementById("chartAnalysisContainer");
     if (!container) return;
@@ -2218,6 +2449,7 @@ window.PGAstroRulesEngine = {
     }
 
     let html = "";
+    const subha = analysis.subhathuvamResult;
 
     // Extract Native Info details for top summary banner
     const nInfo = analysis.nativeInfo || (window.PGAstro && window.PGAstro.chart && window.PGAstro.chart.getNativeInfo()) || {};
@@ -3514,59 +3746,50 @@ window.PGAstroRulesEngine = {
   // =========================================================================
   function evaluateHoroscopeQA(analysis) {
     if (!analysis || !analysis.placedPlanets) return [];
-    const RASIS = (window.PGAstro && window.PGAstro.chart && window.PGAstro.chart.RASIS) || [];
-    const PLANET_LORDS = [
-      "செவ்வாய்", "சுக்கிரன்", "புதன்", "சந்திரன்", "சூரியன்", "புதன்", 
-      "சுக்கிரன்", "செவ்வாய்", "குரு", "சனி", "சனி", "குரு"
-    ];
 
-    const lagnaId = (window.PGAstro && window.PGAstro.chart && window.PGAstro.chart.getLagnaRasiId()) || 1;
-    const nInfo = analysis.nativeInfo || (window.PGAstro && window.PGAstro.chart && window.PGAstro.chart.getNativeInfo()) || {};
-    const nName = nInfo.name || document.getElementById("birthCalcName")?.value || "அன்பர் (Native)";
-    const isFemale = nInfo.gender === "female";
-    const nativeTitle = isFemale ? "ஜாதகி" : "ஜாதகர்";
-    const nDob = nInfo.dob || document.getElementById("birthCalcDate")?.value || "1988-04-30";
-    const nTime = nInfo.time || document.getElementById("birthCalcTime")?.value || "22:10";
+    const nInfo = analysis.nativeInfo || {};
+    const nDob = nInfo.dob || "1990-01-01";
+    const dobDate = new Date(nDob);
+    const nowObj = new Date();
+    const nowMs = nowObj.getTime();
 
-    const ageObj = (window.PGAstro && window.PGAstro.astronomy && window.PGAstro.astronomy.calculateAge(nDob, nTime)) || {
-      years: 36, months: 4, days: 20, runningYear: 37, formattedText: "36 ஆண்டுகள், 4 மாதங்கள், 20 நாட்கள்"
+    let curAgeYears = (nowMs - dobDate.getTime()) / (365.25 * 24 * 3600 * 1000);
+    if (isNaN(curAgeYears) || curAgeYears < 0) curAgeYears = 30;
+
+    const nativeGender = (nInfo.gender || "male").toLowerCase();
+    const nativeTitle = nativeGender === "female" ? "ஜாதகி" : "ஜாதகர்";
+    const isFemale = nativeGender === "female";
+
+    const lagnaId = (analysis.placedPlanets.find(p => p.planet === "லக்னம்") || {}).rasiId || 1;
+    const getLord = (houseNo) => {
+      const rasiIndex = ((lagnaId - 1) + (houseNo - 1)) % 12;
+      return window.PGAstroData?.RASI_LORDS ? window.PGAstroData.RASI_LORDS[rasiIndex] : ["செவ்வாய்", "சுக்கிரன்", "புதன்", "சந்திரன்", "சூரியன்", "புதன்", "சுக்கிரன்", "செவ்வாய்", "குரு", "சனி", "சனி", "குரு"][rasiIndex];
     };
-    const curAgeYears = ageObj.years + (ageObj.months / 12);
 
-    const m = analysis.lifeMilestones || {};
-    const ed = m.education;
-    const jv = m.jobVerdict;
-    const jt = m.jobTiming;
-    const mr = m.marriage;
-    const ch = m.child;
-    const hs = m.house;
-    const vh = m.vehicle;
+    const lord1 = getLord(1);
+    const lord2 = getLord(2);
+    const lord3 = getLord(3);
+    const lord4 = getLord(4);
+    const lord5 = getLord(5);
+    const lord6 = getLord(6);
+    const lord7 = getLord(7);
+    const lord8 = getLord(8);
+    const lord9 = getLord(9);
+    const lord10 = getLord(10);
+    const lord11 = getLord(11);
+    const lord12 = getLord(12);
 
-    const subhaRes = analysis.subhathuvamResult;
+    const houseLords = {
+      1: lord1, 2: lord2, 3: lord3, 4: lord4, 5: lord5, 6: lord6,
+      7: lord7, 8: lord8, 9: lord9, 10: lord10, 11: lord11, 12: lord12
+    };
+
     const getSubha = (pName) => {
-      if (subhaRes && subhaRes.netScores && subhaRes.netScores[pName]) {
-        return subhaRes.netScores[pName];
+      if (analysis.subhathuvamResult && analysis.subhathuvamResult[pName]) {
+        return analysis.subhathuvamResult[pName];
       }
-      return { netScore: 0, subhaScore: 0, papaScore: 0, verdictText: "இயல்பு" };
+      return { netScore: 1, text: "சுபத்துவம் பெற்றுள்ளது" };
     };
-
-    const getHouseLord = (lId, hNum) => {
-      const sId = ((lId - 1 + (hNum - 1)) % 12) + 1;
-      return PLANET_LORDS[sId - 1];
-    };
-
-    const lord1 = getHouseLord(lagnaId, 1);
-    const lord2 = getHouseLord(lagnaId, 2);
-    const lord3 = getHouseLord(lagnaId, 3);
-    const lord4 = getHouseLord(lagnaId, 4);
-    const lord5 = getHouseLord(lagnaId, 5);
-    const lord6 = getHouseLord(lagnaId, 6);
-    const lord7 = getHouseLord(lagnaId, 7);
-    const lord8 = getHouseLord(lagnaId, 8);
-    const lord9 = getHouseLord(lagnaId, 9);
-    const lord10 = getHouseLord(lagnaId, 10);
-    const lord11 = getHouseLord(lagnaId, 11);
-    const lord12 = getHouseLord(lagnaId, 12);
 
     const sunSubha = getSubha("சூரியன்");
     const moonSubha = getSubha("சந்திரன்");
@@ -3581,21 +3804,31 @@ window.PGAstroRulesEngine = {
     const curDasaLord = analysis.dashaResult?.currentMahaDasa?.lord || "குரு";
     const curBhuktiLord = analysis.dashaResult?.currentBhukti?.lord || "சனி";
     const curAntharamLord = analysis.dashaResult?.currentAntharam?.lord || "புதன்";
-    const curDasaStart = analysis.dashaResult?.currentMahaDasa?.startDate || "";
-    const curDasaEnd = analysis.dashaResult?.currentMahaDasa?.endDate || "";
-    const curBhuktiStart = analysis.dashaResult?.currentBhukti?.startDate || "";
-    const curBhuktiEnd = analysis.dashaResult?.currentBhukti?.endDate || "";
 
     const curDasaBhuktiAntharamText = `${curDasaLord} தசை - ${curBhuktiLord} புக்தி - ${curAntharamLord} அந்தரம்`;
-    const curPeriodText = `${curBhuktiStart.split(',')[0]} முதல் ${curBhuktiEnd.split(',')[0]} வரை`;
 
-    // Ensure allBhuktis is available
-    let allBhuktis = (m && m.allBhuktis) || [];
+    const formatPeriodDate = (dStr) => {
+      if (!dStr) return '';
+      const d = new Date(dStr);
+      if (isNaN(d.getTime())) return dStr;
+      const monthsTamil = ["ஜன.", "பிப்.", "மார்ச்", "ஏப்.", "மே", "ஜூன்", "ஜூலை", "ஆக.", "செப்.", "அக்.", "நவ.", "டிச."];
+      return `${d.getDate()} ${monthsTamil[d.getMonth()]}, ${d.getFullYear()}`;
+    };
+
+    const curBhuktiStart = formatPeriodDate(analysis.dashaResult?.currentBhukti?.start);
+    const curBhuktiEnd = formatPeriodDate(analysis.dashaResult?.currentBhukti?.end);
+    const curPeriodText = (curBhuktiStart && curBhuktiEnd) ? `${curBhuktiStart} முதல் ${curBhuktiEnd} வரை` : "நடப்பு காலம்";
+
+    const ed = analysis.educationTiming || null;
+    const jt = analysis.jobTiming || null;
+    const mr = analysis.marriageTiming || null;
+    const ch = analysis.childbirthTiming || null;
+    const hs = analysis.houseTiming || null;
+    const vh = analysis.vehicleTiming || null;
+
+    let allBhuktis = (analysis.milestones && analysis.milestones.allBhuktis) || [];
     if (!allBhuktis || allBhuktis.length === 0) {
-      // Generate on-the-fly if needed
-      const [by, bm, bd] = nDob.split("-").map(Number);
-      const [bh, bmin] = (nTime || "12:00").split(":").map(Number);
-      const birthDate = new Date(by, bm - 1, bd, bh, bmin, 0);
+      allBhuktis = [];
       const msPerYear = 365.2425 * 24 * 60 * 60 * 1000;
       const DASHA_ORDER = [
         { lord: "கேது", years: 7 }, { lord: "சுக்கிரன்", years: 20 },
@@ -3604,62 +3837,130 @@ window.PGAstroRulesEngine = {
         { lord: "குரு", years: 16 }, { lord: "சனி", years: 19 },
         { lord: "புதன்", years: 17 }
       ];
-      let dIdx = 0;
-      let curStart = new Date(birthDate.getTime());
-      allBhuktis = [];
-      for (let cycle = 0; cycle < 7; cycle++) {
-        const mInfo = DASHA_ORDER[dIdx];
-        const mDur = mInfo.years * msPerYear;
-        let bStart = curStart.getTime();
-        for (let b = 0; b < 9; b++) {
-          const bInfo = DASHA_ORDER[(dIdx + b) % 9];
-          const bDur = (mInfo.years * bInfo.years / 120) * msPerYear;
-          const bEnd = bStart + bDur;
-          allBhuktis.push({
-            mahaLord: mInfo.lord,
-            bhuktiLord: bInfo.lord,
-            startDate: new Date(bStart),
-            endDate: new Date(bEnd),
-            startAge: (bStart - birthDate.getTime()) / msPerYear,
-            endAge: (bEnd - birthDate.getTime()) / msPerYear
-          });
-          bStart = bEnd;
+
+      if (analysis.dashaResult && analysis.dashaResult.dashaTimeline) {
+        analysis.dashaResult.dashaTimeline.forEach(dasa => {
+          const dIdx = DASHA_ORDER.findIndex(d => d.lord === dasa.lord);
+          if (dIdx !== -1) {
+            let bStart = dasa.startMs || (dasa.start ? new Date(dasa.start).getTime() : null);
+            if (bStart) {
+              const mInfo = DASHA_ORDER[dIdx];
+              for (let b = 0; b < 9; b++) {
+                const bInfo = DASHA_ORDER[(dIdx + b) % 9];
+                const bDur = (mInfo.years * bInfo.years / 120) * msPerYear;
+                const bEnd = bStart + bDur;
+                allBhuktis.push({
+                  mahaLord: mInfo.lord,
+                  bhuktiLord: bInfo.lord,
+                  startDate: new Date(bStart),
+                  endDate: new Date(bEnd),
+                  startAge: (bStart - dobDate.getTime()) / msPerYear,
+                  endAge: (bEnd - dobDate.getTime()) / msPerYear
+                });
+                bStart = bEnd;
+              }
+            }
+          }
+        });
+      }
+
+      if (allBhuktis.length === 0) {
+        let dIdx = 0;
+        let curStart = new Date(dobDate.getTime());
+        for (let cycle = 0; cycle < 7; cycle++) {
+          const mInfo = DASHA_ORDER[dIdx];
+          const mDur = mInfo.years * msPerYear;
+          let bStart = curStart.getTime();
+          for (let b = 0; b < 9; b++) {
+            const bInfo = DASHA_ORDER[(dIdx + b) % 9];
+            const bDur = (mInfo.years * bInfo.years / 120) * msPerYear;
+            const bEnd = bStart + bDur;
+            allBhuktis.push({
+              mahaLord: mInfo.lord,
+              bhuktiLord: bInfo.lord,
+              startDate: new Date(bStart),
+              endDate: new Date(bEnd),
+              startAge: (bStart - dobDate.getTime()) / msPerYear,
+              endAge: (bEnd - dobDate.getTime()) / msPerYear
+            });
+            bStart = bEnd;
+          }
+          curStart = new Date(curStart.getTime() + mDur);
+          dIdx = (dIdx + 1) % 9;
         }
-        curStart = new Date(curStart.getTime() + mDur);
-        dIdx = (dIdx + 1) % 9;
       }
     }
 
-    // Helpers to find and format Bhuktis
     function findBhuktiByAge(targetAge) {
       if (!allBhuktis.length) return null;
       return allBhuktis.find(b => b.startAge <= targetAge && b.endAge > targetAge) || allBhuktis[0];
     }
 
-    function findBestBhuktiInRange(minAge, maxAge, preferredLords = []) {
+    function findBestFutureBhukti(minOffsetYears = 0.5, maxOffsetYears = 12, preferredLords = [], minAgeLimit = 0) {
       if (!allBhuktis.length) return null;
-      const candidates = allBhuktis.filter(b => b.startAge < maxAge && b.endAge > minAge);
-      if (candidates.length === 0) return null;
+      const futureCandidates = allBhuktis.filter(b => b.endDate.getTime() >= (nowMs - 30 * 24 * 3600 * 1000) && b.startAge < (curAgeYears + maxOffsetYears) && b.endAge >= minAgeLimit);
+      if (futureCandidates.length === 0) {
+        return allBhuktis.find(b => b.startDate.getTime() >= nowMs && b.endAge >= minAgeLimit) || allBhuktis.find(b => b.startDate.getTime() >= nowMs) || allBhuktis[allBhuktis.length - 1];
+      }
       for (let pLord of preferredLords) {
-        const found = candidates.find(b => b.bhuktiLord === pLord || b.mahaLord === pLord);
+        const found = futureCandidates.find(b => b.bhuktiLord === pLord || b.mahaLord === pLord);
         if (found) return found;
       }
-      return candidates[0];
+      return futureCandidates[0];
+    }
+
+    function findBestPastBhukti(maxAgeLimit = curAgeYears, preferredLords = [], minAgeLimit = 0) {
+      if (!allBhuktis.length) return null;
+      const pastCandidates = allBhuktis.filter(b => b.endDate.getTime() <= nowMs && b.startAge <= maxAgeLimit && b.endAge >= minAgeLimit);
+      if (pastCandidates.length === 0) {
+        const validPast = allBhuktis.filter(b => b.endDate.getTime() <= nowMs && b.endAge >= minAgeLimit);
+        if (validPast.length > 0) return validPast[validPast.length - 1];
+        return allBhuktis.find(b => b.endDate.getTime() <= nowMs) || allBhuktis[0];
+      }
+      for (let pLord of preferredLords) {
+        const found = pastCandidates.find(b => b.bhuktiLord === pLord || b.mahaLord === pLord);
+        if (found) return found;
+      }
+      return pastCandidates[pastCandidates.length - 1];
+    }
+
+    function formatExactPeriodDate(d) {
+      if (!d || isNaN(d.getTime())) return '';
+      const months = ["ஜன.", "பிப்.", "மார்ச்", "ஏப்.", "மே", "ஜூன்", "ஜூலை", "ஆக.", "செப்.", "அக்.", "நவ.", "டிச."];
+      return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
     }
 
     function formatBhukti(b) {
-      if (!b) return { dasaBhukti: "சுப தசா - புத்தி", yearRange: "-", ageText: "" };
+      if (!b) return { dasaBhukti: "சுப தசா - புத்தி", yearRange: "-", ageText: "", startYear: 2026, endYear: 2028 };
+      
+      const sDateStr = formatExactPeriodDate(b.startDate);
+      const eDateStr = formatExactPeriodDate(b.endDate);
       const sY = b.startDate.getFullYear();
       const eY = b.endDate.getFullYear();
-      const sA = Math.max(0, Math.round(b.startAge));
-      const eA = Math.round(b.endAge);
+
+      const yearRange = (sDateStr && eDateStr) 
+        ? `${sDateStr} முதல் ${eDateStr} வரை`
+        : (sY === eY ? `${sY}-ஆம் ஆண்டு` : `${sY} முதல் ${eY} வரை`);
+
+      let sA = Math.max(0, b.startAge);
+      let eA = Math.max(0, b.endAge);
+      let startAgeInt = Math.floor(sA);
+      let endAgeInt = Math.ceil(eA);
+      if (startAgeInt === endAgeInt) endAgeInt = startAgeInt + 1;
+
+      let ageText = (eA < 3)
+        ? `வயது ${sA.toFixed(1)} முதல் ${eA.toFixed(1)} வரை`
+        : `வயது ${startAgeInt} முதல் ${endAgeInt} வரை`;
+
       return {
-        dasaBhukti: `${b.mahaLord} தசை - ${b.bhuktiLord} புத்தி`,
-        yearRange: `${sY} முதல் ${eY} வரை`,
-        ageText: `வயது ${sA} முதல் ${eA} வரை`,
+        dasaBhukti: `${b.mahaLord} தசை - ${b.bhuktiLord} புக்தி`,
+        yearRange: yearRange,
+        ageText: ageText,
+        startDateStr: sDateStr,
+        endDateStr: eDateStr,
         startYear: sY,
         endYear: eY,
-        isPast: b.endDate < new Date()
+        isPast: b.endDate < nowObj
       };
     }
 
@@ -3669,17 +3970,18 @@ window.PGAstroRulesEngine = {
     // Q1: கல்வி நிலை & படிப்புத் துறை (Education & Field of Study)
     // =========================================================================
     const primaryStreamName = ed ? ed.primaryStream.name : "பொறியியல் & தகவல் தொழில்நுட்பம் (IT/CS)";
-    const eduLevel = ed ? ed.educationLevel : "பட்டப் படிப்பு (Graduation / Bachelor Degree)";
-    const eduCollegeBhukti = findBestBhuktiInRange(17, 23, ["புதன்", "குரு", lord5, lord4, "சுக்கிரன்"]) || findBhuktiByAge(19);
-    const eduSchoolBhukti = findBestBhuktiInRange(6, 16, ["புதன்", "சூரியன்", lord4]) || findBhuktiByAge(12);
-    const eduHigherBhukti = findBestBhuktiInRange(24, 32, ["குரு", "புதன்", lord9, lord10]) || findBhuktiByAge(26);
+    const eduLevelVal = ed ? (typeof ed.educationLevel === 'object' ? (ed.educationLevel.verdict || ed.educationLevel.level || ed.educationLevel.educationLevel) : ed.educationLevel) : "பட்டப் படிப்பு (Graduation / Bachelor Degree)";
+    const eduLevel = typeof eduLevelVal === 'string' ? eduLevelVal : "பட்டப் படிப்பு (Graduation / Bachelor Degree)";
+    const eduCollegeBhukti = findBestPastBhukti(23, ["புதன்", "குரு", lord4, lord5, "சூரியன்", "சந்திரன்"], 17.0) || findBhuktiByAge(19);
+    const eduSchoolBhukti = findBestPastBhukti(17, ["புதன்", "சூரியன்", lord4, lord5], 6.0) || findBhuktiByAge(12);
+    const eduHigherBhukti = findBestFutureBhukti(0.5, 12, ["குரு", "புதன்", lord9, lord10]) || findBhuktiByAge(35);
 
     const fEduCollege = formatBhukti(eduCollegeBhukti);
     const fEduSchool = formatBhukti(eduSchoolBhukti);
     const fEduHigher = formatBhukti(eduHigherBhukti);
 
-    const slowEduBhukti = findBestBhuktiInRange(6, 22, ["சனி", "ராகு", lord6, lord8]) || findBhuktiByAge(12);
-    const breakEduBhukti = findBestBhuktiInRange(6, 22, ["கேது", lord8, lord12]) || findBhuktiByAge(14);
+    const slowEduBhukti = findBestPastBhukti(23, ["சனி", "ராகு", lord6, lord8], 10.0) || findBhuktiByAge(15);
+    const breakEduBhukti = findBestPastBhukti(23, ["கேது", lord8, lord12], 10.0) || findBhuktiByAge(16);
     const fSlowEdu = formatBhukti(slowEduBhukti);
     const fBreakEdu = formatBhukti(breakEduBhukti);
 
@@ -3694,7 +3996,7 @@ window.PGAstroRulesEngine = {
       dasaBhukti: fEduCollege.dasaBhukti,
       yearRange: fEduCollege.yearRange,
       ageRange: fEduCollege.ageText,
-      directAnswer: `வித்யா காரகன் புதன் மற்றும் 4, 5-ஆம் பாவக ஆய்வின்படி, ${nativeTitle}ருக்கு: <strong>${primaryStreamName}</strong> மிகச் சிறந்த கல்வித் துறையாக அமையும். <strong>${eduLevel}</strong> வரை கல்வி பயிலும் பாக்கியம் உண்டு.<br><br>🎓 <strong>கல்வி தசாபுத்தி காலகட்ட பகுப்பாய்வு (Education Dasa-Bhukti Timeline):</strong><br>• 🌟 <strong>கல்வி மேன்மை / முதன்மை யோக காலம்:</strong> <strong>${fEduCollege.dasaBhukti}</strong> (${fEduCollege.yearRange}, ${fEduCollege.ageText}) - புதன்/குரு/4,5-ஆம் அதிபதிகளின் சுப அனுகூலத்தால் கல்வியில் தேர்ச்சியும் உயர் மதிப்பெண்களும் பெறும் பொற்காலம்.<br>• ⚠️ <strong>படிப்பு மந்தம் / கவனச்சிதறல் காலம்:</strong> <strong>${fSlowEdu.dasaBhukti}</strong> (${fSlowEdu.yearRange}, ${fSlowEdu.ageText}) - சனி/ராகு/6-ஆம் அதிபதி ஆதிக்கத்தால் தற்காலிக மந்தநிலை, கவனச்சிதறல் ஏற்படும் காலம்.<br>• 🛑 <strong>படிக்க விருப்பமின்மை / தற்காலிகத் தடை காலம்:</strong> <strong>${fBreakEdu.dasaBhukti}</strong> (${fBreakEdu.yearRange}, ${fBreakEdu.ageText}) - கேது/8,12-ஆம் அதிபதி மறைவுத் தொடர்பால் படிப்பில் ஆர்வம் குறைதல் அல்லது தற்காலிக அரியர்ஸ்/பாடம் மாறுதல் ஏற்படும் காலம்.`,
+      directAnswer: `வித்யா காரகன் புதன் மற்றும் 4, 5-ஆம் பாவக ஆய்வின்படி, ${nativeTitle}ருக்கு: <strong>${primaryStreamName}</strong> மிகச் சிறந்த கல்வித் துறையாக அமையும். <strong>${eduLevel}</strong> வரை கல்வி பயிலும் பாக்கியம் உண்டு (${fEduCollege.yearRange} - ${fEduCollege.ageText}-ல் கல்வி நிறைவுற்றது).<br><br>🎓 <strong>கல்வி தசாபுத்தி காலகட்ட பகுப்பாய்வு (Education Dasa-Bhukti Timeline):</strong><br>• 🌟 <strong>கல்வி மேன்மை / முதன்மை யோக காலம்:</strong> <strong>${fEduCollege.dasaBhukti}</strong> (${fEduCollege.yearRange}, ${fEduCollege.ageText}) - புதன்/குரு/4,5-ஆம் அதிபதிகளின் சுப அனுகூலத்தால் கல்வியில் தேர்ச்சியும் உயர் மதிப்பெண்களும் பெற்ற பொற்காலம்.<br>• ⚠️ <strong>படிப்பு மந்தம் / கவனச்சிதறல் காலம்:</strong> <strong>${fSlowEdu.dasaBhukti}</strong> (${fSlowEdu.yearRange}, ${fSlowEdu.ageText}) - சனி/ராகு/6-ஆம் அதிபதி ஆதிக்கத்தால் தற்காலிக மந்தநிலை, கவனச்சிதறல் ஏற்பட்ட காலம்.<br>• 🛑 <strong>படிக்க விருப்பமின்மை / தற்காலிகத் தடை காலம்:</strong> <strong>${fBreakEdu.dasaBhukti}</strong> (${fBreakEdu.yearRange}, ${fBreakEdu.ageText}) - கேது/8,12-ஆம் அதிபதி மறைவுத் தொடர்பால் படிப்பில் ஆர்வம் குறைதல் அல்லது தற்காலிக அரியர்ஸ் ஏற்பட்ட காலம்.`,
       timings: {
         pastDasa: fEduSchool.dasaBhukti,
         pastYears: fEduSchool.yearRange,
@@ -3703,14 +4005,14 @@ window.PGAstroRulesEngine = {
         presentYears: curPeriodText,
         present: curAgeYears < 23 
           ? `தற்போது ${fEduCollege.dasaBhukti}-ல் (${fEduCollege.yearRange}) கல்லூரி தொழிற்கல்வி பயின்று புதிய திறன்களை வளர்க்கும் பருவம்.`
-          : `கல்விப் பருவம் வெற்றிகரமாக முடிந்து, தற்போது நடக்கும் ${curDasaLord} தசையில் பெற்ற கல்வியைப் பயன்படுத்தி தொழில் & உத்தியோகத்தில் அனுபவ அறிவை வளர்க்கும் காலம்.`,
+          : `கல்விப் பருவம் வெற்றிகரமாக முடிந்து (${fEduCollege.ageText}-ல் நிறைவுற்றது), தற்போது நடக்கும் ${curDasaLord} தசையில் பெற்ற கல்வியைப் பயன்படுத்தி தொழில் & உத்தியோகத்தில் அனுபவ அறிவை வளர்க்கும் காலம்.`,
         futureDasa: fEduHigher.dasaBhukti,
         futureYears: fEduHigher.yearRange,
         future: `எதிர்காலத்தில் ${fEduHigher.dasaBhukti}-ல் (${fEduHigher.yearRange}, ${fEduHigher.ageText}) பணி நிமித்தமான சிறப்பு சான்றிதழ் படிப்புகள் (Certifications) மற்றும் நிர்வாக மேலாண்மைத் தேர்ச்சி பெறும் யோகம்.`
       },
       astrologicalAnalysis: {
         subhathuvam: `வித்யா காரகன் புதன் சுபத்துவம்: ${mercurySubha.netScore >= 0 ? '+' : ''}${mercurySubha.netScore} • 4-ஆம் பாவாதிபதி ${lord4}: ${getSubha(lord4).netScore >= 0 ? '+' : ''}${getSubha(lord4).netScore} • 5-ஆம் பாவாதிபதி ${lord5}: ${getSubha(lord5).netScore >= 0 ? '+' : ''}${getSubha(lord5).netScore}. புதன் குரு சேர்க்கை அல்லது சுப பார்வை உயர் தொழில்நுட்ப ஞானத்தையும் கூரிய கணித அறிவையும் நல்கும்.`,
-        paavathuvam: `4-ல் ராகு/கேது அல்லது தேய்பிறை சந்திரன் தொடர்பால் பள்ளிப் பருவத்தில் படிப்பில் சிறு கவனச் சிதறல் வந்து விலகியிருக்கும்; எனினும் சுப புதனின் பலம் தடையின்றி பட்டப் படிப்பை முடித்துக் கொடுக்கும்.`,
+        paavathuvam: `4-ல் ராகு/கேது அல்லது தேய்பிறை சந்திரன் தொடர்பால் பள்ளிப் பருவத்தில் படிப்பில் சிறு கவனச் சிதறல் வந்து விலகியிருக்கும்; எனினும் சுப புதனின் பலம் தடையின்றி பட்டப் படிப்பை முடித்துக் கொடுத்தது.`,
         sookshumaValu: `புதன் நவாம்சத்தில் பலம் பெறுவதால் கல்வி சார்ந்த ஞானமும், மற்றவர்களுக்கு வழிகாட்டும் ஆசிரியர் மற்றும் ஆலோசகர் ஆளுமையும் இயல்பாகவே அமையும்.`
       },
       remedies: "புதன்கிழமைகளில் ஹயக்ரீவர் சன்னதியில் ஏலக்காய் மாலை சாற்றி, 'ஓம் ஸ்ரீ ஹயக்ரீவாய நமஹ' 108 முறை ஜபித்து வர கல்வி மற்றும் தேர்வுகளில் முதலிடம் கிட்டும்."
@@ -3719,27 +4021,19 @@ window.PGAstroRulesEngine = {
     // =========================================================================
     // Q2: புதியவர்களுக்கான முதல் வேலை & வயது (First Job for Freshers)
     // =========================================================================
+    const pastJobBhukti = findBestPastBhukti(27, ["செவ்வாய்", "சனி", lord10, lord6, lord2], 18.0) || findBhuktiByAge(22);
     const fJob = (jt && jt.firstJob) ? {
       dasaBhukti: jt.firstJob.dasaBhukti,
       yearRange: jt.firstJob.yearRange,
       ageText: jt.firstJob.ageText,
       isPast: jt.firstJob.isPast
-    } : formatBhukti(findBestBhuktiInRange(19, 23, ["செவ்வாய்", "சனி", lord10, lord6]));
+    } : formatBhukti(pastJobBhukti);
 
-    const sJob = (jt && jt.secondJob) ? {
-      dasaBhukti: jt.secondJob.dasaBhukti,
-      yearRange: jt.secondJob.yearRange,
-      ageText: jt.secondJob.ageText
-    } : formatBhukti(findBestBhuktiInRange(22, 26, ["செவ்வாய்", "சுக்கிரன்", lord10]));
+    const elevJobBhukti = findBestFutureBhukti(0.5, 12, ["குரு", "சூரியன்", lord10, lord11]) || findBhuktiByAge(curAgeYears + 3);
+    const elevJob = formatBhukti(elevJobBhukti);
 
-    const elevJob = (jt && jt.careerElevation) ? {
-      dasaBhukti: jt.careerElevation.dasaBhukti,
-      yearRange: jt.careerElevation.yearRange,
-      ageText: jt.careerElevation.ageText
-    } : formatBhukti(findBestBhuktiInRange(30, 42, ["குரு", "சூரியன்", lord10, lord11]));
-
-    const jobChangeBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 6, [lord3, lord10, lord12, "சனி"]) || findBhuktiByAge(curAgeYears + 2);
-    const jobLossBhukti = findBestBhuktiInRange(21, 55, [lord8, lord6, "கேது", "ராகு"]) || findBhuktiByAge(curAgeYears + 1);
+    const jobChangeBhukti = findBestFutureBhukti(0.5, 6, [lord3, lord10, lord12, "சனி"]) || findBhuktiByAge(curAgeYears + 2);
+    const jobLossBhukti = findBestFutureBhukti(0.5, 10, [lord8, lord6, "கேது", "ராகு"]) || findBhuktiByAge(curAgeYears + 4);
     const fJobChange = formatBhukti(jobChangeBhukti);
     const fJobLoss = formatBhukti(jobLossBhukti);
 
@@ -3754,13 +4048,11 @@ window.PGAstroRulesEngine = {
       dasaBhukti: fJob.dasaBhukti,
       yearRange: fJob.yearRange,
       ageRange: fJob.ageText,
-      directAnswer: `உத்தியோக ஸ்தானமான 6-ஆம் பாவம், ஜீவன ஸ்தானமான 10-ஆம் பாவம் மற்றும் தசாபுத்தி அமைப்பின்படி: ${nativeTitle}ருக்கு <strong>${fJob.dasaBhukti}</strong> காலகட்டத்தில் <strong>${fJob.yearRange} (${fJob.ageText})</strong> முதல் உத்தியோகம் சுபமாக அமையும். கேம்பஸ் இன்டர்வியூ அல்லது நேரடி நேர்முகத் தேர்வில் சுலபமாக தேர்வாகி கைநிறைய சம்பளத்தில் பணியில் இணைவார்.<br><br>💼 <strong>உத்தியோக மாற்ற & வேலை இழப்பு தசாபுத்தி காலகட்ட பகுப்பாய்வு (Career Timeline):</strong><br>• 🔄 <strong>உத்தியோக மாற்றம் & உயர்வு காலம் (Job Change & Switch):</strong> <strong>${fJobChange.dasaBhukti}</strong> (${fJobChange.yearRange}, ${fJobChange.ageText}) - 3/10/12-ஆம் பாவ தொடர்புகளால் பணி இடமாற்றம் அல்லது புதிய சிறந்த நிறுவனத்தில் பதவி உயர்வுடன் சேரும் காலம்.<br>• ⚠️ <strong>வேலை இழப்பு / தற்காலிக இடைவெளி காலம் (Job Loss / Career Break):</strong> <strong>${fJobLoss.dasaBhukti}</strong> (${fJobLoss.yearRange}, ${fJobLoss.ageText}) - 8/6-ஆம் அதிபதி அல்லது கேதுவின் விரக்தி ஆதிக்கத்தால் தற்காலிக வேலை இழப்பு அல்லது விருப்பமில்லாமல் வீட்டில் இருக்கும் காலம்.`,
+      directAnswer: `உத்தியோக ஸ்தானமான 6-ஆம் பாவம், ஜீவன ஸ்தானமான 10-ஆம் பாவம் மற்றும் தசாபுத்தி அமைப்பின்படி: ${nativeTitle}ருக்கு <strong>${fJob.dasaBhukti}</strong> காலகட்டத்தில் <strong>${fJob.yearRange} (${fJob.ageText})</strong> முதல் உத்தியோகம் சுபமாக அமைந்தது. கேம்பஸ் இன்டர்வியூ அல்லது நேரடி நேர்முகத் தேர்வில் சுலபமாக தேர்வாகி கைநிறைய சம்பளத்தில் பணியில் இணைந்தார்.<br><br>💼 <strong>உத்தியோக மாற்ற & வேலை இழப்பு தசாபுத்தி காலகட்ட பகுப்பாய்வு (Career Timeline):</strong><br>• 🔄 <strong>உத்தியோக மாற்றம் & உயர்வு காலம் (Job Change & Switch):</strong> <strong>${fJobChange.dasaBhukti}</strong> (${fJobChange.yearRange}, ${fJobChange.ageText}) - 3/10/12-ஆம் பாவ தொடர்புகளால் பணி இடமாற்றம் அல்லது புதிய சிறந்த நிறுவனத்தில் பதவி உயர்வுடன் சேரும் காலம்.<br>• ⚠️ <strong>வேலை இழப்பு / தற்காலிக இடைவெளி காலம் (Job Loss / Career Break):</strong> <strong>${fJobLoss.dasaBhukti}</strong> (${fJobLoss.yearRange}, ${fJobLoss.ageText}) - 8/6-ஆம் அதிபதி அல்லது கேதுவின் விரக்தி ஆதிக்கத்தால் தற்காலிக வேலை இழப்பு அல்லது விருப்பமில்லாமல் வீட்டில் இருக்கும் காலம்.`,
       timings: {
         pastDasa: fJob.dasaBhukti,
         pastYears: fJob.yearRange,
-        past: fJob.isPast 
-          ? `முந்தைய ${fJob.dasaBhukti}-ல் (${fJob.yearRange}, ${fJob.ageText}) கல்லூரி முடித்த கையோடு முதல் பணியில் சேர்ந்த அனுபவம்.`
-          : `கடந்த காலத்தில் நேர்முகத் தேர்வுகள் மற்றும் பணி சார்ந்த தகுதிகளை வளர்த்துக் கொண்ட பயிற்சி காலம்.`,
+        past: `முந்தைய ${fJob.dasaBhukti}-ல் (${fJob.yearRange}, ${fJob.ageText}) கல்லூரி முடித்த கையோடு முதல் பணியில் சேர்ந்த அனுபவம்.`,
         presentDasa: curDasaBhuktiAntharamText,
         presentYears: curPeriodText,
         present: `தற்போது நடக்கும் ${curDasaLord} தசை - ${curBhuktiLord} புக்தியில் பணியில் முழு ஈடுபாட்டுடன் திறமையை வெளிப்படுத்தி நிர்வாகத்தின் பாராட்டைப் பெறும் காலம்.`,
@@ -3785,10 +4077,10 @@ window.PGAstroRulesEngine = {
       ? "அரசு காரகன் சூரியன் மற்றும் அதிகார காரகன் செவ்வாய் உச்ச சுபத்துவம் பெற்றுள்ளதால், போட்டித் தேர்வுகளில் (UPSC, TNPSC, Banking, SSC, Police, Judiciary) வெற்றி பெற்று அரசு முத்திரையுடன் கூடிய அதிகாரப் பதவி வகிப்பார்."
       : "வணிக காரகன் புதன் மற்றும் சொகுசு காரகன் சுக்கிரனின் ஆதிக்கம் மேலோங்கி உள்ளதால், அரசுப் பணியை விட பன்னாட்டு கார்ப்பரேட் நிறுவனங்களில் லட்சங்களில் மாத வருமானம் ஈட்டும் தனியார் உயர் பதவியே ஜாதகருக்கு உச்சபட்ச செல்வச் செழிப்பைத் தரும்.";
 
-    const govtTargetBhukti = isGovtEligible
-      ? (findBestBhuktiInRange(curAgeYears, curAgeYears + 6, ["சூரியன்", "செவ்வாய்", lord10, "குரு"]) || findBhuktiByAge(curAgeYears + 2))
-      : (findBestBhuktiInRange(curAgeYears, curAgeYears + 6, ["புதன்", "சுக்கிரன்", "ராகு", lord10]) || findBhuktiByAge(curAgeYears + 2));
+    const govtTargetBhukti = findBestFutureBhukti(0.5, 8, isGovtEligible ? ["சூரியன்", "செவ்வாய்", lord10, "குரு"] : ["புதன்", "சுக்கிரன்", "ராகு", lord10]) || findBhuktiByAge(curAgeYears + 2);
+    const pastGovtJobBhukti = findBestPastBhukti(curAgeYears, ["செவ்வாய்", "சனி", lord10]) || findBhuktiByAge(curAgeYears - 5);
     const fGovtTarget = formatBhukti(govtTargetBhukti);
+    const fPastGovtJob = formatBhukti(pastGovtJobBhukti);
 
     questions.push({
       id: "qa_govt_vs_pvt",
@@ -3803,9 +4095,9 @@ window.PGAstroRulesEngine = {
       ageRange: fGovtTarget.ageText,
       directAnswer: `${nativeTitle}ரின் ஜாதக பிரமாணப்படி: <strong>${govtVerdict}</strong> அமையும். ${govtReason}`,
       timings: {
-        pastDasa: fJob.dasaBhukti,
-        pastYears: fJob.yearRange,
-        past: `முந்தைய ${fJob.dasaBhukti}-ல் (${fJob.yearRange}) போட்டித் தேர்வுகள் அல்லது கார்ப்பரேட் நிறுவனங்களில் நுழைவதற்கான முயற்சிகளில் ஈடுபட்ட அனுபவம்.`,
+        pastDasa: fPastGovtJob.dasaBhukti,
+        pastYears: fPastGovtJob.yearRange,
+        past: `முந்தைய ${fPastGovtJob.dasaBhukti}-ல் (${fPastGovtJob.yearRange}) போட்டித் தேர்வுகள் அல்லது கார்ப்பரேட் நிறுவனங்களில் நுழைவதற்கான முயற்சிகளில் ஈடுபட்ட அனுபவம்.`,
         presentDasa: curDasaBhuktiAntharamText,
         presentYears: curPeriodText,
         present: `தற்போது நடக்கும் ${curDasaLord} தசை - ${curBhuktiLord} புக்தியில் தொழில் விவகாரங்களில் ஸ்திரத்தன்மையை நோக்கி நகர்த்தும் காலம்.`,
@@ -3829,8 +4121,10 @@ window.PGAstroRulesEngine = {
     // Q4: எந்த துறையில் பணி & தொழில் அமையும்? (Job Industry & Career Field)
     // =========================================================================
     const jobFields = jt && jt.recommendedFields ? jt.recommendedFields.join(" • ") : "தகவல் தொழில்நுட்பம் (IT), வங்கி & நிதி நிர்வாகம், பொறியியல்";
-    const jobPeakBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 8, [lord10, "சனி", "குரு", "புதன்"]) || findBhuktiByAge(curAgeYears + 3);
+    const jobPeakBhukti = findBestFutureBhukti(0.5, 8, [lord10, "சனி", "குரு", "புதன்"]) || findBhuktiByAge(curAgeYears + 3);
+    const pastJobPeakBhukti = findBestPastBhukti(curAgeYears, ["செவ்வாய்", "சனி", lord10]) || findBhuktiByAge(curAgeYears - 5);
     const fJobPeak = formatBhukti(jobPeakBhukti);
+    const fPastJobPeak = formatBhukti(pastJobPeakBhukti);
 
     questions.push({
       id: "qa_job_field",
@@ -3845,9 +4139,9 @@ window.PGAstroRulesEngine = {
       ageRange: fJobPeak.ageText,
       directAnswer: `10-ஆம் அதிபதி ${lord10} மற்றும் ஜீவனகாரகன் சனி பெற்றுள்ள சுபத்துவ இணைவுகளின்படி, ${nativeTitle}ருக்கு உச்சபட்ச தனலாபம் மற்றும் அதிகாரத்தை தரும் முதன்மைத் துறைகள்: <strong>${jobFields}</strong> ஆகும். இத்துறைகளில் நிர்வாகப் பொறுப்பு, தொழில்நுட்ப தலைமை அல்லது வர்த்தக மேலாண்மைப் பதவிகளில் ஜாதகர் சிறப்புடன் பணியாற்றுவார்.`,
       timings: {
-        pastDasa: fJob.dasaBhukti,
-        pastYears: fJob.yearRange,
-        past: `முந்தைய ${fJob.dasaBhukti}-ல் (${fJob.yearRange}) பல்வேறு துறை சார்ந்த அனுபவங்களைத் திரட்டி, தொழில் நுணுக்கங்களை கற்றுக் கொண்ட ஆரம்ப காலகட்டம்.`,
+        pastDasa: fPastJobPeak.dasaBhukti,
+        pastYears: fPastJobPeak.yearRange,
+        past: `முந்தைய ${fPastJobPeak.dasaBhukti}-ல் (${fPastJobPeak.yearRange}) பல்வேறு துறை சார்ந்த அனுபவங்களைத் திரட்டி, தொழில் நுணுக்கங்களை கற்றுக் கொண்ட ஆரம்ப காலகட்டம்.`,
         presentDasa: curDasaBhuktiAntharamText,
         presentYears: curPeriodText,
         present: `தற்போது நடக்கும் ${curDasaLord} தசை - ${curBhuktiLord} புக்தியில் தனக்கான நிரந்தர துறை அடையாளத்தை உருவாக்கி நிலைநிறுத்தும் பருவம்.`,
@@ -3870,35 +4164,60 @@ window.PGAstroRulesEngine = {
     const spouseDir = (mr && mr.spouseDirection) || "தெற்கு அல்லது கிழக்கு திசை";
     const spouseNature = (mr && (mr.spouseTraits || mr.spouseQualities)) || "அன்பான குணம், கௌரவமான குடும்பப் பின்னணி, குடும்பப் பொறுப்புணர்வு கொண்டவர்";
     const mStatus = nInfo.maritalStatus || nInfo.marriageStatus || (typeof document !== "undefined" && document.getElementById("birthCalcMaritalStatus")?.value) || "unmarried";
-    const isMarriedAlready = curAgeYears > 32;
+    const minAdultMarriageAge = isFemale ? 18.0 : 21.0;
+    const rawFutureMarrBhukti = findBestFutureBhukti(0.1, 10, ["சுக்கிரன்", lord7, "குரு", lord2], minAdultMarriageAge);
+    const rawPastMarrBhukti = findBestPastBhukti(curAgeYears, ["சுக்கிரன்", lord7, "குரு"], minAdultMarriageAge);
 
-    const marrBhukti = (mr && mr.dasaBhukti) ? {
-      dasaBhukti: mr.dasaBhukti,
-      yearRange: mr.yearRange,
-      ageText: mr.ageText,
-      specialAntharam: mr.specialAntharam || "சுக்கிர அந்தரம்"
-    } : formatBhukti(findBestBhuktiInRange(23, 29, ["சுக்கிரன்", lord7, "குரு", lord2]));
+    const futureMarrBhukti = formatBhukti(rawFutureMarrBhukti);
+    const pastMarrBhukti = formatBhukti(rawPastMarrBhukti);
 
     const isUnmarriedStatus = (mStatus === 'unmarried');
     const isMarriedStatus = (mStatus === 'married');
     const isSeparatedStatus = (mStatus === 'divorced' || mStatus === 'separated');
 
+    const activeMarrBhukti = isMarriedStatus ? pastMarrBhukti : futureMarrBhukti;
+    const rawActiveMarrBhukti = isMarriedStatus ? rawPastMarrBhukti : rawFutureMarrBhukti;
+
     let marriageTimelineText = '';
     if (isSeparatedStatus) {
-      marriageTimelineText = `💍 <strong>திருமண & மறுமண தசாபுத்தி காலகட்ட பகுப்பாய்வு (Marriage & Remarriage Timeline):</strong><br>• ⚠️ <strong>முதல் திருமணம் & பிரிவு நிலை (1st Marriage & Separation):</strong> முந்தைய காலகட்டத்தில் முதல் திருமணம் நடைபெற்ற காலம்; பின்னர் 7-ஆம் பாவக பாபத்துவ அமைப்பால் கருத்து வேறுபாடு ஏற்பட்டு பிரிவு நிலை உருவானது.<br>• ❤️ <strong>மறுமணம் / 2-ஆம் தார சுப யோக காலம் (Remarriage Timeline):</strong> எதிர்வரும் <strong>${mr && mr.secondMarriage ? mr.secondMarriage.dasaBhukti : marrBhukti.dasaBhukti}</strong> (${mr && mr.secondMarriage ? mr.secondMarriage.yearRange : marrBhukti.yearRange}) காலகட்டத்தில் மறுமணம் (2-ஆம் தார சுப யோகம்) நடைபெறுவதற்கான வாய்ப்பு மிக அதிகமாக உள்ளது.`;
+      marriageTimelineText = `💍 <strong>திருமண & மறுமண தசாபுத்தி காலகட்ட பகுப்பாய்வு (Marriage & Remarriage Timeline):</strong><br>• ⚠️ <strong>முதல் திருமணம் & பிரிவு நிலை (1st Marriage & Separation):</strong> முந்தைய காலகட்டத்தில் (${pastMarrBhukti.yearRange}) முதல் திருமணம் நடைபெற்ற காலம்; பின்னர் 7-ஆம் பாவக பாபத்துவ அமைப்பால் கருத்து வேறுபாடு ஏற்பட்டு பிரிவு நிலை உருவானது.<br>• ❤️ <strong>மறுமணம் / 2-ஆம் தார சுப யோக காலம் (Remarriage Timeline):</strong> எதிர்வரும் <strong>${futureMarrBhukti.dasaBhukti}</strong> (${futureMarrBhukti.yearRange}) காலகட்டத்தில் மறுமணம் (2-ஆம் தார சுப யோகம்) நடைபெறுவதற்கான வாய்ப்பு மிக அதிகமாக உள்ளது.`;
     } else if (isMarriedStatus) {
-      marriageTimelineText = `💍 <strong>திருமண தசாபுத்தி காலகட்ட பகுப்பாய்வு (Marriage History):</strong><br>• 💒 <strong>திருமண சுப முகூர்த்த காலம் (Past Event):</strong> <strong>${marrBhukti.dasaBhukti}</strong> (${marrBhukti.yearRange}) காலகட்டத்தில் திருமணம் நடைபெறும் யோகம் இருந்தது; அந்த காலகட்டத்தில் திருமணம் நடந்திருக்க வாய்ப்பு உள்ளது (சுப முகூர்த்தம் இனிதே நிறைவடைந்துள்ளது).`;
+      marriageTimelineText = `💍 <strong>திருமண தசாபுத்தி காலகட்ட பகுப்பாய்வு (Marriage History):</strong><br>• 💒 <strong>திருமண சுப முகூர்த்த காலம் (Past Event):</strong> <strong>${pastMarrBhukti.dasaBhukti}</strong> (${pastMarrBhukti.yearRange}) காலகட்டத்தில் திருமணம் நடைபெறும் யோகம் இருந்தது; அந்த காலகட்டத்தில் திருமணம் சுபமாக நிறைவடைந்துள்ளது.`;
     } else {
-      marriageTimelineText = `💍 <strong>திருமண தசாபுத்தி காலகட்ட பகுப்பாய்வு (Future Marriage Prediction):</strong><br>• 💒 <strong>எதிர்கால திருமண வாய்ப்பு யோக காலம்:</strong> <strong>${marrBhukti.dasaBhukti}</strong> (${marrBhukti.yearRange}, ${marrBhukti.ageText}) காலகட்டத்தில் திருமணம் நடைபெறுவதற்கான வாய்ப்பு மிக அதிகமாக உள்ளது.`;
+      marriageTimelineText = `💍 <strong>திருமண தசாபுத்தி காலகட்ட பகுப்பாய்வு (Future Marriage Prediction):</strong><br>• 💒 <strong>எதிர்கால திருமண வாய்ப்பு யோக காலம்:</strong> <strong>${futureMarrBhukti.dasaBhukti}</strong> (${futureMarrBhukti.yearRange}, ${futureMarrBhukti.ageText}) காலகட்டத்தில் திருமணம் நடைபெறுவதற்கான வாய்ப்பு மிக அதிகமாக உள்ளது.`;
     }
 
     let q5DirectAnswerText = '';
     if (isMarriedStatus) {
-      q5DirectAnswerText = `களத்திர ஸ்தானமான 7-ஆம் பாவாதிபதி ${lord7} மற்றும் சுக்கிரனின் அமைப்பின்படி: <strong>${marrBhukti.dasaBhukti} (${marrBhukti.yearRange})</strong> காலகட்டத்தில் திருமணம் நடைபெறும் யோகம் இருந்தது; அந்த காலகட்டத்தில் திருமணம் நடந்திருக்க வாய்ப்பு உள்ளது. வரன் அமைந்த திசை: <strong>${spouseDir}</strong>. துணைவர்: <strong>${spouseNature}</strong>.<br><br>${marriageTimelineText}`;
+      q5DirectAnswerText = `களத்திர ஸ்தானமான 7-ஆம் பாவாதிபதி ${lord7} மற்றும் சுக்கிரனின் அமைப்பின்படி: <strong>${pastMarrBhukti.dasaBhukti} (${pastMarrBhukti.yearRange})</strong> காலகட்டத்தில் திருமணம் சுபமாக நிறைவடைந்தது. வரன் அமைந்த திசை: <strong>${spouseDir}</strong>. துணைவர்: <strong>${spouseNature}</strong>.<br><br>${marriageTimelineText}`;
     } else if (isSeparatedStatus) {
-      q5DirectAnswerText = `முந்தைய காலகட்டத்தில் முதல் திருமணம் நடைபெற்றது; பின்னர் கருத்து வேறுபாடு காரணமாக பிரிவு ஏற்பட்டது. எதிர்வரும் <strong>${mr && mr.secondMarriage ? mr.secondMarriage.dasaBhukti : marrBhukti.dasaBhukti} (${mr && mr.secondMarriage ? mr.secondMarriage.yearRange : marrBhukti.yearRange})</strong> காலகட்டத்தில் மறுமணம் (2-ஆம் தார சுப யோகம்) நடைபெறுவதற்கான வாய்ப்பு மிக அதிகமாக உள்ளது. வரன் அமையும் திசை: <strong>${spouseDir}</strong>.<br><br>${marriageTimelineText}`;
+      q5DirectAnswerText = `முந்தைய காலகட்டத்தில் முதல் திருமணம் நடைபெற்றது; பின்னர் கருத்து வேறுபாடு காரணமாக பிரிவு ஏற்பட்டது. எதிர்வரும் <strong>${futureMarrBhukti.dasaBhukti} (${futureMarrBhukti.yearRange})</strong> காலகட்டத்தில் மறுமணம் (2-ஆம் தார சுப யோகம்) நடைபெறுவதற்கான வாய்ப்பு மிக அதிகமாக உள்ளது. வரன் அமையும் திசை: <strong>${spouseDir}</strong>.<br><br>${marriageTimelineText}`;
     } else {
-      q5DirectAnswerText = `களத்திர ஸ்தானமான 7-ஆம் பாவாதிபதி ${lord7} மற்றும் சுக்கிரனின் அமைப்பின்படி: இந்த <strong>${marrBhukti.dasaBhukti} (${marrBhukti.yearRange})</strong> காலகட்டத்தில் திருமணம் நடைபெறுவதற்கான வாய்ப்பு மிக அதிகமாக உள்ளது. வரன் அமையும் திசை: <strong>${spouseDir}</strong>. துணைவர்: <strong>${spouseNature}</strong>.<br><br>${marriageTimelineText}`;
+      q5DirectAnswerText = `களத்திர ஸ்தானமான 7-ஆம் பாவாதிபதி ${lord7} மற்றும் சுக்கிரனின் அமைப்பின்படி: இந்த <strong>${futureMarrBhukti.dasaBhukti} (${futureMarrBhukti.yearRange})</strong> காலகட்டத்தில் திருமணம் நடைபெறுவதற்கான வாய்ப்பு மிக அதிகமாக உள்ளது. வரன் அமையும் திசை: <strong>${spouseDir}</strong>. துணைவர்: <strong>${spouseNature}</strong>.<br><br>${marriageTimelineText}`;
+    }
+
+    // Evaluate Applicable Marriage Rules via Rule Engine
+    const ruleContext = {
+      placedPlanets: analysis.placedPlanets || [],
+      houseLords: houseLords,
+      subhathuvamScores: analysis.subhathuvamScores || {},
+      currentDasa: {
+        mahaLord: (rawActiveMarrBhukti && rawActiveMarrBhukti.mahaLord) || curDasaLord,
+        bhuktiLord: (rawActiveMarrBhukti && rawActiveMarrBhukti.bhuktiLord) || curBhuktiLord,
+        antharamLord: "சுக்கிரன்"
+      },
+      nativeGender: isFemale ? 'female' : 'male',
+      lagnaRasiId: lagnaId,
+      transitSaturnRasiId: 11
+    };
+
+    let matchedMarriageRulesText = "";
+    if (typeof window !== "undefined" && window.PGAstroRuleEngine && window.ASTRO_RULES) {
+      const matchedMarriageRules = window.PGAstroRuleEngine.filterApplicableRules(window.ASTRO_RULES, ruleContext, 'marriage');
+      if (matchedMarriageRules && matchedMarriageRules.length > 0) {
+        matchedMarriageRulesText = "<br><br>📜 <strong>விசேஷ திருமண ஜோதிட விதிகள் (Applied Marriage Rules):</strong><br>" +
+          matchedMarriageRules.map((m, idx) => `• <strong>விதி ${idx + 1}:</strong> ${m.rule.verdictTamil}`).join("<br>");
+      }
     }
 
     questions.push({
@@ -3909,30 +4228,30 @@ window.PGAstroRulesEngine = {
       questionTitle: "திருமணம் எப்போது நடக்கும்? எந்த வயதில் திருமணம் கைகூடும்? அமையும் வாழ்க்கைத்துணை யார்?",
       questionSummary: "திருமண வயது, சுப முகூர்த்த கால நிர்ணயம், திசை & துணைவரின் குணநலன்கள்",
       highlightBadge: isMarriedStatus ? "திருமணம் நடந்த காலம்" : (isSeparatedStatus ? "மறுமண யோக ஆய்வு" : marrAgeStr),
-      dasaBhukti: marrBhukti.dasaBhukti,
-      yearRange: marrBhukti.yearRange,
-      ageRange: marrBhukti.ageText,
-      directAnswer: q5DirectAnswerText,
+      dasaBhukti: activeMarrBhukti.dasaBhukti,
+      yearRange: activeMarrBhukti.yearRange,
+      ageRange: activeMarrBhukti.ageText,
+      directAnswer: q5DirectAnswerText + matchedMarriageRulesText,
       timings: {
-        pastDasa: marrBhukti.dasaBhukti,
-        pastYears: marrBhukti.yearRange,
+        pastDasa: pastMarrBhukti.dasaBhukti,
+        pastYears: pastMarrBhukti.yearRange,
         past: isMarriedStatus
-          ? `${marrBhukti.yearRange} காலகட்டத்தில் திருமணம் நடைபெறும் யோகம் இருந்தது; அந்த காலகட்டத்தில் திருமணம் சுபமாக நடந்திருக்க வாய்ப்பு உள்ளது.`
+          ? `${pastMarrBhukti.yearRange} காலகட்டத்தில் திருமணம் நடைபெறும் யோகம் இருந்தது; அந்த காலகட்டத்தில் திருமணம் சுபமாக நடந்தது.`
           : (isSeparatedStatus
-              ? `முந்தைய காலகட்டத்தில் முதல் திருமணம் நடைபெற்ற காலம்; பின்னர் பிரிவு உருவானது.`
-              : `கடந்த காலங்களில் வரன் பேச்சுகள் தசாபுத்திகள் காரணமாக தள்ளிப் போன காலம்.`),
+              ? `முந்தைய ${pastMarrBhukti.yearRange} காலகட்டத்தில் முதல் திருமணம் நடைபெற்றது; பின்னர் பிரிவு உருவானது.`
+              : `கடந்த ${pastMarrBhukti.yearRange} காலகட்டத்தில் வரன் பேச்சுகள் தசாபுத்திகள் காரணமாக தள்ளிப் போன பருவம்.`),
         presentDasa: curDasaBhuktiAntharamText,
         presentYears: curPeriodText,
         present: isMarriedStatus
           ? `தற்போது குடும்ப வாழ்க்கையில் கணவன்-மனைவி பரஸ்பர புரிதலுடன் குடும்ப பொறுப்புகளை முன்னெடுக்கும் காலம்.`
           : `தற்போது நடக்கும் ${curDasaLord} தசை - ${curBhuktiLord} புக்தி களத்திர ஸ்தானத்தை செயல்படுத்துவதால் தீவிர வரன் தேடல் மற்றும் நிச்சயதார்த்த சூழல் உருவாகும் காலம்.`,
-        futureDasa: marrBhukti.dasaBhukti,
-        futureYears: marrBhukti.yearRange,
+        futureDasa: futureMarrBhukti.dasaBhukti,
+        futureYears: futureMarrBhukti.yearRange,
         future: isMarriedStatus
           ? `எதிர்காலத்தில் தம்பதியர் ஒற்றுமையுடன் மங்கல சுபகாரியங்களை நடத்தி, குடும்பத்தில் பெருமகிழ்ச்சி அடையும் சுப காலம்.`
           : (isSeparatedStatus
-              ? `எதிர்வரும் ${mr && mr.secondMarriage ? mr.secondMarriage.yearRange : marrBhukti.yearRange} காலகட்டத்தில் மறுமணம் (2-ஆம் தார சுப யோகம்) நடைபெறுவதற்கான வாய்ப்பு மிக அதிகமாக உள்ளது.`
-              : `இந்த காலகட்டத்தில் (${marrBhukti.yearRange}) திருமணம் நடைபெறுவதற்கான வாய்ப்பு மிக அதிகமாக உள்ளது. சுப முகூர்த்த அந்தரத்தில் கெட்டிமேளம் கொட்டி திருமணம் இனிதே அரங்கேறும்.`)
+              ? `எதிர்வரும் ${futureMarrBhukti.yearRange} காலகட்டத்தில் மறுமணம் (2-ஆம் தார சுப யோகம்) நடைபெறுவதற்கான வாய்ப்பு மிக அதிகமாக உள்ளது.`
+              : `இந்த காலகட்டத்தில் (${futureMarrBhukti.yearRange}) திருமணம் நடைபெறுவதற்கான வாய்ப்பு மிக அதிகமாக உள்ளது. சுப முகூர்த்த அந்தரத்தில் கெட்டிமேளம் கொட்டி திருமணம் இனிதே அரங்கேறும்.`)
       },
       astrologicalAnalysis: {
         subhathuvam: `7-ஆம் அதிபதி ${lord7} சுபத்துவம்: ${getSubha(lord7).netScore >= 0 ? '+' : ''}${getSubha(lord7).netScore} • களத்திரகாரகன் சுக்கிரன் சுபத்துவம்: ${venusSubha.netScore >= 0 ? '+' : ''}${venusSubha.netScore}. 7-ஆம் அதிபதி சுப கிரகங்களான குரு, சுக்கிரன், சுப சந்திரனின் பார்வை சேர்க்கை பெற்றால் குடும்ப வாழ்க்கை அமைதியும் ஆனந்தமும் நிறைந்ததாக அமையும்.`,
@@ -3954,8 +4273,10 @@ window.PGAstroRulesEngine = {
       ? "ஜாதகத்தில் உபய ராசி / ராகு-கேது அச்சு களத்திர ஸ்தானத்தில் உள்ளதால், முதல் திருமணத்தில் கருத்து வேறுபாடுகள் அல்லது தற்காலிக பிரிவு வரக்கூடிய சாத்தியக்கூறுகள் உண்டு. எனினும் சுப தசாபுத்தியில் மறுமணம் (2-ஆம் தார யோகம்) அமைதியான வாழ்வைத் தரும் அல்லது முதல் துணையுடன் சமரசம் ஏற்படும்."
       : "ஜாதகத்தில் 7-ஆம் வீடு மற்றும் களத்திரகாரகன் பலமாக இருப்பதால், திருமண பந்தம் மிக உறுதியானது. கருத்து வேறுபாடுகள் வந்தாலும் பெரியோர்கள் தலையீட்டால் உடனே தீர்ந்துவிடும்; 2-வது அல்லது 3-வது திருமணத்திற்கான சாத்தியக்கூறுகள் இல்லை; முதல் திருமணமே தீர்க்கமாக நிலைக்கும்.";
 
-    const remarrBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 7, [lord11, "குரு", lord2, "சுக்கிரன்"]) || findBhuktiByAge(curAgeYears + 2);
+    const remarrBhukti = findBestFutureBhukti(0.5, 7, [lord11, "குரு", lord2, "சுக்கிரன்"], minAdultMarriageAge) || findBhuktiByAge(Math.max(minAdultMarriageAge + 2, curAgeYears + 2));
+    const pastRemarrBhukti = findBestPastBhukti(curAgeYears, ["சுக்கிரன்", lord7], minAdultMarriageAge) || findBhuktiByAge(Math.max(minAdultMarriageAge, curAgeYears - 5));
     const fRemarr = formatBhukti(remarrBhukti);
+    const fPastRemarr = formatBhukti(pastRemarrBhukti);
 
     questions.push({
       id: "qa_remarriage",
@@ -3970,9 +4291,9 @@ window.PGAstroRulesEngine = {
       ageRange: fRemarr.ageText,
       directAnswer: `களத்திர பாவக ஆய்வு: <strong>${remarrVerdict}</strong> 2-ஆம் பாவம் (குடும்பம்), 7-ஆம் பாவம் (களத்திரம்) மற்றும் 11-ஆம் பாவம் (மறுமணம்/2-ஆம் தாரம்) நிலைகளை ஆராயும் போது, சுபத்துவ பலம் மேலோங்கி இருப்பதால் அச்சப்படத் தேவையில்லை.`,
       timings: {
-        pastDasa: marrBhukti.dasaBhukti,
-        pastYears: marrBhukti.yearRange,
-        past: `முந்தைய ${marrBhukti.dasaBhukti}-ல் (${marrBhukti.yearRange}) குடும்ப உறவினர்களின் தலையீடு அல்லது ஈகோ காரணமாக ஏற்பட்ட மனக்கசப்பு காலகட்டம்.`,
+        pastDasa: fPastRemarr.dasaBhukti,
+        pastYears: fPastRemarr.yearRange,
+        past: `முந்தைய ${fPastRemarr.dasaBhukti}-ல் (${fPastRemarr.yearRange}) குடும்ப உறவினர்களின் தலையீடு அல்லது ஈகோ காரணமாக ஏற்பட்ட மனக்கசப்பு காலகட்டம்.`,
         presentDasa: curDasaBhuktiAntharamText,
         presentYears: curPeriodText,
         present: `தற்போது நடக்கும் ${curDasaLord} தசை - ${curBhuktiLord} புக்தியில் பரஸ்பர விட்டுக்கொடுத்தலுடன் குடும்ப ஒற்றுமையைக் காக்க வேண்டிய முக்கிய பருவம்.`,
@@ -3993,13 +4314,12 @@ window.PGAstroRulesEngine = {
     // =========================================================================
     // Q7: குழந்தைப் பாக்கியம் - 1வது & 2வது குழந்தை (Childbirth - 1st & 2nd Child)
     // =========================================================================
-    const child1Bhukti = (ch && ch.dasaBhukti) ? {
-      dasaBhukti: ch.dasaBhukti,
-      yearRange: ch.yearRange,
-      ageText: ch.ageText
-    } : formatBhukti(findBestBhuktiInRange(25, 32, ["குரு", lord5, "சுக்கிரன்", "சந்திரன்"]));
+    const futureChild1Bhukti = findBestFutureBhukti(0.5, 7, ["குரு", lord5, "சுக்கிரன்", "சந்திரன்"]) || findBhuktiByAge(curAgeYears + 2);
+    const pastChildBhukti = findBestPastBhukti(curAgeYears, ["குரு", lord5, "சுக்கிரன்"]) || findBhuktiByAge(curAgeYears - 5);
+    const child1Bhukti = formatBhukti(futureChild1Bhukti);
+    const fPastChild = formatBhukti(pastChildBhukti);
 
-    const child2Bhukti = findBestBhuktiInRange(child1Bhukti.endYear ? (child1Bhukti.endYear - new Date(nDob).getFullYear() + 2) : 29, 36, [lord5, lord9, "குரு"]) || findBhuktiByAge(32);
+    const child2Bhukti = findBestFutureBhukti(2.5, 9, [lord5, lord9, "குரு"]) || findBhuktiByAge(curAgeYears + 4);
     const fChild2 = formatBhukti(child2Bhukti);
 
     questions.push({
@@ -4015,9 +4335,9 @@ window.PGAstroRulesEngine = {
       ageRange: child1Bhukti.ageText,
       directAnswer: `புத்திர ஸ்தானமான 5-ஆம் பாவம் மற்றும் புத்திரகாரகன் குருவின் அருளால் ${nativeTitle}ருக்கு தீர்க்கமான புத்திர பாக்கியம் உண்டு. <strong>முதல் குழந்தை: ${child1Bhukti.dasaBhukti}-ல் (${child1Bhukti.yearRange}, ${child1Bhukti.ageText})</strong> சுபமாக பிறக்கும். <strong>இரண்டாம் குழந்தை: ${fChild2.dasaBhukti}-ல் (${fChild2.yearRange}, ${fChild2.ageText})</strong> யோகமாக ஜனனமாகும். பிறக்கும் குழந்தைகள் கல்வி மற்றும் ஒழுக்கத்தில் சிறந்து விளங்கி பெற்றோருக்கு பெருமை சேர்ப்பர்.`,
       timings: {
-        pastDasa: fEduCollege.dasaBhukti,
-        pastYears: fEduCollege.yearRange,
-        past: `முந்தைய காலங்களில் திருமணம் மற்றும் குழந்தை பிறப்பிற்கான பூர்வாங்க பிரார்த்தனைகள் மேற்கொண்ட காலம்.`,
+        pastDasa: fPastChild.dasaBhukti,
+        pastYears: fPastChild.yearRange,
+        past: `முந்தைய ${fPastChild.dasaBhukti}-ல் (${fPastChild.yearRange}) திருமணம் மற்றும் குழந்தை பிறப்பிற்கான பூர்வாங்க பிரார்த்தனைகள் மேற்கொண்ட காலம்.`,
         presentDasa: curDasaBhuktiAntharamText,
         presentYears: curPeriodText,
         present: `தற்போது நடக்கும் ${curDasaLord} தசை - ${curBhuktiLord} புக்தியில் கருத்தரித்தல் மற்றும் புத்திர யோகம் பலப்படும் சூழல்.`,
@@ -4036,17 +4356,22 @@ window.PGAstroRulesEngine = {
     // =========================================================================
     // Q8: சொந்த வீடு, பூமி, நிலம் & வாகன யோகம் (Land, House & Vehicle)
     // =========================================================================
-    const houseBhukti = (hs && hs.dasaBhukti) ? {
+    const pastPropBhukti = findBestPastBhukti(curAgeYears, ["செவ்வாய்", "ராகு", lord4]);
+    const futurePropBhukti = findBestFutureBhukti(0.5, 8, ["செவ்வாய்", lord4, "சனி", "சுக்கிரன்", "குரு"]);
+    const fPastProp = formatBhukti(pastPropBhukti);
+    const fFutureProp = formatBhukti(futurePropBhukti);
+
+    const houseBhukti = (hs && hs.dasaBhukti && !hs.isPast && hs.startYear >= 2026) ? {
       dasaBhukti: hs.dasaBhukti,
       yearRange: hs.yearRange,
       ageText: hs.ageText
-    } : formatBhukti(findBestBhuktiInRange(30, 38, ["செவ்வாய்", lord4, "சனி", "சுக்கிரன்"]));
+    } : fFutureProp;
 
-    const carBhukti = (vh && vh.dasaBhukti) ? {
+    const carBhukti = (vh && vh.dasaBhukti && !vh.isPast && vh.startYear >= 2026) ? {
       dasaBhukti: vh.dasaBhukti,
       yearRange: vh.yearRange,
       ageText: vh.ageText
-    } : formatBhukti(findBestBhuktiInRange(26, 34, ["சுக்கிரன்", "ராகு", lord4]));
+    } : formatBhukti(findBestFutureBhukti(0.5, 6, ["சுக்கிரன்", "ராகு", lord4]));
 
     questions.push({
       id: "qa_property_vehicle",
@@ -4061,15 +4386,15 @@ window.PGAstroRulesEngine = {
       ageRange: houseBhukti.ageText,
       directAnswer: `மாத்ரு/சுக/கிருக ஸ்தானமான 4-ஆம் பாவம் மற்றும் பூமி காரகன் செவ்வாய், வாகன காரகன் சுக்கிரன் அமைப்பால்: <strong>${houseBhukti.dasaBhukti}</strong> காலகட்டத்தில் <strong>${houseBhukti.yearRange} (${houseBhukti.ageText})</strong> சொந்த நிலம் வாங்கி பிரம்மாண்டமாக வீடு கட்டும் யோகம் கைகூடும். புதிய சொகுசு கார் (Car / SUV) வாங்கும் யோகம் <strong>${carBhukti.dasaBhukti}</strong> காலத்தில் (${carBhukti.yearRange}) சுபமாக அமையும்.`,
       timings: {
-        pastDasa: carBhukti.dasaBhukti,
-        pastYears: carBhukti.yearRange,
-        past: `முந்தைய ${carBhukti.dasaBhukti}-ல் (${carBhukti.yearRange}) சொந்த வாகனம் மற்றும் வீட்டு மனை வாங்குவதற்கான நிதி சேமிப்பு முயற்சிகளைத் தொடங்கிய பருவம்.`,
+        pastDasa: fPastProp.dasaBhukti,
+        pastYears: fPastProp.yearRange,
+        past: `முந்தைய ${fPastProp.dasaBhukti}-ல் (${fPastProp.yearRange}) சொந்த வாகனம் மற்றும் வீட்டு மனை வாங்குவதற்கான நிதி சேமிப்பு முயற்சிகளைத் தொடங்கிய பருவம்.`,
         presentDasa: curDasaBhuktiAntharamText,
         presentYears: curPeriodText,
         present: `தற்போது நிலம் அல்லது வீட்டு மனை வாங்குவதற்கான வங்கி கடன் ஆலோசனைகள் மற்றும் சொத்துத் தேடலில் ஆர்வம் காட்டும் காலம்.`,
-        futureDasa: houseBhukti.dasaBhukti,
-        futureYears: houseBhukti.yearRange,
-        future: `சாதகமான ${houseBhukti.dasaBhukti}-ல் (${houseBhukti.yearRange}, ${houseBhukti.ageText}) அடிக்கல் நாட்டி, பிரம்மாண்டமாக சொந்த வீடு கட்டி கிரகப்பிரவேசம் செய்யும் பொற்காலம்.`
+        futureDasa: fFutureProp.dasaBhukti,
+        futureYears: fFutureProp.yearRange,
+        future: `சாதகமான ${fFutureProp.dasaBhukti}-ல் (${fFutureProp.yearRange}, ${fFutureProp.ageText}) அடிக்கல் நாட்டி, பிரம்மாண்டமாக சொந்த வீடு கட்டி கிரகப்பிரவேசம் செய்யும் பொற்காலம்.`
       },
       astrologicalAnalysis: {
         subhathuvam: `4-ஆம் அதிபதி ${lord4} சுபத்துவம்: ${getSubha(lord4).netScore >= 0 ? '+' : ''}${getSubha(lord4).netScore} • பூமி காரகன் செவ்வாய்: ${marsSubha.netScore >= 0 ? '+' : ''}${marsSubha.netScore} • வாகன காரகன் சுக்கிரன்: ${venusSubha.netScore >= 0 ? '+' : ''}${venusSubha.netScore}. 4-ஆம் வீட்டில் சுப கிரகங்கள் அமர்வது அல்லது பார்வை பெறுவது சொந்த வீட்டு யோகத்தை அசைக்க முடியாததாக மாற்றும்.`,
@@ -4083,8 +4408,8 @@ window.PGAstroRulesEngine = {
     // Q9: ஆரோக்கியம், நோய் தாக்கம் & மீளும் காலம் (Health, Diseases & Cure)
     // =========================================================================
     const healthOrgans = "இதயம், வயிறு/செரிமானம், எலும்பு மச்சை, கால் நரம்புகள்";
-    const healthVulnerableBhukti = findBestBhuktiInRange(curAgeYears - 5, curAgeYears + 5, [lord6, lord8, "ராகு", "சனி"]) || findBhuktiByAge(curAgeYears);
-    const healthCureBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 6, [lord1, "குரு", "சூரியன்", lord5]) || findBhuktiByAge(curAgeYears + 2);
+    const healthVulnerableBhukti = findBestPastBhukti(curAgeYears, [lord6, lord8, "ராகு", "சனி"]) || findBhuktiByAge(curAgeYears - 4);
+    const healthCureBhukti = findBestFutureBhukti(0.5, 8, [lord1, "குரு", "சூரியன்", lord5]) || findBhuktiByAge(curAgeYears + 2);
 
     const fHealthVul = formatBhukti(healthVulnerableBhukti);
     const fHealthCure = formatBhukti(healthCureBhukti);
@@ -4124,8 +4449,10 @@ window.PGAstroRulesEngine = {
     // Q10: வெளிநாட்டு வேலை, பயணம் & குடியுரிமை (Foreign Travel & Settlement)
     // =========================================================================
     const isForeignHigh = (rahuSubha.netScore >= 1 || moonSubha.netScore >= 2 || getSubha(lord9).netScore >= 2 || getSubha(lord12).netScore >= 2);
-    const foreignBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 7, ["ராகு", lord12, lord9, "சந்திரன்"]) || findBhuktiByAge(curAgeYears + 2);
+    const foreignBhukti = findBestFutureBhukti(0.5, 7, ["ராகு", lord12, lord9, "சந்திரன்"]) || findBhuktiByAge(curAgeYears + 2);
+    const pastForeignBhukti = findBestPastBhukti(curAgeYears, ["ராகு", lord12, lord9]) || findBhuktiByAge(curAgeYears - 5);
     const fForeign = formatBhukti(foreignBhukti);
+    const fPastForeign = formatBhukti(pastForeignBhukti);
 
     questions.push({
       id: "qa_foreign_travel",
@@ -4140,9 +4467,9 @@ window.PGAstroRulesEngine = {
       ageRange: fForeign.ageText,
       directAnswer: `9-ஆம் பாவம் (தூர தேசப் பயணம்), 12-ஆம் பாவம் (அயல்நாட்டு வாசம்) மற்றும் வெளிநாட்டு காரகன் ராகுவின் அமைப்பின்படி: ${nativeTitle}ருக்கு <strong>${fForeign.dasaBhukti}</strong> காலகட்டத்தில் <strong>${fForeign.yearRange} (${fForeign.ageText})</strong> ${isForeignHigh ? "வெளிநாட்டு வேலை மற்றும் அயல்நாட்டு வாசம் நூறு சதவீதம் சாத்தியமாகும் யோகம் உண்டு" : "உள்நாட்டிலேயே பன்னாட்டு நிறுவன உயர் பொறுப்பு அல்லது குறுகிய கால வெளிநாட்டு தொழில் பயண யோகம் உண்டு"}. விசா தடைகள் விலகி சுபமாக பயணம் மேற்கொள்வார்.`,
       timings: {
-        pastDasa: fJob.dasaBhukti,
-        pastYears: fJob.yearRange,
-        past: `முந்தைய ${fJob.dasaBhukti}-ல் (${fJob.yearRange}) பாஸ்போர்ட் பெறுதல் அல்லது வெளிநாட்டு நிறுவனங்களுடன் தகவல் தொடர்பு ஏற்பட்ட அனுபவம்.`,
+        pastDasa: fPastForeign.dasaBhukti,
+        pastYears: fPastForeign.yearRange,
+        past: `முந்தைய ${fPastForeign.dasaBhukti}-ல் (${fPastForeign.yearRange}) பாஸ்போர்ட் பெறுதல் அல்லது வெளிநாட்டு நிறுவனங்களுடன் தகவல் தொடர்பு ஏற்பட்ட அனுபவம்.`,
         presentDasa: curDasaBhuktiAntharamText,
         presentYears: curPeriodText,
         present: `தற்போது வெளிநாட்டு திட்டங்கள் அல்லது அயல்நாட்டு வேலை வாய்ப்புகளுக்கான தகுதிகளை மேம்படுத்தும் காலம்.`,
@@ -4161,8 +4488,10 @@ window.PGAstroRulesEngine = {
     // =========================================================================
     // Q11: தன யோகம், கடன் நிவாரணம் & சேமிப்பு (Wealth & Debt Relief)
     // =========================================================================
-    const wealthBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 8, [lord11, lord2, "குரு", "சுக்கிரன்"]) || findBhuktiByAge(curAgeYears + 3);
+    const wealthBhukti = findBestFutureBhukti(0.5, 8, [lord11, lord2, "குரு", "சுக்கிரன்"]) || findBhuktiByAge(curAgeYears + 3);
+    const pastWealthBhukti = findBestPastBhukti(curAgeYears, [lord6, lord8, "சனி"]) || findBhuktiByAge(curAgeYears - 5);
     const fWealth = formatBhukti(wealthBhukti);
+    const fPastWealth = formatBhukti(pastWealthBhukti);
 
     questions.push({
       id: "qa_wealth_debt",
@@ -4177,9 +4506,9 @@ window.PGAstroRulesEngine = {
       ageRange: fWealth.ageText,
       directAnswer: `தன ஸ்தானமான 2-ஆம் பாவாதிபதி ${lord2} மற்றும் லாப ஸ்தானாதிபதி ${lord11} பெற்றுள்ள சுபத்துவத்தின்படி: <strong>${fWealth.dasaBhukti}</strong> காலகட்டத்தில் <strong>${fWealth.yearRange} (${fWealth.ageText})</strong> நிலுவையில் உள்ள கடன் சுமைகள் ஒரே தவணையில் முழுமையாக அடைபட்டு பொருளாதார சுதந்திரம் பெறுவார்; நிலம், கட்டிடம், வங்கி சேமிப்பு என பன்மடங்கு சொத்துக்களைக் குவித்து கோடீஸ்வர நிலையை எட்டுவார்.`,
       timings: {
-        pastDasa: fHealthVul.dasaBhukti,
-        pastYears: fHealthVul.yearRange,
-        past: `முந்தைய ${fHealthVul.dasaBhukti}-ல் (${fHealthVul.yearRange}) தொழில் அல்லது சொத்து வாங்குவதற்காக வாங்கிய கடன்கள் காரணமாக நிதி நெருக்கடி இருந்த காலகட்டம்.`,
+        pastDasa: fPastWealth.dasaBhukti,
+        pastYears: fPastWealth.yearRange,
+        past: `முந்தைய ${fPastWealth.dasaBhukti}-ல் (${fPastWealth.yearRange}) தொழில் அல்லது சொத்து வாங்குவதற்காக வாங்கிய கடன்கள் காரணமாக நிதி நெருக்கடி இருந்த காலகட்டம்.`,
         presentDasa: curDasaBhuktiAntharamText,
         presentYears: curPeriodText,
         present: `தற்போது வருமான வழிகள் விரிவடைந்து, சிறுகச் சிறுக அசையாச் சொத்துக்களை சேர்க்கும் காலம்.`,
@@ -4198,8 +4527,10 @@ window.PGAstroRulesEngine = {
     // =========================================================================
     // Q12: எதிர்ப்புகள், கோர்ட் வழக்கு & வெற்றி (Litigation, Court Cases & Victory)
     // =========================================================================
-    const courtBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 6, [lord6, "செவ்வாய்", "சூரியன்", lord1]) || findBhuktiByAge(curAgeYears + 2);
+    const courtBhukti = findBestFutureBhukti(0.5, 8, [lord6, "செவ்வாய்", "சூரியன்", lord1]) || findBhuktiByAge(curAgeYears + 2);
+    const pastCourtBhukti = findBestPastBhukti(curAgeYears, [lord6, lord8, "சனி"]) || findBhuktiByAge(curAgeYears - 5);
     const fCourt = formatBhukti(courtBhukti);
+    const fPastCourt = formatBhukti(pastCourtBhukti);
 
     questions.push({
       id: "qa_court_litigation",
@@ -4214,9 +4545,9 @@ window.PGAstroRulesEngine = {
       ageRange: fCourt.ageText,
       directAnswer: `சத்ரு ஸ்தானமான 6-ஆம் பாவாதிபதி ${lord6} மற்றும் தைரியகாரகன் செவ்வாய் அமைப்பின்படி, ${nativeTitle}ருக்கு 'சத்ரு ஜெய யோகம்' உண்டு. <strong>${fCourt.dasaBhukti}</strong> காலகட்டத்தில் <strong>${fCourt.yearRange} (${fCourt.ageText})</strong> கோர்ட் வழக்குகள் மற்றும் பூர்வீக சொத்து விவகாரங்களில் ${nativeTitle}ருக்கே சாதகமான இறுதி வெற்றித் தீர்ப்பு கிட்டும்; எதிரிகள் பணிவர்.`,
       timings: {
-        pastDasa: fHealthVul.dasaBhukti,
-        pastYears: fHealthVul.yearRange,
-        past: `முந்தைய ${fHealthVul.dasaBhukti}-ல் (${fHealthVul.yearRange}) தேவையற்ற பகைகள், பங்காளி தகராறு அல்லது பணியிடத்தில் பொறாமைக்காரர்களால் ஏற்பட்ட மனக்கசப்பு காலம்.`,
+        pastDasa: fPastCourt.dasaBhukti,
+        pastYears: fPastCourt.yearRange,
+        past: `முந்தைய ${fPastCourt.dasaBhukti}-ல் (${fPastCourt.yearRange}) தேவையற்ற பகைகள், பங்காளி தகராறு அல்லது பணியிடத்தில் பொறாமைக்காரர்களால் ஏற்பட்ட மனக்கசப்பு காலம்.`,
         presentDasa: curDasaBhuktiAntharamText,
         presentYears: curPeriodText,
         present: `தற்போது விவேகத்துடனும் சட்ட ஆலோசனையுடனும் காரியங்களை கையாண்டு சாதகமான முகாமை உருவாக்கும் காலம்.`,
@@ -4235,8 +4566,10 @@ window.PGAstroRulesEngine = {
     // =========================================================================
     // Q13: குலதெய்வ அருள் & பரிகாரங்கள் (Family Deity & Remedies)
     // =========================================================================
-    const remedyBhukti = findBestBhuktiInRange(curAgeYears, curAgeYears + 5, [lord5, lord9, "குரு", "கேது"]) || findBhuktiByAge(curAgeYears + 1);
+    const remedyBhukti = findBestFutureBhukti(0.5, 6, [lord5, lord9, "குரு", "கேது"]) || findBhuktiByAge(curAgeYears + 1);
+    const pastRemedyBhukti = findBestPastBhukti(curAgeYears, [lord5, lord9, "குரு"]) || findBhuktiByAge(curAgeYears - 5);
     const fRemedy = formatBhukti(remedyBhukti);
+    const fPastRemedy = formatBhukti(pastRemedyBhukti);
 
     questions.push({
       id: "qa_kula_deivam_remedy",
@@ -4251,9 +4584,9 @@ window.PGAstroRulesEngine = {
       ageRange: fRemedy.ageText,
       directAnswer: `5-ஆம் பாவம் (குலதெய்வம்) மற்றும் 9-ஆம் பாவம் (தந்தை/முன்னோர்கள்) நிலைகளின்படி: <strong>${fRemedy.dasaBhukti}</strong> காலகட்டத்தில் <strong>${fRemedy.yearRange} (${fRemedy.ageText})</strong> குடும்பத்துடன் குலதெய்வ சன்னதிக்கு சென்று பொங்கலிட்டு, மாவிளக்கு ஏற்றி வழிபட குடும்பத்தில் தடைபட்ட அனைத்து மங்கல காரியங்களும் மின்னல் வேகத்தில் நடக்கும்; பித்ருக்களின் ஆசியால் சந்ததி செழிக்கும்.`,
       timings: {
-        pastDasa: fEduSchool.dasaBhukti,
-        pastYears: fEduSchool.yearRange,
-        past: `முந்தைய காலங்களில் குலதெய்வத்திற்கு செய்ய வேண்டிய நேர்த்திக்கடன்கள் அல்லது வழிபாடுகளில் ஏற்பட்ட காலதாமதம்.`,
+        pastDasa: fPastRemedy.dasaBhukti,
+        pastYears: fPastRemedy.yearRange,
+        past: `முந்தைய ${fPastRemedy.dasaBhukti}-ல் (${fPastRemedy.yearRange}) குலதெய்வத்திற்கு செய்ய வேண்டிய நேர்த்திக்கடன்கள் அல்லது வழிபாடுகளில் ஏற்பட்ட காலதாமதம்.`,
         presentDasa: curDasaBhuktiAntharamText,
         presentYears: curPeriodText,
         present: `தற்போது ஆன்மீக நாட்டம் மற்றும் குலதெய்வ தரிசனத்திற்கான உந்துதல் மேலோங்கும் காலம்.`,
@@ -4270,21 +4603,22 @@ window.PGAstroRulesEngine = {
     });
 
     return questions;
-  }
-
-  // Render Horoscope Q&A Container
+  }  // Render Horoscope Q&A Container
   function renderHoroscopeQA(analysis) {
-    const container = document.getElementById("horoscopeQAContainer");
-    if (!container) return;
+    const targets = ["horoscopeQAContainer", "tab1HoroscopeQAContainer"];
+    const containers = targets.map(id => document.getElementById(id)).filter(Boolean);
+    if (containers.length === 0) return;
 
     const questions = evaluateHoroscopeQA(analysis);
     if (!questions || questions.length === 0) {
-      container.innerHTML = `
-        <div style="text-align:center; padding:2rem; color:var(--text-muted);">
-          <div style="font-size:2rem; margin-bottom:0.5rem;">🌌</div>
-          <p>ஜாதகக் கட்டத்தில் கிரகங்களை அமைத்தவுடன் கேள்வி-பதில் பகுப்பாய்வு உடனே வெளியாகும்.</p>
-        </div>
-      `;
+      containers.forEach(c => {
+        c.innerHTML = `
+          <div style="text-align:center; padding:2rem; color:var(--text-muted);">
+            <div style="font-size:2rem; margin-bottom:0.5rem;">🌌</div>
+            <p>ஜாதகக் கட்டத்தில் கிரகங்களை அமைத்தவுடன் கேள்வி-பதில் பகுப்பாய்வு உடனே வெளியாகும்.</p>
+          </div>
+        `;
+      });
       return;
     }
 
@@ -4418,7 +4752,7 @@ window.PGAstroRulesEngine = {
     });
 
     html += `</div>`;
-    container.innerHTML = html;
+    containers.forEach(c => { c.innerHTML = html; });
   }
 
   window.PGAstroEngine = {
