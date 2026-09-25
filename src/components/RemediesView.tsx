@@ -381,7 +381,7 @@ export const RemediesView: React.FC<RemediesViewProps> = ({
                     : `Temples for Mudakku Rasi falling in House ${selectedMudakkuBhava}`}
                 </span>
                 <span className="text-[11px] font-mono text-slate-400">
-                  ஆராய்ச்சியாளர் திருப்பூர் தணிகாசலம்
+                  ஏட்டுச் சுவடி ஆய்வுகள்
                 </span>
               </div>
 

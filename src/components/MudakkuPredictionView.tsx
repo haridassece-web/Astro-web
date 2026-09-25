@@ -55,7 +55,7 @@ export const MudakkuPredictionView: React.FC<MudakkuPredictionViewProps> = ({
             </h2>
             <p className="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
               {language === 'ta'
-                ? 'சூரியன் நின்ற நட்சத்திரத்தின் முடக்கு ராசி, லக்ன பாவகப் பலன்கள், முடக்கு அதிபதி சஞ்சார எச்சரிக்கைகள், 12 பாவக முழு ஆய்வு மற்றும் திருப்பூர் தணிகாசலம் ஏட்டுச் சுவடி வழிகாட்டுதல்கள்.'
+                ? 'சூரியன் நின்ற நட்சத்திரத்தின் முடக்கு ராசி, லக்ன பாவகப் பலன்கள், முடக்கு அதிபதி சஞ்சார எச்சரிக்கைகள், 12 பாவக முழு ஆய்வு மற்றும் ஏட்டுச் சுவடி வழிகாட்டுதல்கள்.'
                 : 'Deep astrological synthesis of the native’s Sun Nakshatra, Mudakku Zodiac Sign, Bhava from Lagna, Mudakku Lord placement, transit cautions, and complete 12 Bhavas analysis based on ancient Tamil astrological manuscripts.'}
             </p>
           </div>

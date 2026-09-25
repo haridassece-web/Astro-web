@@ -529,30 +529,59 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                     />
                   </div>
                 </div>
+              </div>
 
-                {/* 4. கிரக நிலைகள் – முழுமையாக தமிழில் (Planetary Positions Table) */}
-                <div className="border border-slate-300 rounded-lg overflow-hidden">
-                  <div className="bg-slate-100 px-3 py-1 border-b border-slate-300 flex items-center justify-between">
-                    <h3 className="text-xs font-bold font-serif text-slate-900 flex items-center gap-1.5">
+              {/* Page 1 Footer */}
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono mt-2">
+                <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு • ஜோதிடர்: Jayanthi M • பக்கம் 1 / {viewScope === 'standard' ? '3' : '11'}</span>
+                <span>AstroEngine Enterprise Pro • Thirukkanitham Ephemeris</span>
+              </div>
+            </div>
+
+            {/* =========================================================================
+                PAGE 2: 4. கிரக நிலைகள் – முழுமையான தமிழ் அட்டவணை (Kraha Neeligal Table)
+                ========================================================================= */}
+            <div className="report-page-block w-full max-w-4xl bg-white text-slate-900 font-sans p-6 sm:p-8 flex flex-col justify-between rounded-xl shadow-lg border border-slate-200 box-border relative">
+              <div className="space-y-4">
+                {/* Header */}
+                <div className="border-b-2 border-amber-700/60 pb-2 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-base font-bold font-serif text-amber-950 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-amber-700" />
                       <span>4. கிரக நிலைகள் – முழுமையான தமிழ் அட்டவணை (Planetary Positions)</span>
+                    </h2>
+                    <p className="text-[11px] text-slate-600 font-mono">
+                      திருக்கணித நவகிரக பஞ்சாங்க கணித முறை • நிராயன முறை (Sidereal System) • ஜோதிடர்: Jayanthi M
+                    </p>
+                  </div>
+                  <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded">
+                    பக்கம் 2 / {viewScope === 'standard' ? '3' : '11'}
+                  </span>
+                </div>
+
+                {/* 4. கிரக நிலைகள் – அட்டவணை */}
+                <div className="border border-slate-300 rounded-lg overflow-hidden">
+                  <div className="bg-amber-50/70 px-3 py-1.5 border-b border-slate-300 flex items-center justify-between">
+                    <h3 className="text-xs font-bold font-serif text-amber-950">
+                      நவகிரக பாகை, நட்சத்திரம், பாதம் & ஆட்சி நிலை விவரங்கள்
                     </h3>
-                    <span className="text-[10px] text-slate-600 font-mono">
-                      நிராயன முறை (Sidereal System)
+                    <span className="text-[10px] text-amber-900 font-mono font-bold">
+                      லேஹிரி அயனாம்சம் ({horoscope.panchanga.ayanamsaDegree || `${horoscope.ayanamsa}°`})
                     </span>
                   </div>
 
                   <table className="w-full text-left text-[11px] border-collapse">
                     <thead>
-                      <tr className="bg-amber-50/60 text-amber-950 font-bold border-b border-slate-300">
-                        <th className="p-1.5 border-r border-slate-200">கிரகம்</th>
-                        <th className="p-1.5 border-r border-slate-200">பாகை & கலை</th>
-                        <th className="p-1.5 border-r border-slate-200">ராசி</th>
-                        <th className="p-1.5 border-r border-slate-200 text-center">பாவம்</th>
-                        <th className="p-1.5 border-r border-slate-200">நட்சத்திரம்</th>
-                        <th className="p-1.5 border-r border-slate-200 text-center">பாதம்</th>
-                        <th className="p-1.5 border-r border-slate-200">நட்சத்திர நாதன்</th>
-                        <th className="p-1.5 border-r border-slate-200">ஆட்சி நிலை</th>
-                        <th className="p-1.5 text-center">இயக்கம்</th>
+                      <tr className="bg-amber-100/60 text-amber-950 font-bold border-b border-slate-300">
+                        <th className="p-2 border-r border-slate-200">கிரகம்</th>
+                        <th className="p-2 border-r border-slate-200 font-mono">பாகை & கலை</th>
+                        <th className="p-2 border-r border-slate-200">ராசி</th>
+                        <th className="p-2 border-r border-slate-200 text-center">பாவம்</th>
+                        <th className="p-2 border-r border-slate-200">நட்சத்திரம்</th>
+                        <th className="p-2 border-r border-slate-200 text-center">பாதம்</th>
+                        <th className="p-2 border-r border-slate-200">நட்சத்திர நாதன்</th>
+                        <th className="p-2 border-r border-slate-200">ஆட்சி நிலை</th>
+                        <th className="p-2 text-center">இயக்கம்</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
@@ -573,7 +602,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                               isLagna ? 'bg-amber-100/40 font-semibold' : ''
                             }`}
                           >
-                            <td className="p-1.5 border-r border-slate-200 font-bold text-slate-900 flex items-center gap-1">
+                            <td className="p-2 border-r border-slate-200 font-bold text-slate-900 flex items-center gap-1">
                               <span>{p.nameTa}</span>
                               {isRetro && (
                                 <span className="text-[9px] bg-amber-100 text-amber-900 px-1 py-0.2 rounded border border-amber-300 font-black">
@@ -581,25 +610,25 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                                 </span>
                               )}
                             </td>
-                            <td className="p-1.5 border-r border-slate-200 font-mono font-bold text-amber-900">
+                            <td className="p-2 border-r border-slate-200 font-mono font-bold text-amber-900">
                               {degFormatted}
                             </td>
-                            <td className="p-1.5 border-r border-slate-200 text-slate-800 font-serif">
+                            <td className="p-2 border-r border-slate-200 text-slate-800 font-serif">
                               {p.signNameTa}
                             </td>
-                            <td className="p-1.5 border-r border-slate-200 text-center font-mono font-bold text-indigo-900">
+                            <td className="p-2 border-r border-slate-200 text-center font-mono font-bold text-indigo-900">
                               {p.house}
                             </td>
-                            <td className="p-1.5 border-r border-slate-200 text-slate-800">
+                            <td className="p-2 border-r border-slate-200 text-slate-800">
                               {p.nakshatraTa}
                             </td>
-                            <td className="p-1.5 border-r border-slate-200 text-center font-mono font-bold text-slate-700">
+                            <td className="p-2 border-r border-slate-200 text-center font-mono font-bold text-slate-700">
                               {p.pada}
                             </td>
-                            <td className="p-1.5 border-r border-slate-200 text-slate-700">
+                            <td className="p-2 border-r border-slate-200 text-slate-700">
                               {starLord}
                             </td>
-                            <td className="p-1.5 border-r border-slate-200">
+                            <td className="p-2 border-r border-slate-200">
                               <span
                                 className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
                                   dignityTa === 'உச்சம்'
@@ -614,7 +643,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                                 {dignityTa}
                               </span>
                             </td>
-                            <td className="p-1.5 text-center font-semibold">
+                            <td className="p-2 text-center font-semibold">
                               {isLagna ? (
                                 <span className="text-slate-400">-</span>
                               ) : isRetro ? (
@@ -629,24 +658,31 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                     </tbody>
                   </table>
                 </div>
+
+                {/* Explanatory Note */}
+                <div className="bg-amber-50/40 border border-amber-200 rounded p-2.5 text-[11px] text-amber-950 font-serif leading-relaxed space-y-1">
+                  <strong>குறிப்பு விளக்கங்கள்:</strong>
+                  <p>• <strong>வக்ரம் (வ):</strong> கிரகம் இயல்பான திசைக்கு மாறாக பின்னோக்கி நகர்வது போல் தோன்றும் நிலை.</p>
+                  <p>• <strong>ஆட்சி / உச்சம் / நீசம்:</strong> கிரகத்தின் பலம் மற்றும் பலவீனத்தைக் குறிக்கும் சாஸ்திர நிலைப்பாடுகள்.</p>
+                </div>
               </div>
 
-              {/* Page 1 Footer */}
+              {/* Page 2 Footer */}
               <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono mt-2">
-                <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு • ஜோதிடர்: Jayanthi M • பக்கம் 1 / {viewScope === 'standard' ? '2' : '10'}</span>
+                <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு • கணித்தவர்: ஜோதிடர் Jayanthi M • பக்கம் 2 / {viewScope === 'standard' ? '3' : '11'}</span>
                 <span>AstroEngine Enterprise Pro • Thirukkanitham Ephemeris</span>
               </div>
             </div>
 
             {/* =========================================================================
-                PAGE 2: 5. விம்சோத்தரி தசா–புத்தி – தொடக்கம், முடிவு மற்றும் பலன்களுடன்
+                PAGE 3: 5. விம்சோத்தரி தசா–புத்தி – தொடக்கம், முடிவு மற்றும் பலன்களுடன்
                 ========================================================================= */}
             <div className="report-page-block w-full max-w-4xl bg-white text-slate-900 font-sans p-6 sm:p-8 flex flex-col justify-between rounded-xl shadow-lg border border-slate-200 box-border relative">
               <div className="space-y-3.5">
                 {/* Section 5 Header */}
                 <div className="border-b-2 border-amber-700/60 pb-2 flex items-center justify-between">
                   <div>
-                    <h2 className="text-lg font-bold font-serif text-amber-950 flex items-center gap-2">
+                    <h2 className="text-base font-bold font-serif text-amber-950 flex items-center gap-2">
                       <Sparkles className="w-4 h-4 text-amber-700" />
                       <span>5. விம்சோத்தரி தசா–புத்தி – தொடக்கம் மற்றும் முடிவு விவரங்கள்</span>
                     </h2>
@@ -655,7 +691,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                     </p>
                   </div>
                   <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded">
-                    Vimshottari 120Y
+                    பக்கம் 3 / {viewScope === 'standard' ? '3' : '11'}
                   </span>
                 </div>
 
@@ -917,9 +953,9 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                 </div>
               </div>
 
-              {/* Page 2 Footer */}
+              {/* Page 3 Footer */}
               <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono mt-2">
-                <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு • கணித்தவர்: ஜோதிடர் Jayanthi M • பக்கம் 2 / {viewScope === 'standard' ? '2' : '10'}</span>
+                <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு • கணித்தவர்: ஜோதிடர் Jayanthi M • பக்கம் 3 / {viewScope === 'standard' ? '3' : '11'}</span>
                 <span>AstroEngine Enterprise Pro • Thirukkanitham Ephemeris</span>
               </div>
             </div>
@@ -950,7 +986,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
                             </p>
                           </div>
                           <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-800 border border-slate-300 px-2 py-0.5 rounded">
-                            பக்கம் {dasaIndex + 3}
+                            பக்கம் {dasaIndex + 4} / 11
                           </span>
                         </div>
 
@@ -1008,7 +1044,7 @@ export const ReportGeneratorModal: React.FC<ReportGeneratorModalProps> = ({ horo
 
                       {/* Footer */}
                       <div className="pt-2 border-t border-slate-200 flex items-center justify-between text-[10px] text-slate-500 font-mono mt-2">
-                        <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு • கணித்தவர்: ஜோதிடர் Jayanthi M • பக்கம் {dasaIndex + 3}</span>
+                        <span>ஸ்ரீ மகா ஜாதகக் கணிப்பு • கணித்தவர்: ஜோதிடர் Jayanthi M • பக்கம் {dasaIndex + 4} / 11</span>
                         <span>AstroEngine Enterprise Pro • Thirukkanitham Ephemeris</span>
                       </div>
                     </div>
