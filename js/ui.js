@@ -829,6 +829,49 @@ window.PGAstroUI = window.PGAstroUI || {};
 
     const printDate = new Date().toLocaleDateString("ta-IN", { year: 'numeric', month: 'long', day: 'numeric' });
 
+    // Generate Dynamic Nadi Report Card using buildDynamicNadiReport
+    let nadiCardHtml = "";
+    const nadiFn = window.buildDynamicNadiReport || (typeof buildDynamicNadiReport === "function" ? buildDynamicNadiReport : null);
+    if (typeof nadiFn === "function") {
+      const planetRasisObj = {};
+      for (let rasiId in chartState) {
+        (chartState[rasiId] || []).forEach(p => {
+          if (p.planet) planetRasisObj[p.planet] = parseInt(rasiId);
+        });
+      }
+
+      let dasaPeriodsList = [];
+      if (window.PGAstroEngine && typeof window.PGAstroEngine.evaluateCurrentChart === 'function') {
+        const curAn = window.PGAstroEngine.evaluateCurrentChart();
+        if (curAn && curAn.dashaResult && curAn.dashaResult.upcomingBhuktis) {
+          dasaPeriodsList = curAn.dashaResult.upcomingBhuktis.map(b => ({
+            dasa: curAn.dashaResult.currentMahaDasa?.lord || "நடப்பு தசை",
+            bhukti: b.lord,
+            startDate: b.startDate,
+            endDate: b.endDate
+          }));
+        }
+      }
+
+      const nadiReport = nadiFn(lagnaId, planetRasisObj, dasaPeriodsList);
+      if (nadiReport) {
+        nadiCardHtml = `
+          <div style="border:1.5px solid #d4af37; background:#0b0f19; border-radius:8px; padding:0.85rem 1rem; margin-bottom:1rem;" class="nadi-dynamic-card">
+            <h3 style="color:#ffd700; font-size:1.05rem; font-family:serif; border-bottom:1px solid rgba(212,175,55,0.3); padding-bottom:4px; margin-bottom:0.6rem; display:flex; align-items:center; gap:0.4rem;">
+              <span>⚡</span> நாடி ஜோதிட உத்தியோக &amp; தொழில் வழிகாட்டல் (Dynamic Nadi Report)
+            </h3>
+            <div style="font-size:0.84rem; line-height:1.55; color:#e2e8f0; display:flex; flex-direction:column; gap:0.5rem;">
+              <div>🎯 <strong>புதிய வேலை வாய்ப்பு விதி:</strong> ${nadiReport.newJobRule}</div>
+              <div>🏆 <strong>பணி ஆணை யோக காலம்:</strong> ${nadiReport.peakOfferWindow}</div>
+              <div>💼 <strong>உத்தியோக பரிந்துரை:</strong> ${nadiReport.jobRecommendation}</div>
+              <div>🏢 <strong>சொந்த தொழில் வழிகாட்டல்:</strong> ${nadiReport.businessRecommendation}</div>
+              <div>💡 <strong>ஆலோசனை / ஃப்ரீலான்சிங்:</strong> ${nadiReport.consultancyRecommendation}</div>
+            </div>
+          </div>
+        `;
+      }
+    }
+
     container.innerHTML = `
       <div style="text-align:center; margin-bottom:0.8rem; border-bottom:2px solid var(--gold-border); padding-bottom:0.6rem;" class="print-header">
         <div style="color:var(--gold-light); font-size:1.05rem; font-weight:800; letter-spacing:0.5px;">ஸ்ரீ பச்சையம்மன் துணை • ஸ்ரீ கங்கையம்மன் துணை</div>
@@ -840,6 +883,9 @@ window.PGAstroUI = window.PGAstroUI || {};
           ஜாதகர்: <strong>${nativeName}</strong> | பாலினம்: <strong>${genderLabel}</strong> | நாள் & நேரம்: <strong>${nativeDob}</strong> | 📍 பிறந்த இடம்: <strong>${nativePlace}</strong>
         </div>
       </div>
+
+      <!-- Dynamic Nadi Prediction Card -->
+      ${nadiCardHtml}
 
       <!-- Side by Side Rasi (D1) & Navamsa (D9) Chart Grids -->
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:1rem;" class="print-charts-side-by-side">
