@@ -243,6 +243,62 @@ window.PGAstroRuleEngine = (function () {
       }
     }
 
+    // 12. Compassionate Ground Government Job Rule Check
+    if (conditions.compassionateGroundRule) {
+      const lord9 = houseLords[9];
+      const lord10 = houseLords[10];
+      const lord1 = houseLords[1];
+      const sunPl = planetMap["சூரியன்"];
+      const lord9Pl = planetMap[lord9];
+      if ((sunPl && (sunPl.isExalted || sunPl.house === 5 || sunPl.house === 9 || sunPl.house === 10)) || (lord9Pl && lord9Pl.house === 5)) {
+        matchScore += 45;
+        matchReasons.push(`9-ஆம் அதிபதி/சூரியன் சுபத்துவம் பெற்று தந்தையின் அரசு பணி வாரிசு / கருணை பணி யோகம் கொண்டுள்ளது`);
+      }
+    }
+
+    // 13. Saturn in 6th House Railway & PSU Job Rule Check
+    if (conditions.saturnIn6thHouse) {
+      const satPl = planetMap["சனி"];
+      if (satPl && (satPl.house === 6 || (satPl.rasiId && ((satPl.rasiId - lagnaId + 12) % 12 + 1) === 6))) {
+        matchScore += 50;
+        matchReasons.push(`சனி பகவான் 6-ஆம் பாவகத்தில் அமர்ந்து உத்தியோக & ரயில்வே (Railways/PSU) பணி யோகம் தருகிறார்`);
+      }
+    }
+
+    // 14. Rahu in 6th House Competitive Recruitment Rule Check
+    if (conditions.rahuIn6thHouse) {
+      const rahuPl = planetMap["ராகு"];
+      if (rahuPl && (rahuPl.house === 6 || (rahuPl.rasiId && ((rahuPl.rasiId - lagnaId + 12) % 12 + 1) === 6))) {
+        matchScore += 45;
+        matchReasons.push(`ராகு பகவான் 6-ஆம் பாவகத்தில் அமர்ந்து போட்டித் தேர்வு வெற்றி & பணி தேர்ச்சி யோகம் தருகிறார்`);
+      }
+    }
+
+    // 15. Second Marriage (2nd & 9th House) Rule Check
+    if (conditions.secondMarriageRule) {
+      const lord2 = houseLords[2];
+      const lord9 = houseLords[9];
+      const lord11 = houseLords[11];
+      const mahaLord = curDasa.mahaLord || curDasa.lord;
+      const bhuktiLord = curDasa.bhuktiLord || curDasa.lord;
+
+      if (mahaLord === lord2 || mahaLord === lord9 || mahaLord === lord11 || bhuktiLord === lord2 || bhuktiLord === lord9 || bhuktiLord === lord11 || mahaLord === "சனி" || bhuktiLord === "சுக்கிரன்") {
+        matchScore += 40;
+        matchReasons.push(`2, 9, 11-ஆம் பாவக தசா-புக்தி தொடர்புகளால் இரண்டாம் திருமண சுப யோகம் கைகூடுகிறது`);
+      }
+    }
+
+    // 16. 6th House Dispute & Legal Settlement Rule Check
+    if (conditions.legalSettlementRule) {
+      const lord6 = houseLords[6];
+      const lord6Pl = planetMap[lord6];
+      const venusPl = planetMap["சுக்கிரன்"];
+      if ((lord6Pl && lord6Pl.house === 6) || (venusPl && venusPl.house === 6)) {
+        matchScore += 40;
+        matchReasons.push(`6-ஆம் அதிபதி 6-ல் ஆட்சி பெற்று சட்ட ரீதியான தீர்வு & காவல் துறை/நீதிமன்ற மீட்பு யோகம் தருகிறார்`);
+      }
+    }
+
     const minRequiredScore = rule.minApplicableScore || 15;
     const isApplicable = matchScore >= minRequiredScore;
 

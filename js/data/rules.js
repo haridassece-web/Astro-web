@@ -78,5 +78,61 @@ window.ASTRO_RULES = [
     weight: 95,
     minApplicableScore: 15,
     verdictTamil: "நாடி ஜோதிட முறைப்படி: கோச்சார ராகு பகவான் ஜீவன/தன/உத்தியோக ஸ்தானங்களான 2, 6, 10-ஆம் திரிகோண பாவங்கள் (1, 5, 9 திரிகோணம்) அல்லது 2, 6, 10-ஆம் பாவாதிபதிகள் (அதிபதிகள்) மீது சஞ்சரிக்கும் காலகட்டத்தில் புதிய வேலை வாய்ப்பு (Job Arrival) நிச்சயமாகக் கைகூடும்."
+  },
+  {
+    id: "rule_job_compassionate_ground",
+    category: "job",
+    name: "தந்தை அரசு பணி வாரிசு / கருணை அடிப்படை உத்தியோக விதி (Compassionate Ground Government Job Rule)",
+    conditions: {
+      compassionateGroundRule: true
+    },
+    weight: 95,
+    minApplicableScore: 15,
+    verdictTamil: "9-ஆம் அதிபதி (சூரியன்/பித்ரு காரகன்) உச்சம் அல்லது சுபத்துவம் பெற்று, 10-ஆம் பாவாதிபதி மற்றும் லக்னாதிபதியுடன் தொடர்பு கொள்ளும் போது, தந்தையின் அரசுப் பணி வாரிசு அல்லது கருணை அடிப்படையில் (Compassionate Ground Appointment) அரசு/ரயில்வே பணி நிச்சயமாகக் கைகூடும்."
+  },
+  {
+    id: "rule_job_saturn_6th_house_railway",
+    category: "job",
+    name: "6-ல் சனி பகவான் அமர்வு - ரயில்வே & பொதுத்துறை அரசு உத்தியோக யோகம் (Saturn in 6th House Railway Rule)",
+    conditions: {
+      saturnIn6thHouse: true
+    },
+    weight: 95,
+    minApplicableScore: 15,
+    verdictTamil: "ஜாதகத்தில் 6-ஆம் பாவத்தில் சனி பகவான் ஆட்சி/சுபத்துவமாக அல்லது யோக ஸ்தானத்தில் அமரும் போது, ரயில்வே (Railways), கனரகப் போக்குவரத்து, மற்றும் பொதுத்துறை (PSU) அரசுப் பணிகளில் உயரிய பணி நியமன யோகம் சனி தசை/புக்தி காலத்தில் நிச்சயமாகக் கைகூடும்."
+  },
+  {
+    id: "rule_job_rahu_6th_house_recruitment",
+    category: "job",
+    name: "6-ல் ராகு பகவான் அமர்வு - போட்டித் தேர்வு & வேலை வாய்ப்பு வெற்றி விதி (Rahu in 6th House Recruitment Rule)",
+    conditions: {
+      rahuIn6thHouse: true
+    },
+    weight: 90,
+    minApplicableScore: 15,
+    verdictTamil: "6-ஆம் பாவகத்தில் ராகு பகவான் அமர்ந்து சுபத்துவம் பெறும் போது, போட்டித் தேர்வுகளில் (Competitive Exams) வெற்றி, எதிர்ப்புகளை முறியடித்து வேலை தேர்வு பட்டியலில் (Recruitment Selection List) இடம் பெறும் சுப யோகம் உண்டாகும்."
+  },
+  {
+    id: "rule_second_marriage_2nd_9th_house",
+    category: "marriage",
+    name: "2, 9-ஆம் பாவக தசா-புக்தி இரண்டாம் திருமண யோக விதி (Second Marriage 2nd & 9th House Rule)",
+    conditions: {
+      secondMarriageRule: true
+    },
+    weight: 90,
+    minApplicableScore: 15,
+    verdictTamil: "2-ஆம் பாவம் (புதிய குடும்பம்), 9-ஆம் பாவம் (இரண்டாம் திருமணம்) மற்றும் 11-ஆம் பாவாதிபதிகளின் தசா-புக்தி காலத்திலும் கோச்சார குருவின் 7/1-ஆம் பாவ பார்வையிலும் இரண்டாம் திருமணம் (Second Marriage) சுபமாக நிறைவடையும்."
+  },
+  {
+    id: "rule_dispute_legal_6th_house_settlement",
+    category: "wealth",
+    name: "6-ஆம் அதிபதி சுபத்துவம் - நிதிப் பிரச்சனை & சட்ட வழக்குகளில் தீர்வு விதி (6th House Dispute & Legal Settlement Rule)",
+    conditions: {
+      legalSettlementRule: true
+    },
+    weight: 90,
+    minApplicableScore: 15,
+    verdictTamil: "6-ஆம் பாவாதிபதி சுபத்துவம் அல்லது ஆட்சி பெறும் போது, நிதி நெருக்கடி, நிலுவைப் பணம், தரகர் ஏமாற்றப் பிரச்சனைகள் மற்றும் விவாகரத்து சட்ட வழக்குகள் காவல் துறை/நீதிமன்ற நடவடிக்கை மூலம் சாதகமாக முடிவுக்கு வரும்."
   }
 ];
+
