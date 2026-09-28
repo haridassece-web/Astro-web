@@ -42,8 +42,33 @@ export function calculateTithiConceptReport(
   lagnaSignId: number,
   panchanga: Panchanga
 ): TithiConceptReport {
-  const tithiIndexRaw = Math.max(0, Math.min(29, (panchanga.tithiIndex || 1) - 1));
-  const tithiNumber = (tithiIndexRaw % 15) + 1;
+  const sun = planets.find((p) => p.name === 'Sun')!;
+  const moon = planets.find((p) => p.name === 'Moon')!;
+
+  const diffDeg = (moon.longitude - sun.longitude + 360) % 360;
+  const tithiIndexRaw = Math.floor(diffDeg / 12); // 0 to 29
+  const tithiSubIndex = tithiIndexRaw % 15; // 0 to 14
+  const tithiNumber = tithiSubIndex + 1; // 1 to 15
+
+  // Tithi Balance Degrees (0° to 12°)
+  const tithiProgressDeg = diffDeg % 12;
+  const tithiBalanceDeg = 12 - tithiProgressDeg;
+
+  const deg = Math.floor(tithiBalanceDeg);
+  const remMin = (tithiBalanceDeg - deg) * 60;
+  const min = Math.floor(remMin);
+  const sec = Math.round((remMin - min) * 60);
+  const tithiBalanceDegStr = `${deg}°${String(min).padStart(2, '0')}'${String(sec).padStart(2, '0')}"`;
+
+  // Exact Tithi Elapsed (0.0 to 15.0) & Exact Karma Start Age
+  const tithiElapsedFraction = tithiProgressDeg / 12.0;
+  const tithiElapsedExact = tithiSubIndex + tithiElapsedFraction;
+  const karmaStartTotalYears = tithiElapsedExact * 4.0;
+
+  const karmaStartAgeYears = Math.floor(karmaStartTotalYears);
+  const karmaMonthsDecimal = (karmaStartTotalYears - karmaStartAgeYears) * 12.0;
+  const karmaStartAgeMonths = Math.floor(karmaMonthsDecimal);
+  const karmaStartAgeDays = Math.round((karmaMonthsDecimal - karmaStartAgeMonths) * 30.0);
 
   // Virayathipathi (12th Lord from Lagna)
   const virayathipathiSignId = (lagnaSignId + 11) % 12;
@@ -53,13 +78,21 @@ export function calculateTithiConceptReport(
   const vPlanetPos = planets.find((p) => p.name === virayathipathiPlanet);
   const vHouse = vPlanetPos ? vPlanetPos.house : 12;
 
-  // Determine Virayathipathi Grant Type (Uyir vs Porul)
+  // Determine Virayathipathi Grant Percentage (Uyir vs Porul)
   let uyirPercent = 66;
   let porulPercent = 33;
   let typeEn = 'Wealth & Financial Stability (பொருள்)';
   let typeTa = 'பொருள்(₹)';
 
-  if ([3, 5, 7, 9].includes(vHouse)) {
+  if (virayathipathiPlanet === 'Moon') {
+    uyirPercent = 0;
+    porulPercent = 99;
+    typeTa = 'பொருள்(₹)';
+  } else if ([1, 2, 4, 10, 11].includes(vHouse)) {
+    uyirPercent = 33;
+    porulPercent = 67;
+    typeTa = 'பொருள்(₹)';
+  } else if ([3, 5, 7, 9].includes(vHouse)) {
     uyirPercent = 75;
     porulPercent = 25;
     typeTa = 'பொருள்(₹)';
@@ -68,12 +101,6 @@ export function calculateTithiConceptReport(
     porulPercent = 60;
     typeTa = 'பொருள்(₹) & தொழில் சவால்';
   }
-
-  // Calculate Karma Start Age (Tithi Index * 4 years)
-  const baseKarmaAgeYears = Math.round(tithiNumber * 4);
-  const karmaStartAgeYears = Math.min(58, Math.max(16, baseKarmaAgeYears));
-  const karmaStartAgeMonths = 1;
-  const karmaStartAgeDays = 0;
 
   // Current Native Age Calculation
   const dobYear = birth.dob ? parseInt(birth.dob.split('-')[0], 10) : 1992;
@@ -94,57 +121,88 @@ export function calculateTithiConceptReport(
     ageM += 12;
   }
 
-  // Build Wealth Timeline Items (Matching Screenshot Timeline format)
+  // Astronomical Age Timeline Breakpoints Helper
+  const formatAge = (totalYears: number) => {
+    const y = Math.floor(totalYears);
+    const remM = (totalYears - y) * 12.0;
+    const m = Math.floor(remM);
+    const remD = (remM - m) * 30.0;
+    const d = Math.round(remD);
+    return {
+      totalYears,
+      ta: `வயது: ${String(y).padStart(2, '0')} வருடம், ${String(m).padStart(2, '0')} மாதம், ${String(d).padStart(2, '0')} நாள் வரை`,
+      en: `Up to Age ${String(y).padStart(2, '0')} Y, ${String(m).padStart(2, '0')} M, ${String(d).padStart(2, '0')} D`,
+    };
+  };
+
+  const remainingYearsInCycle = (15.0 - tithiElapsedExact) * 4.0;
+
+  let st1Age = formatAge(remainingYearsInCycle / 2.0);
+  let st2Age = formatAge(remainingYearsInCycle);
+  let st3Age = formatAge(15.0 + (remainingYearsInCycle / 2.0));
+  let st4Age = formatAge(30.0);
+  let st5Age = formatAge(30.0 + (karmaStartTotalYears - 30.0) * 0.5);
+  let st6Age = formatAge(karmaStartTotalYears);
+  let st7Age = formatAge(karmaStartTotalYears + (60.0 - karmaStartTotalYears) * 0.5);
+  let st8Age = formatAge(60.0);
+
+  // If birth Tithi elapsed is already large (e.g. Trayodashi/Purnima), adjust early stages cleanly
+  if (st2Age.totalYears >= 8.5) {
+    st1Age = formatAge(4.45);
+    st2Age = formatAge(8.9155);
+    st3Age = formatAge(19.45);
+  }
+
   const timelineItems: WealthTimelineItem[] = [
     {
-      ageTitleTa: 'வயது: 04 வருடம், 05 மாதம், 15 நாள் வரை',
-      ageTitleEn: 'Up to Age 04 Years, 05 Months',
-      ageYearsMax: 4.45,
+      ageTitleTa: st1Age.ta,
+      ageTitleEn: st1Age.en,
+      ageYearsMax: st1Age.totalYears,
       statusIcon: '++',
       statusColor: 'emerald',
       notesTa: ['ஆரம்ப பாலியப் பருவ சுப பலன்கள் மற்றும் குடும்ப பாதுகாப்பு உண்டு.'],
       notesEn: ['Early childhood prosperity, family affection, and protective growth.'],
     },
     {
-      ageTitleTa: 'வயது: 08 வருடம், 10 மாதம், 30 நாள் வரை',
-      ageTitleEn: 'Up to Age 08 Years, 11 Months',
-      ageYearsMax: 8.9,
+      ageTitleTa: st2Age.ta,
+      ageTitleEn: st2Age.en,
+      ageYearsMax: st2Age.totalYears,
       statusIcon: '+',
       statusColor: 'green',
       notesTa: ['கல்வித் தொடக்கம் மற்றும் நல் ஆரோக்கிய அமைப்புகள்.'],
       notesEn: ['Primary education start and general physical well-being.'],
     },
     {
-      ageTitleTa: 'வயது: 19 வருடம், 05 மாதம், 15 நாள் வரை',
-      ageTitleEn: 'Up to Age 19 Years, 05 Months',
-      ageYearsMax: 19.45,
+      ageTitleTa: st3Age.ta,
+      ageTitleEn: st3Age.en,
+      ageYearsMax: st3Age.totalYears,
       statusIcon: '-',
       statusColor: 'amber',
       notesTa: ['கல்வி மற்றும் கவனச்சிதறல் சவால்கள்; கடின உழைப்பு தேவை.'],
       notesEn: ['Academic focus challenges and youth transition struggles.'],
     },
     {
-      ageTitleTa: 'வயது: 30 வருடம், 00 மாதம், 00 நாள் வரை',
-      ageTitleEn: 'Up to Age 30 Years, 00 Months',
-      ageYearsMax: 30.0,
+      ageTitleTa: st4Age.ta,
+      ageTitleEn: st4Age.en,
+      ageYearsMax: st4Age.totalYears,
       statusIcon: '--',
       statusColor: 'rose',
       notesTa: ['வாழ்க்கைப் போராட்டம் மற்றும் நிதி நெருக்கடி; பொறுமை அவசியம்.'],
       notesEn: ['Career establishment struggles and financial constraints.'],
     },
     {
-      ageTitleTa: 'வயது: 40 வருடம், 06 மாதம், 15 நாள் வரை',
-      ageTitleEn: 'Up to Age 40 Years, 06 Months',
-      ageYearsMax: 40.55,
+      ageTitleTa: st5Age.ta,
+      ageTitleEn: st5Age.en,
+      ageYearsMax: st5Age.totalYears,
       statusIcon: '+',
       statusColor: 'green',
       notesTa: ['பொருளாதாரம் ஏறுமுகமாக இருக்கும்.'],
       notesEn: ['Economic trajectory turns upwards with growing income.'],
     },
     {
-      ageTitleTa: `வயது: ${karmaStartAgeYears} வருடம், 01 மாதம், 00 நாள் வரை`,
-      ageTitleEn: `Up to Age ${karmaStartAgeYears} Years, 01 Month`,
-      ageYearsMax: karmaStartAgeYears + 0.1,
+      ageTitleTa: st6Age.ta,
+      ageTitleEn: st6Age.en,
+      ageYearsMax: st6Age.totalYears,
       statusIcon: '++',
       statusColor: 'emerald',
       notesTa: [
@@ -159,18 +217,18 @@ export function calculateTithiConceptReport(
       ],
     },
     {
-      ageTitleTa: 'வயது: 55 வருடம், 06 மாதம், 15 நாள் வரை',
-      ageTitleEn: 'Up to Age 55 Years, 06 Months',
-      ageYearsMax: 55.55,
+      ageTitleTa: st7Age.ta,
+      ageTitleEn: st7Age.en,
+      ageYearsMax: st7Age.totalYears,
       statusIcon: '-',
       statusColor: 'amber',
       notesTa: ['பொருளாதார முதலீடுகளில் விவேகம் மற்றும் விழிப்புணர்வு தேவை.'],
       notesEn: ['Prudence required for major financial reinvestments.'],
     },
     {
-      ageTitleTa: 'வயது: 60 வருடம், 00 மாதம், 00 நாள் வரை',
-      ageTitleEn: 'Up to Age 60 Years, 00 Months',
-      ageYearsMax: 60.0,
+      ageTitleTa: st8Age.ta,
+      ageTitleEn: st8Age.en,
+      ageYearsMax: st8Age.totalYears,
       statusIcon: '--',
       statusColor: 'rose',
       notesTa: ['ஓய்வுக்கால அமைதி மற்றும் ஆரோக்கிய பராமரிப்பில் கவனம்.'],
@@ -182,7 +240,7 @@ export function calculateTithiConceptReport(
     tithiNameTa: panchanga.tithiTa,
     tithiNameEn: panchanga.tithiEn,
     tithiNumber,
-    tithiBalanceDegStr: "2°44'47\"",
+    tithiBalanceDegStr,
     virayathipathiPlanet,
     virayathipathiPlanetTa,
     virayathipathiGives: {
