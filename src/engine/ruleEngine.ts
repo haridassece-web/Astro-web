@@ -107,6 +107,79 @@ export function evaluateAstrologyRules(planets: PlanetPosition[], lagnaSignId: n
     matchedRules.push(getRule('lakshmi_yoga'));
   }
 
+  // 11. Sun Nakshatra Nadi Rules (1-9 Navatara count from Lagna Star)
+  const lagnaPos = planets.find((p) => p.name === 'Lagna');
+  const lagnaNakshatraId = lagnaPos ? lagnaPos.nakshatraId : Math.floor((lagnaSignId * 30) / (360 / 27));
+
+  const sunNakDist = ((sun.nakshatraId - lagnaNakshatraId + 27) % 27) + 1;
+  const sunStarCount = ((sunNakDist - 1) % 9) + 1;
+  matchedRules.push(getRule(`suriyan_nakshatra_${sunStarCount}`));
+
+  // 12. Moon Nakshatra Nadi Rules (1-9 Navatara count / placement from Lagna)
+  const moonNakDist = ((moon.nakshatraId - lagnaNakshatraId + 27) % 27) + 1;
+  const moonStarCount = ((moonNakDist - 1) % 9) + 1;
+
+  if (moonStarCount === 8) {
+    const diffSunMoon = (moon.longitude - sun.longitude + 360) % 360;
+    const isWaxing = diffSunMoon < 180;
+    if (isWaxing) {
+      matchedRules.push(getRule('chandran_nakshatra_8_valarpirai'));
+    } else {
+      matchedRules.push(getRule('chandran_nakshatra_8_theypirai'));
+    }
+  } else {
+    matchedRules.push(getRule(`chandran_nakshatra_${moonStarCount}`));
+  }
+
+  // 13. Mudakku Lord Moon Special Rules (Page 6)
+  // Check if Moon is Mudakku Lord (for Sun stars: Bharani, Krittika, Mrigashira, Magha, Purva Phalguni, Uttara Phalguni, Purva Ashadha, Uttara Ashadha)
+  const isMoonMudakkuLord = [1, 2, 4, 9, 10, 11, 19, 20].includes(sun.nakshatraId);
+  if (isMoonMudakkuLord && moon.house === 3) {
+    if (p6 && p6.house === 3) {
+      matchedRules.push(getRule('mudakku_lord_moon_3rd_house6'));
+    } else if (p12 && p12.house === 3) {
+      matchedRules.push(getRule('mudakku_lord_moon_3rd_house12'));
+    } else {
+      matchedRules.push(getRule('mudakku_lord_moon_3rd_house8'));
+    }
+  }
+
+  // 14. 11th Lord, Yogathipathi & Karma Lord Connection to Lagna
+  if (p11 && p1 && (p11.house === 1 || p11.signId === p1.signId || (p10 && p10.signId === p11.signId))) {
+    matchedRules.push(getRule('eleventh_lord_yoga_connection'));
+  }
+
+  // 15. Sun & Moon Special Nakshatra Career/Income Combinations
+  if (sun.nakshatraId === 23 && moon.nakshatraId === 14) {
+    matchedRules.push(getRule('sun_shatabhisha_moon_swati'));
+  }
+  if (sun.nakshatraId === 13 && moon.nakshatraId === 22) {
+    matchedRules.push(getRule('sun_chitra_moon_dhanishta'));
+  }
+  if (sun.nakshatraId === 8 && moon.nakshatraId === 8) {
+    matchedRules.push(getRule('sun_ashlesha_moon_ashlesha'));
+  }
+
+  const moonFromSunNakDist = ((moon.nakshatraId - sun.nakshatraId + 27) % 27) + 1;
+  const moonFromSunCount = ((moonFromSunNakDist - 1) % 9) + 1;
+
+  if (moonFromSunCount === 2) {
+    matchedRules.push(getRule('sun_moon_star_count_2_family_biz'));
+  } else if (moonFromSunCount === 3) {
+    matchedRules.push(getRule('sun_moon_star_count_3_changing_biz'));
+  } else if (moonFromSunCount === 5) {
+    matchedRules.push(getRule('sun_moon_star_count_5_millionaire'));
+  } else if (moonFromSunCount === 6) {
+    matchedRules.push(getRule('sun_moon_star_count_6_rivalry'));
+  } else if (moonFromSunCount === 7) {
+    matchedRules.push(getRule('sun_moon_star_count_7_ethical_biz'));
+    matchedRules.push(getRule('sun_moon_star_count_7_8_struggle_until_52'));
+  } else if (moonFromSunCount === 8) {
+    matchedRules.push(getRule('sun_moon_star_count_7_8_struggle_until_52'));
+  } else if (moonFromSunCount === 9) {
+    matchedRules.push(getRule('sun_moon_star_count_9_loss_then_pinnacle'));
+  }
+
   return matchedRules;
 }
 

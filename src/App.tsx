@@ -18,6 +18,7 @@ import { AshtakavargaView } from './components/AshtakavargaView';
 import { MudakkuPredictionView } from './components/MudakkuPredictionView';
 import { VivahaChakraView } from './components/VivahaChakraView';
 import { TithiPalangalView } from './components/TithiPalangalView';
+import { TithiConceptView } from './components/TithiConceptView';
 import { ReportGeneratorModal } from './components/ReportGeneratorModal';
 import { ResearchComparisonModal } from './components/ResearchComparisonModal';
 import { AuthModal } from './components/AuthModal';
@@ -45,7 +46,7 @@ function getCurrentDateTime() {
 export function App() {
   const [language, setLanguage] = useState<Language>('ta');
   const [chartFormat, setChartFormat] = useState<'south' | 'north'>('south');
-  const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'panchanga' | 'dasa' | 'transit' | 'ashtakavarga' | 'yogas' | 'predictions' | 'mudakku' | 'tithi' | 'vivahachakra' | 'remedies'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'panchanga' | 'dasa' | 'transit' | 'ashtakavarga' | 'yogas' | 'predictions' | 'mudakku' | 'tithi' | 'tithiconcept' | 'vivahachakra' | 'remedies'>('overview');
 
   const [activeChartId, setActiveChartId] = useState<string>('D1');
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
@@ -356,6 +357,18 @@ export function App() {
           </button>
 
           <button
+            onClick={() => setActiveTab('tithiconcept')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              activeTab === 'tithiconcept'
+                ? 'bg-amber-500 text-slate-950 shadow-md font-semibold'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Clock className="w-4 h-4 text-emerald-400" />
+            <span>{language === 'ta' ? 'திதி கான்செப்ட் (செல்வ நிலை)' : 'Tithi Concept (Financial Timeline)'}</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('vivahachakra')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
               activeTab === 'vivahachakra'
@@ -514,6 +527,7 @@ export function App() {
         {activeTab === 'predictions' && (
           <PredictionsView
             predictions={horoscope.domainPredictions}
+            yogasMatched={horoscope.yogasMatched}
             mudakkuPrediction={horoscope.mudakkuPrediction}
             onNavigateToMudakku={() => setActiveTab('mudakku')}
             tithiSoonyaReport={horoscope.tithiSoonyaReport}
@@ -533,6 +547,14 @@ export function App() {
         {activeTab === 'tithi' && horoscope.tithiSoonyaReport && (
           <TithiPalangalView
             report={horoscope.tithiSoonyaReport}
+            language={language}
+          />
+        )}
+
+        {activeTab === 'tithiconcept' && (
+          <TithiConceptView
+            tithiConcept={horoscope.tithiConceptReport}
+            vadhaiVainasikam={horoscope.vadhaiVainasikamReport}
             language={language}
           />
         )}

@@ -163,7 +163,7 @@ export interface AstrologyRule {
   id: string;
   nameEn: string;
   nameTa: string;
-  category: 'Raja' | 'Dhana' | 'Viparita' | 'NeechaBhanga' | 'PanchaMahapurusha' | 'Arishta' | 'General';
+  category: 'Raja' | 'Dhana' | 'Viparita' | 'NeechaBhanga' | 'PanchaMahapurusha' | 'Arishta' | 'NakshatraNadi' | 'MudakkuNadi' | 'General';
   descriptionEn: string;
   descriptionTa: string;
   score: number; // 0 to 100
@@ -321,6 +321,8 @@ export interface CalculatedHoroscope {
   ashtakavarga: AshtakavargaReport;
   mudakkuPrediction: MudakkuIndividualPrediction;
   tithiSoonyaReport?: TithiSoonyaReport;
+  tithiConceptReport?: TithiConceptReport;
+  vadhaiVainasikamReport?: VadhaiVainasikamReport;
   overallScore: number;
 }
 
@@ -567,4 +569,56 @@ export interface TithiSoonyaReport {
   grahasAnalysis: IndividualGrahaAnalysis[];
 }
 
+export interface WealthTimelineItem {
+  ageTitleTa: string;
+  ageTitleEn: string;
+  ageYearsMax: number;
+  statusIcon: '++' | '+' | '-' | '--';
+  statusColor: 'emerald' | 'green' | 'amber' | 'rose';
+  notesTa: string[];
+  notesEn: string[];
+}
 
+export interface TithiConceptReport {
+  tithiNameTa: string;
+  tithiNameEn: string;
+  tithiNumber: number;
+  tithiBalanceDegStr: string;
+  virayathipathiPlanet: string;
+  virayathipathiPlanetTa: string;
+  virayathipathiGives: {
+    typeEn: string;
+    typeTa: string;
+    uyirPercent: number;
+    porulPercent: number;
+  };
+  karmaStartAgeYears: number;
+  karmaStartAgeMonths: number;
+  karmaStartAgeDays: number;
+  currentAgeYears: number;
+  currentAgeMonths: number;
+  currentAgeDays: number;
+  timelineItems: WealthTimelineItem[];
+  settlementAgeTextTa: string;
+  settlementAgeTextEn: string;
+}
+
+export interface VadhaiVainasikamReport {
+  lagnaStarNameTa: string;
+  lagnaStarNameEn: string;
+  moonStarNameTa: string;
+  moonStarNameEn: string;
+
+  vadhaiStars: { id: number; nameTa: string; nameEn: string }[];
+  vainasikamStars: { id: number; nameTa: string; nameEn: string }[];
+
+  marakaPada88StarNameTa: string;
+  marakaPada88StarNameEn: string;
+  marakaPada88Pada: number;
+
+  currentDasaIsVadhaiOrVainasikam: boolean;
+  activeWarningsTa: string[];
+  activeWarningsEn: string[];
+  remediesTa: string[];
+  remediesEn: string[];
+}

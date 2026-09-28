@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import type { DomainPrediction, Language, MudakkuIndividualPrediction, TithiSoonyaReport } from '../types/astrology';
+import type { DomainPrediction, Language, MudakkuIndividualPrediction, TithiSoonyaReport, AstrologyRule } from '../types/astrology';
 import {
   GraduationCap, Briefcase, Coins, Heart, Baby,
-  Activity, Globe, Home, Sparkles, ShieldCheck, Star, Compass, ArrowRight, Moon
+  Activity, Globe, Home, Sparkles, ShieldCheck, Star, Compass, ArrowRight, Moon, Sun, BookOpen
 } from 'lucide-react';
 
 interface PredictionsViewProps {
   predictions: DomainPrediction[];
+  yogasMatched?: AstrologyRule[];
   mudakkuPrediction?: MudakkuIndividualPrediction;
   onNavigateToMudakku?: () => void;
   tithiSoonyaReport?: TithiSoonyaReport;
@@ -29,6 +30,7 @@ const ICON_MAP: Record<string, React.FC<{ className?: string }>> = {
 
 export const PredictionsView: React.FC<PredictionsViewProps> = ({
   predictions,
+  yogasMatched = [],
   mudakkuPrediction,
   onNavigateToMudakku,
   tithiSoonyaReport,
@@ -36,6 +38,10 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
   language,
 }) => {
   const [selectedDomain, setSelectedDomain] = useState<string>('all');
+
+  const nadiRules = yogasMatched.filter(
+    (r) => r.category === 'NakshatraNadi' || r.category === 'MudakkuNadi'
+  );
 
   const filtered = selectedDomain === 'all'
     ? predictions
@@ -111,6 +117,60 @@ export const PredictionsView: React.FC<PredictionsViewProps> = ({
               <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
             </button>
           )}
+        </div>
+      )}
+
+      {/* Nadi Palm-leaf Nakshatra Shastra Predictions Section */}
+      {nadiRules.length > 0 && (
+        <div className="bg-slate-900/90 border border-amber-500/30 rounded-2xl p-5 shadow-2xl backdrop-blur-md">
+          <div className="flex items-center justify-between mb-4 border-b border-slate-800 pb-3">
+            <h3 className="text-base font-bold text-amber-300 font-serif flex items-center gap-2">
+              <Sun className="w-5 h-5 text-amber-400" />
+              {language === 'ta'
+                ? 'சூரியன் & சந்திரன் நாடி ஓலைச்சுவடி விதிகளின் பலன்கள்'
+                : 'Sun & Moon Nadi Manuscript Rules Predictions'}
+            </h3>
+            <span className="text-xs text-amber-400 font-mono bg-amber-500/10 px-2.5 py-1 rounded-full border border-amber-500/20">
+              {nadiRules.length} {language === 'ta' ? 'விதிகள் பொருந்தியுள்ளன' : 'Rules Triggered'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {nadiRules.map((rule) => (
+              <div
+                key={rule.id}
+                className="bg-slate-950 p-4 rounded-xl border border-amber-500/20 hover:border-amber-500/50 transition-all flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div>
+                      <h4 className="text-sm font-bold text-amber-200 font-serif flex items-center gap-1.5">
+                        <BookOpen className="w-4 h-4 text-amber-400 shrink-0" />
+                        {language === 'ta' ? rule.nameTa : rule.nameEn}
+                      </h4>
+                      <span className="text-[10px] font-mono text-indigo-400 block mt-0.5 uppercase tracking-wide">
+                        {rule.category === 'MudakkuNadi' ? 'நாடி முடக்கு தோஷ விதி' : 'நாடி நட்சத்திர விதி'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-slate-300 mb-2 leading-relaxed bg-slate-900/70 p-2.5 rounded-lg border border-slate-800">
+                    <strong className="text-amber-400 font-mono block text-[10px] uppercase mb-0.5">
+                      {language === 'ta' ? 'ஜோதிட அமைப்பின் விதி:' : 'Astrological Condition:'}
+                    </strong>
+                    {language === 'ta' ? rule.descriptionTa : rule.descriptionEn}
+                  </p>
+
+                  <p className="text-xs text-amber-100/90 leading-relaxed font-serif bg-amber-500/5 p-2.5 rounded-lg border border-amber-500/10">
+                    <strong className="text-amber-400 text-[10px] uppercase block mb-0.5 font-sans">
+                      {language === 'ta' ? 'சுவடி பலன் கணிப்பு:' : 'Manuscript Prediction:'}
+                    </strong>
+                    {language === 'ta' ? rule.predictionTa : rule.predictionEn}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
