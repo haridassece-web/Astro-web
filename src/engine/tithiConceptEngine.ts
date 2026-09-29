@@ -140,21 +140,17 @@ export function calculateTithiConceptReport(
 
   let timelineItems: WealthTimelineItem[] = [];
 
-  if (karmaStartTotalYears > 30.0) {
-    let st1Age = formatAge(remainingYearsInCycle / 2.0);
-    let st2Age = formatAge(remainingYearsInCycle);
-    let st3Age = formatAge(15.0 + (remainingYearsInCycle / 2.0));
-    let st4Age = formatAge(30.0);
-    let st5Age = formatAge(30.0 + (karmaStartTotalYears - 30.0) * 0.5);
-    let st6Age = formatAge(karmaStartTotalYears);
-    let st7Age = formatAge(karmaStartTotalYears + (60.0 - karmaStartTotalYears) * 0.5);
-    let st8Age = formatAge(60.0);
+  const mirrorSymmetricTotalYears = 60.0 - karmaStartTotalYears;
 
-    if (st2Age.totalYears >= 8.5) {
-      st1Age = formatAge(4.45);
-      st2Age = formatAge(8.9155);
-      st3Age = formatAge(19.45);
-    }
+  if (karmaStartTotalYears <= 30.0) {
+    // When Karma Start Settlement Age K <= 30.0 (e.g. 21.27 yrs for Panchami)
+    const st1Age = formatAge(karmaStartTotalYears * 0.33);
+    const st2Age = formatAge(karmaStartTotalYears * 0.67);
+    const st3Age = formatAge(karmaStartTotalYears); // Primary Settlement Age: 21.27 yrs
+    const st4Age = formatAge(30.0); // Center Midpoint: 30.0 yrs
+    const st5Age = formatAge(mirrorSymmetricTotalYears); // Mirror Symmetric Age: 38.73 yrs
+    const st6Age = formatAge(mirrorSymmetricTotalYears + (60.0 - mirrorSymmetricTotalYears) * 0.5);
+    const st7Age = formatAge(60.0); // 60.0 yrs
 
     timelineItems = [
       {
@@ -179,76 +175,70 @@ export function calculateTithiConceptReport(
         ageTitleTa: st3Age.ta,
         ageTitleEn: st3Age.en,
         ageYearsMax: st3Age.totalYears,
-        statusIcon: '-',
-        statusColor: 'amber',
-        notesTa: ['கல்வி மற்றும் கவனச்சிதறல் சவால்கள்; கடின உழைப்பு தேவை.'],
-        notesEn: ['Academic focus challenges and youth transition struggles.'],
-      },
-      {
-        ageTitleTa: st4Age.ta,
-        ageTitleEn: st4Age.en,
-        ageYearsMax: st4Age.totalYears,
-        statusIcon: '--',
-        statusColor: 'rose',
-        notesTa: ['வாழ்க்கைப் போராட்டம் மற்றும் நிதி நெருக்கடி; பொறுமை அவசியம்.'],
-        notesEn: ['Career establishment struggles and financial constraints.'],
-      },
-      {
-        ageTitleTa: st5Age.ta,
-        ageTitleEn: st5Age.en,
-        ageYearsMax: st5Age.totalYears,
-        statusIcon: '+',
-        statusColor: 'green',
-        notesTa: ['பொருளாதாரம் ஏறுமுகமாக இருக்கும்.'],
-        notesEn: ['Economic trajectory turns upwards with growing income.'],
-      },
-      {
-        ageTitleTa: st6Age.ta,
-        ageTitleEn: st6Age.en,
-        ageYearsMax: st6Age.totalYears,
         statusIcon: '++',
         statusColor: 'emerald',
         notesTa: [
-          'இந்த வயது முடிவதற்குள் பொருளாதார நிறைவு (settlement) உண்டு.',
+          'இந்த வயது முடிவதற்குள் முதல் கட்ட பொருளாதார நிறைவு (settlement) உண்டு.',
           'இந்த காலகட்டத்தில் 6 / 8 / 12-ம் பாவகத்தின் தொடர்பு திசா நடந்தாலும் பொருளாதார ஏற்றம் உண்டு.',
-          'இந்த வயதிற்குமேல் பொருளாதாரத்தில் கவனம் தேவை.',
+          'இந்த வயதிற்குமேல் புதிய முதலீடுகளில் விவேகம் தேவை.',
         ],
         notesEn: [
-          `Complete financial settlement and security achieved before age ${karmaStartAgeYears}.`,
+          `Primary financial settlement and security achieved before age ${karmaStartAgeYears}.`,
           'Economic elevation persists even if transiting 6 / 8 / 12 dusthana Dasa operates.',
           'After this age milestone, financial caution and asset protection are advised.',
         ],
       },
       {
+        ageTitleTa: st4Age.ta,
+        ageTitleEn: st4Age.en,
+        ageYearsMax: st4Age.totalYears,
+        statusIcon: '+',
+        statusColor: 'green',
+        notesTa: ['7.5 மையப்புள்ளி 30 வயது திருப்புமுனை; நிலையான தொழில் மற்றும் குடும்ப ஸ்திரத்தன்மை.'],
+        notesEn: ['Center 7.5 midpoint turning point at Age 30; sustained career stability.'],
+      },
+      {
+        ageTitleTa: st5Age.ta,
+        ageTitleEn: st5Age.en,
+        ageYearsMax: st5Age.totalYears,
+        statusIcon: '++',
+        statusColor: 'emerald',
+        notesTa: [
+          'எதிர் சமச்சீர் திதி வயது மைல்கல்: இரண்டாம் கட்ட அசுர பொருளாதார வளர்ச்சி மற்றும் தன சேர்க்கை.',
+          'சுவடி சமச்சீர் விதிப்படி தொழிலில் மிகப்பெரிய சொத்து சேர்க்கை யோகம் அமையும்.',
+        ],
+        notesEn: [
+          `Mirror Symmetric Tithi Milestone: Secondary peak wealth expansion & asset consolidation.`,
+          'Manuscript symmetry rule yields high property acquisition & financial elevation.',
+        ],
+      },
+      {
+        ageTitleTa: st6Age.ta,
+        ageTitleEn: st6Age.en,
+        ageYearsMax: st6Age.totalYears,
+        statusIcon: '-',
+        statusColor: 'amber',
+        notesTa: ['பொருளாதார பராமரிப்பு, முதலீடுகளில் எச்சரிக்கை மற்றும் விவேகம் தேவை.'],
+        notesEn: ['Prudence required in major asset reinvestments and debt avoidance.'],
+      },
+      {
         ageTitleTa: st7Age.ta,
         ageTitleEn: st7Age.en,
         ageYearsMax: st7Age.totalYears,
-        statusIcon: '-',
-        statusColor: 'amber',
-        notesTa: ['பொருளாதார முதலீடுகளில் விவேகம் மற்றும் விழிப்புணர்வு தேவை.'],
-        notesEn: ['Prudence required for major financial reinvestments.'],
-      },
-      {
-        ageTitleTa: st8Age.ta,
-        ageTitleEn: st8Age.en,
-        ageYearsMax: st8Age.totalYears,
         statusIcon: '--',
         statusColor: 'rose',
-        notesTa: ['ஓய்வுக்கால அமைதி மற்றும் ஆரோக்கிய பராமரிப்பில் கவனம்.'],
-        notesEn: ['Focus on health preservation, spiritual peace, and family legacy.'],
+        notesTa: ['60 வயது பூரண கர்ம நிறைவு; ஓய்வுக்கால அமைதி மற்றும் ஆரோக்கிய பராமரிப்பில் கவனம்.'],
+        notesEn: ['Full 60-year karma loop completion; focus on health and spiritual peace.'],
       },
     ];
   } else {
-    // When Karma Start Age K <= 30.0 (e.g. 21.27 years as in native screenshot)
-    const st1Age = formatAge(karmaStartTotalYears * 0.2);
-    const st2Age = formatAge(karmaStartTotalYears * 0.4);
-    const st3Age = formatAge(karmaStartTotalYears * 0.7);
-    const st4Age = formatAge(karmaStartTotalYears * 0.85);
-    const st5Age = formatAge(karmaStartTotalYears); // Settlement Age (e.g. 21.27 yrs)
-    const st6Age = formatAge(karmaStartTotalYears + (30.0 - karmaStartTotalYears) * 0.5);
-    const st7Age = formatAge(30.0);
-    const st8Age = formatAge(30.0 + (60.0 - 30.0) * 0.5);
-    const st9Age = formatAge(60.0);
+    // When Karma Start Settlement Age K > 30.0 (e.g. 56.0 yrs as in Chaturdashi 14)
+    const st1Age = formatAge(mirrorSymmetricTotalYears);
+    const st2Age = formatAge(mirrorSymmetricTotalYears + (30.0 - mirrorSymmetricTotalYears) * 0.5);
+    const st3Age = formatAge(30.0);
+    const st4Age = formatAge(30.0 + (karmaStartTotalYears - 30.0) * 0.5);
+    const st5Age = formatAge(karmaStartTotalYears);
+    const st6Age = formatAge(60.0);
 
     timelineItems = [
       {
@@ -257,8 +247,8 @@ export function calculateTithiConceptReport(
         ageYearsMax: st1Age.totalYears,
         statusIcon: '++',
         statusColor: 'emerald',
-        notesTa: ['ஆரம்ப பாலியப் பருவ சுப பலன்கள் மற்றும் குடும்ப பாதுகாப்பு உண்டு.'],
-        notesEn: ['Early childhood prosperity, family affection, and protective growth.'],
+        notesTa: ['எதிர் சமச்சீர் விதை பருவம்: பாலிய சுப பலன்கள் மற்றும் குடும்ப பாதுகாப்பு.'],
+        notesEn: ['Mirror symmetric seed period: Early childhood prosperity and support.'],
       },
       {
         ageTitleTa: st2Age.ta,
@@ -266,8 +256,8 @@ export function calculateTithiConceptReport(
         ageYearsMax: st2Age.totalYears,
         statusIcon: '+',
         statusColor: 'green',
-        notesTa: ['கல்வித் தொடக்கம் மற்றும் நல் ஆரோக்கிய அமைப்புகள்.'],
-        notesEn: ['Primary education start and general physical well-being.'],
+        notesTa: ['கல்வித் தொடக்கம் மற்றும் அடிப்படை உழைப்பு.'],
+        notesEn: ['Education start and foundational career groundwork.'],
       },
       {
         ageTitleTa: st3Age.ta,
@@ -275,8 +265,8 @@ export function calculateTithiConceptReport(
         ageYearsMax: st3Age.totalYears,
         statusIcon: '-',
         statusColor: 'amber',
-        notesTa: ['கல்வி மற்றும் கவனச்சிதறல் சவால்கள்; கடின உழைப்பு தேவை.'],
-        notesEn: ['Academic focus challenges and youth transition struggles.'],
+        notesTa: ['30 வயது மையப்புள்ளி வரை கடுமையான வாழ்க்கைப் போராட்டம்; பொறுமை அவசியம்.'],
+        notesEn: ['Struggles until age 30 midpoint; patience required.'],
       },
       {
         ageTitleTa: st4Age.ta,
@@ -284,8 +274,8 @@ export function calculateTithiConceptReport(
         ageYearsMax: st4Age.totalYears,
         statusIcon: '+',
         statusColor: 'green',
-        notesTa: ['பொருளாதாரம் ஏறுமுகமாக இருக்கும்.'],
-        notesEn: ['Economic trajectory turns upwards with growing income.'],
+        notesTa: ['பொருளாதாரம் ஏறுமுகமாக மாறும்.'],
+        notesEn: ['Financial trajectory turns upwards.'],
       },
       {
         ageTitleTa: st5Age.ta,
@@ -295,50 +285,21 @@ export function calculateTithiConceptReport(
         statusColor: 'emerald',
         notesTa: [
           'இந்த வயது முடிவதற்குள் பொருளாதார நிறைவு (settlement) உண்டு.',
-          'இந்த காலகட்டத்தில் 6 / 8 / 12-ம் பாவகத்தின் தொடர்பு திசா நடந்தாலும் பொருளாதார ஏற்றம் உண்டு.',
-          'இந்த வயதிற்குமேல் பொருளாதாரத்தில் கவனம் தேவை.',
+          '6/8/12-ம் பாவகத்தின் தொடர்பு திசா நடந்தாலும் பொருளாதார ஏற்றம் நிலைக்கும்.',
         ],
         notesEn: [
-          `Complete financial settlement and security achieved before age ${karmaStartAgeYears}.`,
-          'Economic elevation persists even if transiting 6 / 8 / 12 dusthana Dasa operates.',
-          'After this age milestone, financial caution and asset protection are advised.',
+          `Complete financial settlement achieved before age ${karmaStartAgeYears}.`,
+          'Economic progress holds strong even during 6/8/12 Dasa periods.',
         ],
       },
       {
         ageTitleTa: st6Age.ta,
         ageTitleEn: st6Age.en,
         ageYearsMax: st6Age.totalYears,
-        statusIcon: '+',
-        statusColor: 'green',
-        notesTa: ['நிலையான தொழில் மற்றும் குடும்ப ஸ்திரத்தன்மை தொடரும்.'],
-        notesEn: ['Sustained professional and family stability.'],
-      },
-      {
-        ageTitleTa: st7Age.ta,
-        ageTitleEn: st7Age.en,
-        ageYearsMax: st7Age.totalYears,
         statusIcon: '--',
         statusColor: 'rose',
-        notesTa: ['முதலீடுகளில் எச்சரிக்கை மற்றும் கடன்களைத் தவிர்க்கவும்.'],
-        notesEn: ['Caution in major investments and debt avoidance.'],
-      },
-      {
-        ageTitleTa: st8Age.ta,
-        ageTitleEn: st8Age.en,
-        ageYearsMax: st8Age.totalYears,
-        statusIcon: '-',
-        statusColor: 'amber',
-        notesTa: ['பொருளாதார பராமரிப்பு மற்றும் விவேகம் தேவை.'],
-        notesEn: ['Prudence required in asset allocation.'],
-      },
-      {
-        ageTitleTa: st9Age.ta,
-        ageTitleEn: st9Age.en,
-        ageYearsMax: st9Age.totalYears,
-        statusIcon: '--',
-        statusColor: 'rose',
-        notesTa: ['ஓய்வுக்கால அமைதி மற்றும் ஆரோக்கிய பராமரிப்பில் கவனம்.'],
-        notesEn: ['Focus on health preservation, spiritual peace, and family legacy.'],
+        notesTa: ['60 வயது பூரண கர்ம நிறைவு; ஓய்வுக்கால அமைதி மற்றும் ஆரோக்கிய பராமரிப்பில் கவனம்.'],
+        notesEn: ['Full 60-year karma loop completion; focus on health and spiritual peace.'],
       },
     ];
   }
