@@ -19,6 +19,7 @@ import { MudakkuPredictionView } from './components/MudakkuPredictionView';
 import { VivahaChakraView } from './components/VivahaChakraView';
 import { TithiPalangalView } from './components/TithiPalangalView';
 import { TithiConceptView } from './components/TithiConceptView';
+import { DasaJinAnalysisView } from './components/DasaJinAnalysisView';
 import { ReportGeneratorModal } from './components/ReportGeneratorModal';
 import { ResearchComparisonModal } from './components/ResearchComparisonModal';
 import { AuthModal } from './components/AuthModal';
@@ -46,7 +47,7 @@ function getCurrentDateTime() {
 export function App() {
   const [language, setLanguage] = useState<Language>('ta');
   const [chartFormat, setChartFormat] = useState<'south' | 'north'>('south');
-  const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'panchanga' | 'dasa' | 'transit' | 'ashtakavarga' | 'yogas' | 'predictions' | 'mudakku' | 'tithi' | 'tithiconcept' | 'vivahachakra' | 'remedies'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'panchanga' | 'dasa' | 'dasajin' | 'transit' | 'ashtakavarga' | 'yogas' | 'predictions' | 'mudakku' | 'tithi' | 'tithiconcept' | 'vivahachakra' | 'remedies'>('overview');
 
   const [activeChartId, setActiveChartId] = useState<string>('D1');
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
@@ -284,6 +285,18 @@ export function App() {
           </button>
 
           <button
+            onClick={() => setActiveTab('dasajin')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              activeTab === 'dasajin'
+                ? 'bg-purple-600 text-white shadow-md font-semibold'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-purple-300" />
+            <span>{language === 'ta' ? 'தசா ஜின் & தார பலன்கள்' : 'Dasa Jin & Tara Analysis'}</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('transit')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
               activeTab === 'transit'
@@ -505,6 +518,10 @@ export function App() {
             dasaJinReport={horoscope.dasaJinReport}
             language={language}
           />
+        )}
+
+        {activeTab === 'dasajin' && horoscope.dasaJinReport && (
+          <DasaJinAnalysisView report={horoscope.dasaJinReport} language={language} />
         )}
 
         {activeTab === 'transit' && (
