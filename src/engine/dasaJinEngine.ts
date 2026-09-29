@@ -81,8 +81,8 @@ const PLANET_TAMIL_NAMES: Record<string, string> = {
 
 export function calculateDasaJinReport(
   planets: PlanetPosition[],
-  lagnaSignId: number,
-  panchanga: Panchanga,
+  _lagnaSignId: number,
+  _panchanga: Panchanga,
   activeDasaName: PlanetName = 'Saturn',
   activeBhuktiName: PlanetName = 'Mercury'
 ): DasaJinAnalysisReport {

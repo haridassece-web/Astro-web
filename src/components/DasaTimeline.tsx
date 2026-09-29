@@ -677,6 +677,7 @@ export const DasaTimeline: React.FC<DasaTimelineProps> = ({
           );
         })}
       </div>
+      </div>
       )}
     </div>
   );

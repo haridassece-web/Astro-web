@@ -3,6 +3,7 @@ import type {
   Panchanga,
   PlanetPosition,
   TithiAgeTimelineDetail,
+  TithiConceptPredictions,
   TithiConceptReport,
   VadhaiVainasikamReport,
   WealthTimelineItem,
@@ -35,6 +36,139 @@ const SIGN_LORDS: Record<number, string> = {
   9: 'Saturn',
   10: 'Saturn',
   11: 'Jupiter',
+};
+
+const TITHI_CONCEPT_MASTER_PREDICTIONS: Record<
+  number,
+  {
+    generalTa: string;
+    generalEn: string;
+    deityTa: string;
+    deityEn: string;
+    remedyTa: string;
+    remedyEn: string;
+  }
+> = {
+  1: {
+    generalTa: 'பிரதமை திதி: சுயமாக சிந்தித்து உழைத்து முன்னுக்கு வரும் திறன் கொண்டவர். 4 முதல் 8 வயதில் கர்மா விழிப்புணர்வு அடைந்து, 56-60 வயதில் பெருஞ்செல்வம் மற்றும் சமூக அந்தஸ்து உருவாகும்.',
+    generalEn: 'Pratipat Tithi: Independent spirit driven by self-effort. Karma activates around age 4-8, leading to high social status and financial peak at age 56-60.',
+    deityTa: 'சூரிய பகவான் & அக்னி தேவன்',
+    deityEn: 'Lord Surya & Agni Deva',
+    remedyTa: 'ஞாயிற்றுக்கிழமைகளில் சூரிய நமஸ்காரம் செய்து செம்பருத்தி மலரால் அர்ச்சனை செய்யவும்.',
+    remedyEn: 'Perform Surya Namaskar on Sundays and offer red hibiscus flowers.',
+  },
+  2: {
+    generalTa: 'துவிதியை திதி: குடும்ப பலம் மற்றும் திரண்ட தனச் சேர்க்கை அமையும். 8 முதல் 12 வயதில் கர்ம துவக்கமும், 52-56 வயதில் வாக்குச் செல்வாக்கு மற்றும் சொத்துக்கள் யோகமும் கிடைக்கும்.',
+    generalEn: 'Dwitiya Tithi: Family prosperity and sound financial savings. Karma activates at age 8-12, reaching peak oratorical influence and property acquisition at age 52-56.',
+    deityTa: 'பிரம்ம தேவன் & கலைமகள்',
+    deityEn: 'Lord Brahma & Goddess Saraswati',
+    remedyTa: 'புதன்கிழமைகளில் சரஸ்வதி தேவிக்கு வெண்மலர்கள் சாற்றி வழிபாடு செய்யவும்.',
+    remedyEn: 'Offer white flowers to Goddess Saraswati on Wednesdays.',
+  },
+  3: {
+    generalTa: 'திரிதியை திதி: தைரிய வீரிய விகசிதம், இளைய சகோதர யோகம் மற்றும் கலைத் துறை வெற்றி தருவது. 12 முதல் 16 வயதில் கர்ம அதிர்வுகள் தொடங்கி, 48-52 வயதில் தொழில் நிலைத்தன்மை உருவாகும்.',
+    generalEn: 'Tritiya Tithi: Courage, artistic brilliance, and sibling support. Karma starts at age 12-16, reaching stable enterprise and position at age 48-52.',
+    deityTa: 'கௌரி அம்மன் & குபேரன்',
+    deityEn: 'Goddess Gauri & Lord Kubera',
+    remedyTa: 'வெள்ளிக்கிழமைகளில் ஸ்ரீலக்ஷ்மி குபேர வழிபாடு செய்து நெய் தீபம் ஏற்றவும்.',
+    remedyEn: 'Worship Lord Kubera and Goddess Lakshmi with ghee lamps on Fridays.',
+  },
+  4: {
+    generalTa: 'சதுர்த்தி திதி: ஆரம்ப தடைகளைத் தாண்டி விஸ்வரூப வெற்றி பெறும் அமைப்பு. 16 முதல் 20 வயதில் கடின உழைப்பும், 44-48 வயதில் வினாயக பெருமான் அருளால் நிரந்தர சொத்து மற்றும் அதிகார யோகம் அமையும்.',
+    generalEn: 'Chaturthi Tithi: Triumph over initial hurdles leading to monumental success. Challenges at age 16-20 culminate in solid real estate and authority at age 44-48.',
+    deityTa: 'ஸ்ரீ மகா கணபதி',
+    deityEn: 'Lord Maha Ganapati',
+    remedyTa: 'சங்கடஹர சதுர்த்தி தோறும் விநாயகருக்கு அருகம்புல் சாற்றி சிதறுகாய் உடைக்கவும்.',
+    remedyEn: 'Offer Bermuda grass (Arugampul) and break coconuts for Lord Ganesha on Sankatahara Chaturthi.',
+  },
+  5: {
+    generalTa: 'பஞ்சமி திதி: புத்தி கூர்மை, பூர்வ புண்ணிய பலன்கள் மற்றும் சிறந்த சந்தான அபிவிருத்தி தருவது. 20 முதல் 24 வயதில் திருப்புமுனை ஏற்பட்டு, 40-44 வயதில் மிகப்பெரிய ராஜயோக தனச் சேர்க்கை கிடைக்கும்.',
+    generalEn: 'Panchami Tithi: Intellectual sharpness, purva punya merits, and family bliss. Turning point at age 20-24 unlocks peak fortune at age 40-44.',
+    deityTa: 'நாகதேவதை & வராஹி அம்மன்',
+    deityEn: 'Naga Devatas & Goddess Varahi',
+    remedyTa: 'பஞ்சமி திதியன்று வராஹி அம்மனுக்கு பஞ்ச தீபம் ஏற்றி நெய்வேத்தியம் செய்து வழிபடவும்.',
+    remedyEn: 'Offer ghee lamps to Goddess Varahi on Panchami Tithi for swift financial elevation.',
+  },
+  6: {
+    generalTa: 'சஷ்டி திதி: பகை வெற்றி, உத்தியோக வளர்ச்சி மற்றும் கடன் நிவர்த்தி தரும் திதி. 24 முதல் 28 வயதில் கர்ம யோகம் சுடரத் தொடங்கி, 36-40 வயதில் முருகப்பெருமான் அருளால் பெரும் யோகsettlement உருவாகும்.',
+    generalEn: 'Sashti Tithi: Overcoming adversaries, career ascension, and debt freedom. Major karma activation at age 24-28 brings full financial settlement at age 36-40.',
+    deityTa: 'ஸ்ரீ சுப்பிரமணிய சுவாமி (முருகன்)',
+    deityEn: 'Lord Subramanya (Murugan)',
+    remedyTa: 'செவ்வாய்க்கிழமைகளில் திருச்செந்தூர் அல்லது உள்ளூர் முருகன் கோவிலில் செவ்வரளி பூ சாற்றி வேல் வழிபாடு செய்ய வேண்டும்.',
+    remedyEn: 'Offer red oleander flowers to Lord Murugan and worship His sacred Vel on Tuesdays.',
+  },
+  7: {
+    generalTa: 'சப்தமி திதி: களத்திர யோகம், கூட்டுத் தொழில் வெற்றி மற்றும் தூரதேசப் பயணம் தரும். 28 முதல் 30 வயதில் கர்ம சுழற்சி உச்சமடைந்து, 32-36 வயதில் வியாபார மற்றும் குடும்ப வாழ்க்கை நிலைபெறும்.',
+    generalEn: 'Saptami Tithi: Strong marital harmony, business partnership prosperity, and foreign ties. Peak karma cycle at age 28-30 yields stable growth at age 32-36.',
+    deityTa: 'சூரிய நாராயணன் & சப்த மாதர்கள்',
+    deityEn: 'Surya Narayana & Saptha Mathrikas',
+    remedyTa: 'ஞாயிற்றுக்கிழமைகளில் சூரியனார் கோவில் அல்லது சூரிய பகவானுக்கு கோதுமை தானம் செய்ய வேண்டும்.',
+    remedyEn: 'Donate wheat grains at Lord Surya temples on Sundays.',
+  },
+  8: {
+    generalTa: 'அஷ்டமி திதி: ஆன்மீக பலம், ஆத்ம விழிப்புணர்வு மற்றும் எதிர்பாராத தனவரவு தரும். 30 முதல் 32 வயதில் கர்ம மையம் கடந்து, 50 வயதிற்குமேல் அஷ்டலட்சுமி யோகம் சித்திக்கும்.',
+    generalEn: 'Ashtami Tithi: Deep spiritual stamina, occult mastery, and windfall gains. Crosses karma center point at age 30-32, unlocking Ashta Lakshmi wealth after age 50.',
+    deityTa: 'ஸ்ரீ பைரவர் & துர்க்கை அம்மன்',
+    deityEn: 'Lord Bhairava & Goddess Durga',
+    remedyTa: 'தேய்பிறை அஷ்டமியில் சொர்ண ஆகர்ஷண பைரவருக்கு வடமாலை சாற்றி நெய் தீபம் ஏற்றவும்.',
+    remedyEn: 'Worship Swarna Akarshana Bhairava with vada garlands and ghee lamps on Krishna Ashtami.',
+  },
+  9: {
+    generalTa: 'நவமி திதி: தர்ம சிந்தனை, தந்தைவழி ஆசி மற்றும் உன்னத தலைமைப் பதவி தருவது. 36 முதல் 40 வயதில் ஸ்ரீராமபிரான் அருளால் மிகப்பெரிய நிர்வாக உயர்வு மற்றும் கௌரவம் கிடைக்கும்.',
+    generalEn: 'Navami Tithi: Righteous virtues, fatherly grace, and supreme leadership. Achieves executive authority and honors at age 36-40 by Lord Rama’s grace.',
+    deityTa: 'ஸ்ரீ ராமபிரான் & ஆஞ்சநேயர்',
+    deityEn: 'Lord Rama & Lord Hanuman',
+    remedyTa: 'வியாழக்கிழமை அல்லது சனிக்கிழமைகளில் ஆஞ்சநேயருக்கு வெண்ணெய் காப்பு சாற்றி துளசி அர்ச்சனை செய்யவும்.',
+    remedyEn: 'Offer butter alankaram and Tulsi garlands to Lord Hanuman on Thursdays/Saturdays.',
+  },
+  10: {
+    generalTa: 'தசமி திதி: ஜீவன ஸ்தான யோகம், புதிய தொழில் விரிவாக்கம் மற்றும் புகழைத் தரும். 40 முதல் 44 வயதில் கர்ம பலன் முழுமையாகக் கை கூடி, சமுதாயத்தில் முதன்மை அந்தஸ்தைப் பெற்றுத் தரும்.',
+    generalEn: 'Dasami Tithi: Professional supremacy, expansion of enterprises, and public renown. Full karma fruit manifests at age 40-44, bestowing high social standing.',
+    deityTa: 'அஷ்ட திக் பாலகர்கள் & தர்ம சாஸ்தா',
+    deityEn: 'Ashta Dikpalakas & Lord Dharma Sastha',
+    remedyTa: 'சனிக்கிழமைகளில் சாஸ்தா (ஐயப்பன்) கோவிலில் எள் தீபம் ஏற்றி வழிபாடு செய்ய வேண்டும்.',
+    remedyEn: 'Light sesame oil lamps at Lord Ayyappa (Sastha) temples on Saturdays.',
+  },
+  11: {
+    generalTa: 'ஏகாதசி திதி: அபரிமிதமான லாப யோகம், எடுத்த காரியங்களில் பூரண வெற்றி மற்றும் விஷ்ணு கடாட்சம் தருவது. 44 முதல் 48 வயதில் பங்குச்சந்தை / தொழில் லாபம் நிலைபெறும்.',
+    generalEn: 'Ekadashi Tithi: Unstoppable wealth inflow, fulfillment of noble ambitions, and Lord Vishnu’s grace. Massive financial security consolidates at age 44-48.',
+    deityTa: 'ஸ்ரீ மகா விஷ்ணு & ஸ்ரீதேவி',
+    deityEn: 'Lord Maha Vishnu & Goddess Sridevi',
+    remedyTa: 'ஏகாதசி விரதமிருந்து பெருமாளுக்கு துளசி மாலை சாற்றி விஷ்ணு சகஸ்ரநாமம் பாராயணம் செய்யவும்.',
+    remedyEn: 'Observe Ekadashi vrata and recite Vishnu Sahasranamam with Tulsi offerings.',
+  },
+  12: {
+    generalTa: 'துவாதசி திதி: தர்ம காரியங்கள், அன்னதான யோகம் மற்றும் வெளிநாட்டு தனவரவு தருவது. 48 முதல் 52 வயதில் ஆன்மீக தர்ம சொத்துக்கள் மற்றும் பெரிய முதலீடுகளின் பலன்கள் கிடைக்கும்.',
+    generalEn: 'Dwadashi Tithi: Philanthropic virtues, noble deeds, and overseas fortune. Yields major returns from large capital investments at age 48-52.',
+    deityTa: 'ஸ்ரீ தனுவந்திரி பகவான்',
+    deityEn: 'Lord Dhanvantari',
+    remedyTa: 'துவாதசி நாளில் அன்னதானம் அளித்து தனுவந்திரி மந்திரம் ஜபித்து ஆரோக்கியம் பெறவும்.',
+    remedyEn: 'Provide food donation (Annadhanam) on Dwadashi days for health and longevity.',
+  },
+  13: {
+    generalTa: 'திரயோதசி திதி: பிரதோஷ சுப யோகம், நீண்ட ஆயுள் மற்றும் ஆரோக்கிய மேன்மை தருவது. 52 முதல் 56 வயதில் சிவபெருமானின் அருளால் சகல தடைகளும் விலகி நிலையான நிம்மதி உருவாகும்.',
+    generalEn: 'Trayodashi Tithi: Pradosha divine shield, health robustness, and long life. All life obstacles dissolve at age 52-56 by Lord Shiva’s blessing.',
+    deityTa: 'ஸ்ரீ நடராஜ பெருமான் & நந்தீஸ்வரர்',
+    deityEn: 'Lord Nataraja & Nandi Deva',
+    remedyTa: 'பிரதோஷ காலத்தில் நந்தீஸ்வரருக்கு அருகம்புல், வில்வ மாலை சாற்றி பிரதோஷ வழிபாடு செய்ய வேண்டும்.',
+    remedyEn: 'Participate in Pradosham prayers and offer Bilva leaves to Nandi Deva.',
+  },
+  14: {
+    generalTa: 'சதுர்தசி திதி: உக்கிர சக்திகளின் பாதுகாப்பு, எதிரிகள் வீழ்ச்சி மற்றும் பெரும் சொத்து யோகம் தருவது. 56 முதல் 60 வயதில் வாழ்நாளின் உச்சகட்ட நிதி பாதுகாப்பு உருவாகும்.',
+    generalEn: 'Chaturdashi Tithi: Divine protection shield against enemies and financial vulnerability. Lifetime peak asset security manifests at age 56-60.',
+    deityTa: 'ஸ்ரீ காளி தேவி & ஸ்ரீ நரசிம்மர்',
+    deityEn: 'Goddess Kali & Lord Narasimha',
+    remedyTa: 'நரசிம்மருக்கு பானகம் நிவேதனம் செய்து மாலை நேரத்தில் தீபமேற்றி வழிபட வேண்டும்.',
+    remedyEn: 'Offer Panakam drink to Lord Narasimha during dusk hours.',
+  },
+  15: {
+    generalTa: 'பூர்ணிமா / அமாவாசை திதி: பூரண சந்திர கடாட்சம் அல்லது பித்ருக்கள் பூரண ஆசி தருவது. 60 வயதில் கர்ம சுழற்சி நிறைவடைந்து வம்ச விருத்தி மற்றும் ஆன்மீக முக்தி யோகம் தரும்.',
+    generalEn: 'Purnima / Amavasya Tithi: Full Lunar radiance or supreme Pitru ancestral blessings. Completes the 60-year karma loop, bestowing lineage expansion and peace.',
+    deityTa: 'ஸ்ரீ லலிதா மகா திரிபுரசுந்தரி (பூர்ணிமா) / பித்ருக்கள் (அமாவாசை)',
+    deityEn: 'Goddess Lalitha Tripura Sundari (Purnima) / Pitrus (Amavasya)',
+    remedyTa: 'பௌர்ணமியில் ஸ்ரீசக்ர நவாபரண பூஜை அல்லது அமாவாசையில் பித்ரு தர்ப்பணம் செய்வது நலம்.',
+    remedyEn: 'Perform Sri Chakra worship on Purnima or ancestral Pitru Tharpana on Amavasya.',
+  },
 };
 
 export function calculateTithiConceptReport(
@@ -136,7 +270,6 @@ export function calculateTithiConceptReport(
     };
   };
 
-  const remainingYearsInCycle = (15.0 - tithiElapsedExact) * 4.0;
 
   let timelineItems: WealthTimelineItem[] = [];
 
@@ -338,138 +471,18 @@ export function calculateTithiConceptReport(
     mirrorTithiNumber,
     mirrorAgeStart,
     mirrorAgeEnd,
-const TITHI_CONCEPT_MASTER_PREDICTIONS: Record<
-  number,
-  {
-    generalTa: string;
-    generalEn: string;
-    deityTa: string;
-    deityEn: string;
-    remedyTa: string;
-    remedyEn: string;
-  }
-> = {
-  1: {
-    generalTa: 'பிரதமை திதி: சுயமாக சிந்தித்து உழைத்து முன்னுக்கு வரும் திறன் கொண்டவர். 4 முதல் 8 வயதில் கர்மா விழிப்புணர்வு அடைந்து, 56-60 வயதில் பெருஞ்செல்வம் மற்றும் சமூக அந்தஸ்து உருவாகும்.',
-    generalEn: 'Pratipat Tithi: Independent spirit driven by self-effort. Karma activates around age 4-8, leading to high social status and financial peak at age 56-60.',
-    deityTa: 'சூரிய பகவான் & அக்னி தேவன்',
-    deityEn: 'Lord Surya & Agni Deva',
-    remedyTa: 'ஞாயிற்றுக்கிழமைகளில் சூரிய நமஸ்காரம் செய்து செம்பருத்தி மலரால் அர்ச்சனை செய்யவும்.',
-    remedyEn: 'Perform Surya Namaskar on Sundays and offer red hibiscus flowers.',
-  },
-  2: {
-    generalTa: 'துவிதியை திதி: குடும்ப பலம் மற்றும் திரண்ட தனச் சேர்க்கை அமையும். 8 முதல் 12 வயதில் கர்ம துவக்கமும், 52-56 வயதில் வாக்குச் செல்வாக்கு மற்றும் சொத்துக்கள் யோகமும் கிடைக்கும்.',
-    generalEn: 'Dwitiya Tithi: Family prosperity and sound financial savings. Karma activates at age 8-12, reaching peak oratorical influence and property acquisition at age 52-56.',
-    deityTa: 'பிரம்ம தேவன் & கலைமகள்',
-    deityEn: 'Lord Brahma & Goddess Saraswati',
-    remedyTa: 'புதன்கிழமைகளில் சரஸ்வதி தேவிக்கு வெண்மலர்கள் சாற்றி வழிபாடு செய்யவும்.',
-    remedyEn: 'Offer white flowers to Goddess Saraswati on Wednesdays.',
-  },
-  3: {
-    generalTa: 'திரிதியை திதி: தைரிய வீரிய விகசிதம், இளைய சகோதர யோகம் மற்றும் கலைத் துறை வெற்றி தருவது. 12 முதல் 16 வயதில் கர்ம அதிர்வுகள் தொடங்கி, 48-52 வயதில் தொழில் நிலைத்தன்மை உருவாகும்.',
-    generalEn: 'Tritiya Tithi: Courage, artistic brilliance, and sibling support. Karma starts at age 12-16, reaching stable enterprise and position at age 48-52.',
-    deityTa: 'கௌரி அம்மன் & குபேரன்',
-    deityEn: 'Goddess Gauri & Lord Kubera',
-    remedyTa: 'வெள்ளிக்கிழமைகளில் ஸ்ரீலக்ஷ்மி குபேர வழிபாடு செய்து நெய் தீபம் ஏற்றவும்.',
-    remedyEn: 'Worship Lord Kubera and Goddess Lakshmi with ghee lamps on Fridays.',
-  },
-  4: {
-    generalTa: 'சதுர்த்தி திதி: ஆரம்ப தடைகளைத் தாண்டி விஸ்வரூப வெற்றி பெறும் அமைப்பு. 16 முதல் 20 வயதில் கடின உழைப்பும், 44-48 வயதில் வினாயக பெருமான் அருளால் நிரந்தர சொத்து மற்றும் அதிகார யோகம் அமையும்.',
-    generalEn: 'Chaturthi Tithi: Triumph over initial hurdles leading to monumental success. Challenges at age 16-20 culminate in solid real estate and authority at age 44-48.',
-    deityTa: 'ஸ்ரீ மகா கணபதி',
-    deityEn: 'Lord Maha Ganapati',
-    remedyTa: 'சங்கடஹர சதுர்த்தி தோறும் விநாயகருக்கு அருகம்புல் சாற்றி சிதறுகாய் உடைக்கவும்.',
-    remedyEn: 'Offer Bermuda grass (Arugampul) and break coconuts for Lord Ganesha on Sankatahara Chaturthi.',
-  },
-  5: {
-    generalTa: 'பஞ்சமி திதி: புத்தி கூர்மை, பூர்வ புண்ணிய பலன்கள் மற்றும் சிறந்த சந்தான அபிவிருத்தி தருவது. 20 முதல் 24 வயதில் திருப்புமுனை ஏற்பட்டு, 40-44 வயதில் மிகப்பெரிய ராஜயோக தனச் சேர்க்கை கிடைக்கும்.',
-    generalEn: 'Panchami Tithi: Intellectual sharpness, purva punya merits, and family bliss. Turning point at age 20-24 unlocks peak fortune at age 40-44.',
-    deityTa: 'நாகதேவதை & வராஹி அம்மன்',
-    deityEn: 'Naga Devatas & Goddess Varahi',
-    remedyTa: 'பஞ்சமி திதியன்று வராஹி அம்மனுக்கு பஞ்ச தீபம் ஏற்றி நெய்வேத்தியம் செய்து வழிபடவும்.',
-    remedyEn: 'Offer ghee lamps to Goddess Varahi on Panchami Tithi for swift financial elevation.',
-  },
-  6: {
-    generalTa: 'சஷ்டி திதி: பகை வெற்றி, உத்தியோக வளர்ச்சி மற்றும் கடன் நிவர்த்தி தரும் திதி. 24 முதல் 28 வயதில் கர்ம யோகம் சுடரத் தொடங்கி, 36-40 வயதில் முருகப்பெருமான் அருளால் பெரும் யோகsettlement உருவாகும்.',
-    generalEn: 'Sashti Tithi: Overcoming adversaries, career ascension, and debt freedom. Major karma activation at age 24-28 brings full financial settlement at age 36-40.',
-    deityTa: 'ஸ்ரீ சுப்பிரமணிய சுவாமி (முருகன்)',
-    deityEn: 'Lord Subramanya (Murugan)',
-    remedyTa: 'செவ்வாய்க்கிழமைகளில் திருச்செந்தூர் அல்லது உள்ளூர் முருகன் கோவிலில் செவ்வரளி பூ சாற்றி வேல் வழிபாடு செய்ய வேண்டும்.',
-    remedyEn: 'Offer red oleander flowers to Lord Murugan and worship His sacred Vel on Tuesdays.',
-  },
-  7: {
-    generalTa: 'சப்தமி திதி: களத்திர யோகம், கூட்டுத் தொழில் வெற்றி மற்றும் தூரதேசப் பயணம் தரும். 28 முதல் 30 வயதில் கர்ம சுழற்சி உச்சமடைந்து, 32-36 வயதில் வியாபார மற்றும் குடும்ப வாழ்க்கை நிலைபெறும்.',
-    generalEn: 'Saptami Tithi: Strong marital harmony, business partnership prosperity, and foreign ties. Peak karma cycle at age 28-30 yields stable growth at age 32-36.',
-    deityTa: 'சூரிய நாராயணன் & சப்த மாதர்கள்',
-    deityEn: 'Surya Narayana & Saptha Mathrikas',
-    remedyTa: 'ஞாயிற்றுக்கிழமைகளில் சூரியனார் கோவில் அல்லது சூரிய பகவானுக்கு கோதுமை தானம் செய்ய வேண்டும்.',
-    remedyEn: 'Donate wheat grains at Lord Surya temples on Sundays.',
-  },
-  8: {
-    generalTa: 'அஷ்டமி திதி: ஆன்மீக பலம், ஆத்ம விழிப்புணர்வு மற்றும் எதிர்பாராத தனவரவு தரும். 30 முதல் 32 வயதில் கர்ம மையம் கடந்து, 50 வயதிற்குமேல் அஷ்டலட்சுமி யோகம் சித்திக்கும்.',
-    generalEn: 'Ashtami Tithi: Deep spiritual stamina, occult mastery, and windfall gains. Crosses karma center point at age 30-32, unlocking Ashta Lakshmi wealth after age 50.',
-    deityTa: 'ஸ்ரீ பைரவர் & துர்க்கை அம்மன்',
-    deityEn: 'Lord Bhairava & Goddess Durga',
-    remedyTa: 'தேய்பிறை அஷ்டமியில் சொர்ண ஆகர்ஷண பைரவருக்கு வடமாலை சாற்றி நெய் தீபம் ஏற்றவும்.',
-    remedyEn: 'Worship Swarna Akarshana Bhairava with vada garlands and ghee lamps on Krishna Ashtami.',
-  },
-  9: {
-    generalTa: 'நவமி திதி: தர்ம சிந்தனை, தந்தைவழி ஆசி மற்றும் உன்னத தலைமைப் பதவி தருவது. 36 முதல் 40 வயதில் ஸ்ரீராமபிரான் அருளால் மிகப்பெரிய நிர்வாக உயர்வு மற்றும் கௌரவம் கிடைக்கும்.',
-    generalEn: 'Navami Tithi: Righteous virtues, fatherly grace, and supreme leadership. Achieves executive authority and honors at age 36-40 by Lord Rama’s grace.',
-    deityTa: 'ஸ்ரீ ராமபிரான் & ஆஞ்சநேயர்',
-    deityEn: 'Lord Rama & Lord Hanuman',
-    remedyTa: 'வியாழக்கிழமை அல்லது சனிக்கிழமைகளில் ஆஞ்சநேயருக்கு வெண்ணெய் காப்பு சாற்றி துளசி அர்ச்சனை செய்யவும்.',
-    remedyEn: 'Offer butter alankaram and Tulsi garlands to Lord Hanuman on Thursdays/Saturdays.',
-  },
-  10: {
-    generalTa: 'தசமி திதி: ஜீவன ஸ்தான யோகம், புதிய தொழில் விரிவாக்கம் மற்றும் புகழைத் தரும். 40 முதல் 44 வயதில் கர்ம பலன் முழுமையாகக் கை கூடி, சமுதாயத்தில் முதன்மை அந்தஸ்தைப் பெற்றுத் தரும்.',
-    generalEn: 'Dasami Tithi: Professional supremacy, expansion of enterprises, and public renown. Full karma fruit manifests at age 40-44, bestowing high social standing.',
-    deityTa: 'அஷ்ட திக் பாலகர்கள் & தர்ம சாஸ்தா',
-    deityEn: 'Ashta Dikpalakas & Lord Dharma Sastha',
-    remedyTa: 'சனிக்கிழமைகளில் சாஸ்தா (ஐயப்பன்) கோவிலில் எள் தீபம் ஏற்றி வழிபாடு செய்ய வேண்டும்.',
-    remedyEn: 'Light sesame oil lamps at Lord Ayyappa (Sastha) temples on Saturdays.',
-  },
-  11: {
-    generalTa: 'ஏகாதசி திதி: அபரிமிதமான லாப யோகம், எடுத்த காரியங்களில் பூரண வெற்றி மற்றும் விஷ்ணு கடாட்சம் தருவது. 44 முதல் 48 வயதில் பங்குச்சந்தை / தொழில் லாபம் நிலைபெறும்.',
-    generalEn: 'Ekadashi Tithi: Unstoppable wealth inflow, fulfillment of noble ambitions, and Lord Vishnu’s grace. Massive financial security consolidates at age 44-48.',
-    deityTa: 'ஸ்ரீ மகா விஷ்ணு & ஸ்ரீதேவி',
-    deityEn: 'Lord Maha Vishnu & Goddess Sridevi',
-    remedyTa: 'ஏகாதசி விரதமிருந்து பெருமாளுக்கு துளசி மாலை சாற்றி விஷ்ணு சகஸ்ரநாமம் பாராயணம் செய்யவும்.',
-    remedyEn: 'Observe Ekadashi vrata and recite Vishnu Sahasranamam with Tulsi offerings.',
-  },
-  12: {
-    generalTa: 'துவாதசி திதி: தர்ம காரியங்கள், அன்னதான யோகம் மற்றும் வெளிநாட்டு தனவரவு தருவது. 48 முதல் 52 வயதில் ஆன்மீக தர்ம சொத்துக்கள் மற்றும் பெரிய முதலீடுகளின் பலன்கள் கிடைக்கும்.',
-    generalEn: 'Dwadashi Tithi: Philanthropic virtues, noble deeds, and overseas fortune. Yields major returns from large capital investments at age 48-52.',
-    deityTa: 'ஸ்ரீ தனுவந்திரி பகவான்',
-    deityEn: 'Lord Dhanvantari',
-    remedyTa: 'துவாதசி நாளில் அன்னதானம் அளித்து தனுவந்திரி மந்திரம் ஜபித்து ஆரோக்கியம் பெறவும்.',
-    remedyEn: 'Provide food donation (Annadhanam) on Dwadashi days for health and longevity.',
-  },
-  13: {
-    generalTa: 'திரயோதசி திதி: பிரதோஷ சுப யோகம், நீண்ட ஆயுள் மற்றும் ஆரோக்கிய மேன்மை தருவது. 52 முதல் 56 வயதில் சிவபெருமானின் அருளால் சகல தடைகளும் விலகி நிலையான நிம்மதி உருவாகும்.',
-    generalEn: 'Trayodashi Tithi: Pradosha divine shield, health robustness, and long life. All life obstacles dissolve at age 52-56 by Lord Shiva’s blessing.',
-    deityTa: 'ஸ்ரீ நடராஜ பெருமான் & நந்தீஸ்வரர்',
-    deityEn: 'Lord Nataraja & Nandi Deva',
-    remedyTa: 'பிரதோஷ காலத்தில் நந்தீஸ்வரருக்கு அருகம்புல், வில்வ மாலை சாற்றி பிரதோஷ வழிபாடு செய்ய வேண்டும்.',
-    remedyEn: 'Participate in Pradosham prayers and offer Bilva leaves to Nandi Deva.',
-  },
-  14: {
-    generalTa: 'சதுர்தசி திதி: உக்கிர சக்திகளின் பாதுகாப்பு, எதிரிகள் வீழ்ச்சி மற்றும் பெரும் சொத்து யோகம் தருவது. 56 முதல் 60 வயதில் வாழ்நாளின் உச்சகட்ட நிதி பாதுகாப்பு உருவாகும்.',
-    generalEn: 'Chaturdashi Tithi: Divine protection shield against enemies and financial vulnerability. Lifetime peak asset security manifests at age 56-60.',
-    deityTa: 'ஸ்ரீ காளி தேவி & ஸ்ரீ நரசிம்மர்',
-    deityEn: 'Goddess Kali & Lord Narasimha',
-    remedyTa: 'நரசிம்மருக்கு பானகம் நிவேதனம் செய்து மாலை நேரத்தில் தீபமேற்றி வழிபட வேண்டும்.',
-    remedyEn: 'Offer Panakam drink to Lord Narasimha during dusk hours.',
-  },
-  15: {
-    generalTa: 'பூர்ணிமா / அமாவாசை திதி: பூரண சந்திர கடாட்சம் அல்லது பித்ருக்கள் பூரண ஆசி தருவது. 60 வயதில் கர்ம சுழற்சி நிறைவடைந்து வம்ச விருத்தி மற்றும் ஆன்மீக முக்தி யோகம் தரும்.',
-    generalEn: 'Purnima / Amavasya Tithi: Full Lunar radiance or supreme Pitru ancestral blessings. Completes the 60-year karma loop, bestowing lineage expansion and peace.',
-    deityTa: 'ஸ்ரீ லலிதா மகா திரிபுரசுந்தரி (பூர்ணிமா) / பித்ருக்கள் (அமாவாசை)',
-    deityEn: 'Goddess Lalitha Tripura Sundari (Purnima) / Pitrus (Amavasya)',
-    remedyTa: 'பௌர்ணமியில் ஸ்ரீசக்ர நவாபரண பூஜை அல்லது அமாவாசையில் பித்ரு தர்ப்பணம் செய்வது நலம்.',
-    remedyEn: 'Perform Sri Chakra worship on Purnima or ancestral Pitru Tharpana on Amavasya.',
-  },
-};
+    deltaTithi,
+    deltaYears,
+    totalSpanTithis,
+    totalSpanYears,
+    isFirstHalf,
+    upperPolarityFirstHalf,
+    lowerPolarityFirstHalf,
+    upperPolaritySecondHalf,
+    lowerPolaritySecondHalf,
+    explanationTa,
+    explanationEn,
+  };
 
   // Generate Tithi Predictions
   const masterPred = TITHI_CONCEPT_MASTER_PREDICTIONS[tithiNumber] || TITHI_CONCEPT_MASTER_PREDICTIONS[1];

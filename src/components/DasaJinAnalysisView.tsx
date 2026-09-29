@@ -8,7 +8,6 @@ import {
   Sparkles,
   Heart,
   Baby,
-  Coins,
   Eye,
   CheckCircle2,
   AlertOctagon,
