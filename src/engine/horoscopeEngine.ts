@@ -47,7 +47,7 @@ export function calculateFullHoroscope(birth: BirthInput): CalculatedHoroscope {
   const activeDasaName = (presentDasaInfo?.mahadasa || dasaPeriods.find((d) => d.isCurrent)?.planet || 'Saturn') as any;
   const activeBhuktiName = (presentDasaInfo?.puthi || 'Mercury') as any;
   const dasaJinReport = calculateDasaJinReport(planets, lagnaSignId, panchanga, activeDasaName, activeBhuktiName);
-  const porulUyirReport = calculatePorulUyirReport(birth, planets, lagnaSignId, panchanga);
+  const porulUyirReport = calculatePorulUyirReport(birth, planets, lagnaSignId, panchanga, dasaPeriods);
 
   const yogaScores = yogasMatched.map((y) => y.score);
   const avgYogaScore = yogaScores.length > 0 ? yogaScores.reduce((a, b) => a + b, 0) / yogaScores.length : 70;

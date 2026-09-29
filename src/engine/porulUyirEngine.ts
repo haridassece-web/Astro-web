@@ -7,6 +7,7 @@ import type {
   SolsticeAyanaAnalysis,
   PorulUyirAgePhase,
   PorulUyirReport,
+  DasaPeriod,
 } from '../types/astrology';
 
 const SIGN_NAMES_TA = [
@@ -140,10 +141,11 @@ const LAGNA_PORUL_UYIR_CONFIG: Record<
 };
 
 export function calculatePorulUyirReport(
-  _birth: BirthInput,
+  birth: BirthInput,
   planets: PlanetPosition[],
   lagnaSignId: number,
-  _panchanga: Panchanga
+  _panchanga: Panchanga,
+  dasaPeriods?: DasaPeriod[]
 ): PorulUyirReport {
   const lagnaNameTa = SIGN_NAMES_TA[lagnaSignId];
   const lagnaNameEn = SIGN_NAMES_EN[lagnaSignId];
@@ -299,8 +301,6 @@ export function calculatePorulUyirReport(
   };
 
   // 5. Solstice Ayana Analysis (Uttarayanam / Dakshinayanam)
-  // Sun in Capricorn (270°) to Gemini (90°) = Uttarayanam (Deva Period / Uyir Focus)
-  // Sun in Cancer (90°) to Sagittarius (270°) = Dakshinayanam (Manushya Period / Porul Focus)
   const sunDeg = sun.longitude;
   const isUttarayanam = sunDeg >= 270 || sunDeg < 90;
 
@@ -319,83 +319,109 @@ export function calculatePorulUyirReport(
       : 'Born during Dakshinayanam. Drive for material prosperity (Porul) and financial advancement is exceptionally high.',
   };
 
-  // 6. Age Phase Map (0 to 60+ Years Timeline)
-  const agePhases: PorulUyirAgePhase[] = [
-    {
-      ageRange: 'Age 00 - 12 Y',
-      titleTa: 'பாலிய & கல்வி தொடக்கம் (Childhood & Growth)',
-      titleEn: 'Childhood & Educational Foundation',
-      statusIndicator: '+',
-      porulScore: 60,
-      uyirScore: 85,
-      summaryTa: 'பாலிய பருவத்தில் குடும்ப பாதுகாப்பு மேலோங்கும். உயிர்காரக தேவதைகளின் பூரண அருளால் ஆரோக்கியமும் கல்வியும் சுபிட்சமாக அமையும்.',
-      summaryEn: 'Youth enjoys family nurture. Uyir protection ensures steady health and basic education.',
-    },
-    {
-      ageRange: 'Age 12 - 21 Y',
-      titleTa: 'இளமை & தொழில் ஆயத்தம் (Youth & Skill Building)',
-      titleEn: 'Youth & Higher Education',
-      statusIndicator: '+',
-      porulScore: 65,
-      uyirScore: 80,
-      summaryTa: 'கல்வி மற்றும் தொழில் நுட்பத் திறன்கள் வளரும் பருவம். கர்ம விழிப்புணர்வின் முதல் அதிர்வுகள் துவங்கி அடித்தளம் அமைக்கும்.',
-      summaryEn: 'Focus on academic credentials and skill mastery. Initial karma triggers set baseline foundations.',
-    },
-    {
-      ageRange: 'Age 21 - 30 Y',
-      titleTa: 'தொழில் நுழைவு & கர்ம போராட்டம் (Career Entry & Early Karma)',
-      titleEn: 'Career Entry & Foundation Building',
-      statusIndicator: '-',
-      porulScore: 50,
-      uyirScore: 70,
-      summaryTa: 'ஆரம்ப உத்தியோகம் மற்றும் தொழில் சவால்கள் நிறையும் பருவம். விதை விதைப்பது போன்ற காலம்; உழைப்புக்குரிய உடனடி தன பலன் குறையலாம்.',
-      summaryEn: 'Initial job stabilization phase. Demands hard labor with delayed immediate financial windfalls.',
-      keyWarningTa: 'புதிய தொழில் முதலீடுகளில் கூடுதல் கவனம் தேவை.',
-      keyWarningEn: 'Exercise high prudence in initial business ventures.',
-    },
-    {
-      ageRange: 'Age 30 - 38 Y',
-      titleTa: 'பொருளாதார வளர்ச்சி & உயர்வு (Financial Elevation)',
-      titleEn: 'Financial Elevation & Settlement',
-      statusIndicator: '+',
-      porulScore: 85,
-      uyirScore: 75,
-      summaryTa: '30 வயதிற்குப் பின் பொருள்காரக கிரகங்களின் யோகம் சுடரத் தொடங்கும். உத்தியோக உயர்வு, புதிய தன வரவு மற்றும் குடும்ப நிலைத்தன்மை உருவாகும்.',
-      summaryEn: 'Post age 30 unlocks peak Porul activation. Executive promotions and steady income streams consolidate.',
-    },
-    {
-      ageRange: 'Age 38 - 47 Y',
-      titleTa: 'தனச் சேர்க்கை & உச்சகட்ட யோகம் (Peak Wealth Accumulation)',
-      titleEn: 'Peak Wealth & Asset Consolidation',
-      statusIndicator: '++',
-      porulScore: 95,
-      uyirScore: 70,
-      summaryTa: 'வாழ்நாளின் பொற்காலம். 6/8/12-ம் பாவத் தொடர்பு இருந்தாலும் பொருளாதார ஏற்றம் அமையும். சொத்துக்கள் மற்றும் வாகன சேர்க்கை உண்டாகும்.',
-      summaryEn: 'Golden financial window. High wealth generation and real estate acquisitions materialize.',
-    },
-    {
-      ageRange: 'Age 47 - 53 Y',
-      titleTa: 'பொருளாதார விழிப்புணர்வு & திருப்புமுனை (Financial Caution Phase)',
-      titleEn: 'Financial Caution & Transition',
-      statusIndicator: '-',
-      porulScore: 55,
-      uyirScore: 80,
-      summaryTa: '47 வயதிற்குமேல் "பொருளாதாரத்தில் கவனம் தேவை" என்ற விதி செயல்படும். புதிய கடன் வாங்குவது அல்லது ஜாமீன் கையெழுத்திடுவதைத் தவிர்க்க வேண்டும்.',
-      summaryEn: 'Crucial transition milestone. Requires high caution regarding loans, guarantees, and speculative outlays.',
-      keyWarningTa: '6/8/12-ம் பாவாதிபதிகளின் திசைகளில் கடன்கள் வாங்க வேண்டாம்.',
-      keyWarningEn: 'Refrain from taking unnecessary loans during 6/8/12 Dasa periods.',
-    },
-    {
-      ageRange: 'Age 53 - 60+ Y',
-      titleTa: 'பூரண கர்ம நிறைவு & ஆன்மீக அமைதி (Spiritual & Health Focus)',
-      titleEn: 'Karma Loop Completion & Spiritual Peace',
-      statusIndicator: '--',
-      porulScore: 45,
-      uyirScore: 90,
-      summaryTa: '60 வயது பூர்த்தி நோக்கி செல்லும் காலம். பொருள்காரகத் தேடல்கள் குறைந்து உயிர்காரக அமைதி, குடும்ப நலம் மற்றும் ஆன்மீகப் தொண்டில் மனம் நாடும்.',
-      summaryEn: 'Completes the 60-year karma loop. Focus shifts gracefully from monetary competition to health and spiritual tranquility.',
-    },
+  // 6. Dynamic Age Phase Timeline Map (0 to 60+ Years Timeline)
+  // Computes custom Dasa-driven predictions for EVERY individual horoscope!
+  const birthYear = new Date(birth.dob).getFullYear() || 1990;
+
+  const ageBrackets = [
+    { startAge: 0, endAge: 12, titleTa: 'பாலிய & கல்வி தொடக்கம் (Childhood & Growth)', titleEn: 'Childhood & Educational Foundation' },
+    { startAge: 12, endAge: 21, titleTa: 'இளமை & தொழில் ஆயத்தம் (Youth & Skill Building)', titleEn: 'Youth & Higher Education' },
+    { startAge: 21, endAge: 30, titleTa: 'தொழில் நுழைவு & கர்ம போராட்டம் (Career Entry & Early Karma)', titleEn: 'Career Entry & Foundation Building' },
+    { startAge: 30, endAge: 38, titleTa: 'பொருளாதார வளர்ச்சி & உயர்வு (Financial Elevation)', titleEn: 'Financial Elevation & Settlement' },
+    { startAge: 38, endAge: 47, titleTa: 'தனச் சேர்க்கை & உச்சகட்ட யோகம் (Peak Wealth Accumulation)', titleEn: 'Peak Wealth & Asset Consolidation' },
+    { startAge: 47, endAge: 53, titleTa: 'பொருளாதார விழிப்புணர்வு & திருப்புமுனை (Financial Caution Phase)', titleEn: 'Financial Caution & Transition' },
+    { startAge: 53, endAge: 60, titleTa: 'பூரண கர்ம நிறைவு & ஆன்மீக அமைதி (Spiritual & Health Focus)', titleEn: 'Karma Loop Completion & Spiritual Peace' },
   ];
+
+  const agePhases: PorulUyirAgePhase[] = ageBrackets.map((bracket) => {
+    const targetStartYear = birthYear + bracket.startAge;
+    const targetEndYear = birthYear + bracket.endAge;
+
+    // Find active Dasa planet for this age window
+    let activeDasaPlanet = 'Saturn';
+    let activeDasaPlanetTa = 'சனி';
+
+    if (dasaPeriods && dasaPeriods.length > 0) {
+      const match = dasaPeriods.find((d) => {
+        const sYear = d.startYear || new Date(d.startDate).getFullYear();
+        const eYear = d.endYear || new Date(d.endDate).getFullYear();
+        return sYear <= targetEndYear && eYear >= targetStartYear;
+      });
+      if (match) {
+        activeDasaPlanet = match.planet;
+        activeDasaPlanetTa = match.planetTa;
+      }
+    }
+
+    const activePlanetObj = planets.find((p) => p.name === activeDasaPlanet);
+    const activeSignId = activePlanetObj ? Math.floor(activePlanetObj.longitude / 30) : 0;
+    const placedHouse = ((activeSignId - lagnaSignId + 12) % 12) + 1;
+
+    const isUyir = config.uyirPlanets.includes(activeDasaPlanet);
+    const isPorul = config.porulPlanets.includes(activeDasaPlanet);
+    const isBadhaka = activeDasaPlanet === badhakaLordEn;
+    const is6thLord = activeDasaPlanet === sixthHouseLordEn;
+    const isIn6th = placedHouse === 6;
+
+    let statusIndicator: '++' | '+' | '-' | '--' = '+';
+    let porulScore = 70;
+    let uyirScore = 75;
+    let keyWarningTa: string | undefined = undefined;
+    let keyWarningEn: string | undefined = undefined;
+
+    if (isBadhaka || isIn6th || is6thLord) {
+      statusIndicator = bracket.endAge > 47 ? '--' : '-';
+      porulScore = 48;
+      uyirScore = 65;
+      keyWarningTa = `6-ம் பாவம் / பாதகத் தொடர்புடைய ${activeDasaPlanetTa} தசை இயங்குவதால், கடன்கள் வாங்குவதைத் தவிர்த்து கவனமாக முதலீடு செய்யவும்.`;
+      keyWarningEn = `6th house/Badhaka associated ${activeDasaPlanet} Dasa is active. Avoid optional borrowing and risky outlays.`;
+    } else if (isPorul && [1, 2, 4, 5, 9, 10, 11].includes(placedHouse)) {
+      statusIndicator = bracket.startAge >= 30 && bracket.endAge <= 47 ? '++' : '+';
+      porulScore = 92;
+      uyirScore = 78;
+    } else if (isUyir) {
+      statusIndicator = '+';
+      porulScore = 72;
+      uyirScore = 90;
+    } else {
+      statusIndicator = bracket.startAge >= 47 ? '-' : '+';
+      porulScore = 60;
+      uyirScore = 70;
+    }
+
+    const summaryTa = `இக் பருவத்தில் (வயது ${bracket.startAge}-${bracket.endAge}) ${activeDasaPlanetTa} தசை (${placedHouse}-ம் பாவம் ${SIGN_NAMES_TA[activeSignId]}) இயங்குகிறது. ${
+      isBadhaka
+        ? `பாதகாதிபதியான ${activeDasaPlanetTa} தசை என்பதால் தொழில் மற்றும் பண விஷயங்களில் சவால்கள் வரலாம்.`
+        : is6thLord || isIn6th
+        ? `6-ம் பாவத் தொடர்புடைய ${activeDasaPlanetTa} தசை என்பதால் பணப்புழக்கம் இருந்தாலும் கடன்களாக மாற வாய்ப்புள்ளது; நிதி எச்சரிக்கை தேவை.`
+        : isPorul
+        ? `பொருள்காரக கிரகமான ${activeDasaPlanetTa} தசை என்பதால் உத்தியோக உயர்வு, புதிய தன வரவு மற்றும் தொழில் அபிவிருத்தி உண்டாகும்.`
+        : `உயிர்காரக கிரகமான ${activeDasaPlanetTa} தசை என்பதால் குடும்ப நலம், ஆரோக்கியம், கல்வி மற்றும் ஆன்மீக மேன்மை சுபிட்சமாக அமையும்.`
+    }`;
+
+    const summaryEn = `During this phase (Age ${bracket.startAge}-${bracket.endAge}), ${activeDasaPlanet} Dasa (House ${placedHouse} in ${SIGN_NAMES_EN[activeSignId]}) is active. ${
+      isBadhaka
+        ? `Being Badhakatipathi ${activeDasaPlanet} Dasa, financial and business affairs demand extra caution.`
+        : is6thLord || isIn6th
+        ? `6th house activation by ${activeDasaPlanet} yields income but risks turning into loan obligations; financial discipline is vital.`
+        : isPorul
+        ? `Porulkaraga planet ${activeDasaPlanet} Dasa brings career promotions, monetary inflow, and enterprise growth.`
+        : `Uyirkaraga planet ${activeDasaPlanet} Dasa bestows health robustness, academic success, and family harmony.`
+    }`;
+
+    return {
+      ageRange: `Age ${String(bracket.startAge).padStart(2, '0')} - ${bracket.endAge} Y`,
+      titleTa: bracket.titleTa,
+      titleEn: bracket.titleEn,
+      statusIndicator,
+      porulScore,
+      uyirScore,
+      summaryTa,
+      summaryEn,
+      keyWarningTa,
+      keyWarningEn,
+    };
+  });
 
   // 7. Key Guidance & Remedies
   const keyAdviceTa = [
