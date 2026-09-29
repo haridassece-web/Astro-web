@@ -579,6 +579,41 @@ export interface WealthTimelineItem {
   notesEn: string[];
 }
 
+export interface TithiAgeTimelineDetail {
+  tithiNumber: number;
+  primaryAgeStart: number;
+  primaryAgeEnd: number;
+  mirrorTithiNumber: number;
+  mirrorAgeStart: number;
+  mirrorAgeEnd: number;
+  deltaTithi: number;
+  deltaYears: number;
+  totalSpanTithis: number;
+  totalSpanYears: number;
+  isFirstHalf: boolean;
+  upperPolarityFirstHalf: '+' | '-';
+  lowerPolarityFirstHalf: '+' | '-';
+  upperPolaritySecondHalf: '+' | '-';
+  lowerPolaritySecondHalf: '+' | '-';
+  explanationTa: string;
+  explanationEn: string;
+}
+
+export interface TithiConceptPredictions {
+  generalPredictionTa: string;
+  generalPredictionEn: string;
+  karmaAgePredictionTa: string;
+  karmaAgePredictionEn: string;
+  virayathipathiPredictionTa: string;
+  virayathipathiPredictionEn: string;
+  polarityPhasePredictionTa: string;
+  polarityPhasePredictionEn: string;
+  keyDeityTa: string;
+  keyDeityEn: string;
+  specialRemedyTa: string;
+  specialRemedyEn: string;
+}
+
 export interface TithiConceptReport {
   tithiNameTa: string;
   tithiNameEn: string;
@@ -601,6 +636,8 @@ export interface TithiConceptReport {
   timelineItems: WealthTimelineItem[];
   settlementAgeTextTa: string;
   settlementAgeTextEn: string;
+  tithiAgeTimeline?: TithiAgeTimelineDetail;
+  tithiPredictions?: TithiConceptPredictions;
 }
 
 export interface VadhaiVainasikamReport {

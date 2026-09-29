@@ -105,6 +105,282 @@ export const TithiConceptView: React.FC<TithiConceptViewProps> = ({
             </div>
           </div>
 
+          {/* New Card: Handwritten Tithi Timeline & Symmetry Diagram */}
+          {tithiConcept.tithiAgeTimeline && (() => {
+            const tm = tithiConcept.tithiAgeTimeline;
+            const getPct = (val: number) => Math.min(100, Math.max(0, (val / 15.0) * 100));
+
+            const primaryPct = getPct(tm.tithiNumber);
+            const mirrorPct = getPct(tm.mirrorTithiNumber);
+            const centerPct = getPct(7.5);
+
+            const startPct = Math.min(primaryPct, mirrorPct);
+            const endPct = Math.max(primaryPct, mirrorPct);
+
+            return (
+              <div className="bg-gradient-to-br from-slate-900 via-indigo-950/50 to-slate-950 border border-indigo-500/40 rounded-2xl p-4 md:p-6 shadow-2xl space-y-5">
+                {/* Header */}
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-500/20 pb-3">
+                  <div>
+                    <h3 className="text-base font-bold text-amber-300 font-serif flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                      {language === 'ta' ? 'திதிகள் சமச்சீர் வயதுக் கோட்டு வரைபடம்' : 'Tithi Lifespan & Symmetry Timeline Diagram'}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      {language === 'ta' ? 'ஏட்டுச்சுவடி விதி: 1 திதி = 4 ஆண்டுகள் (15 திதி = 60 ஆண்டுகள், மையம் = 7.5 திதி / 30 வயது)' : 'Manuscript Formula: 1 Tithi = 4 Years (15 Tithis = 60 Years, Center = 7.5 Tithi / 30 Yrs)'}
+                    </p>
+                  </div>
+                  <span className="text-xs font-mono font-bold bg-amber-500/10 text-amber-300 px-3 py-1 rounded-full border border-amber-500/30">
+                    {language === 'ta' ? `திதி #${tm.tithiNumber}` : `Tithi #${tm.tithiNumber}`}
+                  </span>
+                </div>
+
+                {/* Main Visual Number Line & Arc SVG */}
+                <div className="bg-slate-950/90 border border-slate-800 rounded-xl p-4 space-y-4">
+                  {/* Upper Tier Polarity Banner */}
+                  <div className="flex justify-between items-center text-xs font-mono font-bold gap-2">
+                    <div className="flex-1 flex items-center justify-between text-emerald-400 bg-emerald-950/40 px-3 py-1.5 rounded-lg border border-emerald-500/30">
+                      <span>0.01 – 7.5 (0-30 வயது):</span>
+                      <span className="text-base font-black px-2 py-0.5 bg-emerald-500/20 rounded">{tm.upperPolarityFirstHalf}</span>
+                    </div>
+                    <div className="flex-1 flex items-center justify-between text-rose-400 bg-rose-950/40 px-3 py-1.5 rounded-lg border border-rose-500/30">
+                      <span>7.5 – 15 (30-60 வயது):</span>
+                      <span className="text-base font-black px-2 py-0.5 bg-rose-500/20 rounded">{tm.upperPolaritySecondHalf}</span>
+                    </div>
+                  </div>
+
+                  {/* SVG Arc & Axis */}
+                  <div className="relative pt-6 pb-2">
+                    <svg className="w-full h-24 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 50">
+                      <defs>
+                        <linearGradient id="tithiArcGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor="#f59e0b" />
+                          <stop offset="50%" stopColor="#6366f1" />
+                          <stop offset="100%" stopColor="#ec4899" />
+                        </linearGradient>
+                      </defs>
+
+                      {/* Main axis line */}
+                      <line x1="0" y1="40" x2="100" y2="40" stroke="#475569" strokeWidth="2" strokeDasharray="2 2" />
+
+                      {/* End ticks 0.01 and 15 */}
+                      <line x1="0" y1="32" x2="0" y2="48" stroke="#94a3b8" strokeWidth="2.5" />
+                      <line x1="100" y1="32" x2="100" y2="48" stroke="#94a3b8" strokeWidth="2.5" />
+
+                      {/* Midpoint tick 7.5 */}
+                      <line x1="50" y1="28" x2="50" y2="48" stroke="#818cf8" strokeWidth="3" />
+
+                      {/* Symmetric Arc */}
+                      {startPct !== endPct && (
+                        <path
+                          d={`M ${startPct} 40 Q ${centerPct} 5, ${endPct} 40`}
+                          fill="none"
+                          stroke="url(#tithiArcGradient)"
+                          strokeWidth="3"
+                          strokeDasharray="3 2"
+                        />
+                      )}
+
+                      {/* Birth Tithi Circle */}
+                      <circle cx={primaryPct} cy="40" r="5" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
+                      {/* Mirror Tithi Circle */}
+                      {tm.tithiNumber !== tm.mirrorTithiNumber && (
+                        <circle cx={mirrorPct} cy="40" r="5" fill="#ec4899" stroke="#ffffff" strokeWidth="2" />
+                      )}
+                    </svg>
+
+                    {/* Scale Labels */}
+                    <div className="flex justify-between text-[10px] font-mono text-slate-400 font-bold -mt-2 px-0.5">
+                      <span>0.01 (0 வயது)</span>
+                      <span className="text-indigo-300 font-black">7.5 மையம் (30 வயது)</span>
+                      <span>15 (60 வயது)</span>
+                    </div>
+
+                    {/* Interactive Marker Badges */}
+                    <div className="mt-4 flex flex-wrap items-center justify-around gap-2 text-xs font-mono">
+                      <div className="bg-amber-500/20 text-amber-200 border border-amber-500/40 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                        <span>
+                          {language === 'ta' ? `பிறப்பு திதி #${tm.tithiNumber}` : `Birth Tithi #${tm.tithiNumber}`}:{' '}
+                          <strong className="text-amber-300">{tm.primaryAgeStart}-{tm.primaryAgeEnd} வயது</strong>
+                        </span>
+                      </div>
+
+                      {tm.tithiNumber !== tm.mirrorTithiNumber && (
+                        <div className="bg-pink-500/20 text-pink-200 border border-pink-500/40 px-3 py-1.5 rounded-lg flex items-center gap-2">
+                          <span className="w-2.5 h-2.5 rounded-full bg-pink-400"></span>
+                          <span>
+                            {language === 'ta' ? `எதிர் சமச்சீர் திதி #${tm.mirrorTithiNumber}` : `Mirror Tithi #${tm.mirrorTithiNumber}`}:{' '}
+                            <strong className="text-pink-300">{tm.mirrorAgeStart}-{tm.mirrorAgeEnd} வயது</strong>
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Lower Tier Polarity Banner */}
+                  <div className="flex justify-between items-center text-xs font-mono font-bold gap-2 pt-1">
+                    <div className="flex-1 flex items-center justify-between text-slate-400 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
+                      <span>0.01 – 7.5:</span>
+                      <span className="text-sm font-black text-rose-400 px-2 bg-slate-950 rounded">{tm.lowerPolarityFirstHalf}</span>
+                    </div>
+                    <div className="flex-1 flex items-center justify-between text-slate-400 bg-slate-900 px-3 py-1 rounded-lg border border-slate-800">
+                      <span>7.5 – 15:</span>
+                      <span className="text-sm font-black text-emerald-400 px-2 bg-slate-950 rounded">{tm.lowerPolaritySecondHalf}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Formulas & Notes Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-1 font-mono">
+                    <span className="text-amber-400 font-bold flex items-center gap-1">
+                      <span>📌</span> {language === 'ta' ? 'பிறந்த திதி வயது:' : 'Primary Tithi Age:'}
+                    </span>
+                    <p className="text-slate-200 text-sm font-bold pt-0.5">
+                      {tm.tithiNumber} × 4 = <span className="text-amber-300">{tm.primaryAgeStart} வயது</span>
+                    </p>
+                    <p className="text-slate-400 text-[11px]">
+                      ({tm.primaryAgeStart} முதல் {tm.primaryAgeEnd} வயது வரை)
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-1 font-mono">
+                    <span className="text-pink-400 font-bold flex items-center gap-1">
+                      <span>🔄</span> {language === 'ta' ? 'சமச்சீர் திதி வயது:' : 'Symmetric Mirror Age:'}
+                    </span>
+                    <p className="text-slate-200 text-sm font-bold pt-0.5">
+                      {tm.mirrorTithiNumber} × 4 = <span className="text-pink-300">{tm.mirrorAgeStart} வயது</span>
+                    </p>
+                    <p className="text-slate-400 text-[11px]">
+                      ({tm.mirrorAgeStart} முதல் {tm.mirrorAgeEnd} வயது வரை)
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-1 font-mono">
+                    <span className="text-indigo-400 font-bold flex items-center gap-1">
+                      <span>📏</span> {language === 'ta' ? '7.5 மைய இடைவெளி:' : 'Center Distance:'}
+                    </span>
+                    <p className="text-slate-200 font-bold pt-0.5">
+                      |7.5 - {tm.tithiNumber}| = <span className="text-indigo-300">{tm.deltaTithi} திதி</span> ({tm.deltaYears} ஆண்டுகள்)
+                    </p>
+                  </div>
+
+                  <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 space-y-1 font-mono">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1">
+                      <span>🌐</span> {language === 'ta' ? 'மொத்த வில் அளவு (Span):' : 'Total Arc Span:'}
+                    </span>
+                    <p className="text-slate-200 font-bold pt-0.5">
+                      {tm.deltaTithi} × 2 = <span className="text-emerald-300">{tm.totalSpanTithis} திதி</span> ({tm.totalSpanYears} ஆண்டுகள்)
+                    </p>
+                  </div>
+                </div>
+
+                <div className="bg-amber-500/10 border border-amber-500/30 p-3.5 rounded-xl text-xs text-amber-200 leading-relaxed font-serif">
+                  <span className="font-bold text-amber-300 block mb-1">📜 சுவடி விளக்கவுரை (Manuscript Commentary):</span>
+                  {language === 'ta' ? tm.explanationTa : tm.explanationEn}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* New Card: Tithi Concept Predictions (திதி கான்செப்ட் விரிவான பலன்கள்) */}
+          {tithiConcept.tithiPredictions && (
+            <div className="bg-gradient-to-br from-slate-900 via-indigo-950/60 to-slate-950 border border-amber-500/40 rounded-2xl p-4 md:p-6 shadow-2xl space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 className="text-base font-bold text-amber-300 font-serif flex items-center gap-2">
+                  <span className="text-lg">🔮</span>
+                  {language === 'ta' ? 'திதி கான்செப்ட் சிறப்பு ஜோதிட பலன்கள்' : 'Tithi Concept Detailed Astrological Predictions'}
+                </h3>
+                <span className="text-xs font-mono font-bold bg-amber-500/10 text-amber-300 px-3 py-1 rounded-lg border border-amber-500/30">
+                  {language === 'ta' ? tithiConcept.tithiNameTa : tithiConcept.tithiNameEn} ({tithiConcept.tithiNumber})
+                </span>
+              </div>
+
+              {/* Grid of Predictions */}
+              <div className="space-y-3 text-xs md:text-sm">
+                {/* 1. General Tithi Life Prediction */}
+                <div className="bg-slate-950/80 border border-indigo-500/30 p-3.5 rounded-xl space-y-1">
+                  <h4 className="font-bold text-amber-300 font-serif flex items-center gap-1.5">
+                    <span>🌟</span>
+                    {language === 'ta' ? 'பிறந்த திதி பொதுப் பலன்:' : 'Birth Tithi General Life Prediction:'}
+                  </h4>
+                  <p className="text-slate-200 leading-relaxed pl-5 font-serif">
+                    {language === 'ta'
+                      ? tithiConcept.tithiPredictions.generalPredictionTa
+                      : tithiConcept.tithiPredictions.generalPredictionEn}
+                  </p>
+                </div>
+
+                {/* 2. Karma Start Age Prediction */}
+                <div className="bg-slate-950/80 border border-slate-800 p-3.5 rounded-xl space-y-1">
+                  <h4 className="font-bold text-indigo-300 font-mono flex items-center gap-1.5">
+                    <span>⏳</span>
+                    {language === 'ta' ? 'கர்மா இயக்க வயது பலன்:' : 'Karma Activation Milestone:'}
+                  </h4>
+                  <p className="text-slate-300 leading-relaxed pl-5 font-sans">
+                    {language === 'ta'
+                      ? tithiConcept.tithiPredictions.karmaAgePredictionTa
+                      : tithiConcept.tithiPredictions.karmaAgePredictionEn}
+                  </p>
+                </div>
+
+                {/* 3. Virayathipathi Prediction */}
+                <div className="bg-slate-950/80 border border-emerald-500/30 p-3.5 rounded-xl space-y-1">
+                  <h4 className="font-bold text-emerald-300 font-serif flex items-center gap-1.5">
+                    <span>💰</span>
+                    {language === 'ta' ? 'விரயாதிபதி (12-ம் அதிபதி) நிதிப் பலன்:' : '12th Lord Financial & Vitality Grant:'}
+                  </h4>
+                  <p className="text-slate-200 leading-relaxed pl-5 font-sans">
+                    {language === 'ta'
+                      ? tithiConcept.tithiPredictions.virayathipathiPredictionTa
+                      : tithiConcept.tithiPredictions.virayathipathiPredictionEn}
+                  </p>
+                </div>
+
+                {/* 4. Polarity Phase Prediction */}
+                <div className="bg-slate-950/80 border border-pink-500/30 p-3.5 rounded-xl space-y-1">
+                  <h4 className="font-bold text-pink-300 font-serif flex items-center gap-1.5">
+                    <span>🔄</span>
+                    {language === 'ta' ? 'திதி பருவ சுழற்சி & 30 வயது திருப்புமுனை:' : 'Tithi Polarity & Age 30 Turning Point:'}
+                  </h4>
+                  <p className="text-slate-200 leading-relaxed pl-5 font-sans">
+                    {language === 'ta'
+                      ? tithiConcept.tithiPredictions.polarityPhasePredictionTa
+                      : tithiConcept.tithiPredictions.polarityPhasePredictionEn}
+                  </p>
+                </div>
+
+                {/* 5. Key Deity & Special Remedy */}
+                <div className="bg-gradient-to-r from-amber-950/40 via-slate-950 to-indigo-950/40 border border-amber-500/40 p-4 rounded-xl space-y-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-bold text-amber-300 font-serif flex items-center gap-1.5 text-xs">
+                      <span>🛕</span>
+                      {language === 'ta' ? 'திதி அதிதேவதை:' : 'Key Tithi Deity:'}
+                    </span>
+                    <span className="font-bold text-white bg-amber-500/20 px-3 py-1 rounded-lg border border-amber-500/40 text-xs">
+                      {language === 'ta'
+                        ? tithiConcept.tithiPredictions.keyDeityTa
+                        : tithiConcept.tithiPredictions.keyDeityEn}
+                    </span>
+                  </div>
+
+                  <div className="border-t border-slate-800 pt-2 text-xs text-slate-300 space-y-1">
+                    <span className="font-bold text-emerald-300 flex items-center gap-1">
+                      <span>✨</span>
+                      {language === 'ta' ? 'சுவடிப் பரிகார வழிபாடுகள்:' : 'Sacred Manuscript Remedy:'}
+                    </span>
+                    <p className="pl-4 text-emerald-200">
+                      {language === 'ta'
+                        ? tithiConcept.tithiPredictions.specialRemedyTa
+                        : tithiConcept.tithiPredictions.specialRemedyEn}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Card 2: Karma Age Calculation */}
           <div className="bg-gradient-to-r from-indigo-950/80 via-slate-900 to-slate-950 border border-indigo-500/40 rounded-2xl p-4 md:p-5 shadow-xl space-y-2">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
