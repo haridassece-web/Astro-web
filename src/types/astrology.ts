@@ -323,6 +323,7 @@ export interface CalculatedHoroscope {
   tithiSoonyaReport?: TithiSoonyaReport;
   tithiConceptReport?: TithiConceptReport;
   vadhaiVainasikamReport?: VadhaiVainasikamReport;
+  dasaJinReport?: any;
   overallScore: number;
 }
 

@@ -502,6 +502,7 @@ export function App() {
             dasaPeriods={horoscope.dasaPeriods}
             startingDasaInfo={horoscope.startingDasaInfo}
             presentDasaInfo={horoscope.presentDasaInfo}
+            dasaJinReport={horoscope.dasaJinReport}
             language={language}
           />
         )}

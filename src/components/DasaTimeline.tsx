@@ -5,10 +5,14 @@ import {
   Zap, Compass, Baby, Layers, ChevronUp
 } from 'lucide-react';
 
+import { DasaJinAnalysisView } from './DasaJinAnalysisView';
+import type { DasaJinAnalysisReport } from '../engine/dasaJinEngine';
+
 interface DasaTimelineProps {
   dasaPeriods: DasaPeriod[];
   startingDasaInfo?: StartingDasaInfo;
   presentDasaInfo?: PresentDasaInfo;
+  dasaJinReport?: DasaJinAnalysisReport;
   language: Language;
 }
 
@@ -16,8 +20,10 @@ export const DasaTimeline: React.FC<DasaTimelineProps> = ({
   dasaPeriods,
   startingDasaInfo,
   presentDasaInfo,
+  dasaJinReport,
   language,
 }) => {
+  const [activeSubTab, setActiveSubTab] = useState<'timeline' | 'jin'>('timeline');
   const [filterMode, setFilterMode] = useState<'all' | 'present' | 'starting' | 'future'>('all');
   const [expandedPlanet, setExpandedPlanet] = useState<string | null>(
     dasaPeriods.find((d) => d.isCurrent)?.planet || dasaPeriods[0]?.planet || null
@@ -47,6 +53,7 @@ export const DasaTimeline: React.FC<DasaTimelineProps> = ({
     setExpandedPuthi(`${presentDasaInfo.mahadasa}_${presentDasaInfo.puthi}`);
     setExpandedAndhraman(`${presentDasaInfo.mahadasa}_${presentDasaInfo.puthi}_${presentDasaInfo.andhraman}`);
     setFilterMode('all');
+    setActiveSubTab('timeline');
   };
 
   const currentDasa = dasaPeriods.find((d) => d.isCurrent) || dasaPeriods[0];
@@ -60,7 +67,40 @@ export const DasaTimeline: React.FC<DasaTimelineProps> = ({
   });
 
   return (
-    <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl backdrop-blur-md space-y-6">
+    <div className="space-y-5 max-w-4xl mx-auto">
+      {/* 1. Navigation Sub-Tabs */}
+      <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-2 shadow-2xl backdrop-blur-md flex items-center justify-around gap-1">
+        <button
+          onClick={() => setActiveSubTab('timeline')}
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs md:text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+            activeSubTab === 'timeline'
+              ? 'bg-amber-600 text-white shadow-lg border border-amber-400/40'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+          }`}
+        >
+          <Clock className="w-4 h-4 text-amber-300" />
+          <span>{language === 'ta' ? 'விம்சொத்தரி தசா அட்டவணை' : 'Vimshottari Dasa Timeline'}</span>
+        </button>
+
+        {dasaJinReport && (
+          <button
+            onClick={() => setActiveSubTab('jin')}
+            className={`flex-1 py-2.5 px-3 rounded-xl text-xs md:text-sm font-bold transition-all flex items-center justify-center gap-2 ${
+              activeSubTab === 'jin'
+                ? 'bg-purple-700 text-white shadow-lg border border-purple-400/40'
+                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/60'
+            }`}
+          >
+            <Sparkles className="w-4 h-4 text-purple-300 animate-pulse" />
+            <span>{language === 'ta' ? 'ஜின் & தார பலன் பகுப்பாய்வு' : 'Jin & Tara Analysis'}</span>
+          </button>
+        )}
+      </div>
+
+      {activeSubTab === 'jin' && dasaJinReport ? (
+        <DasaJinAnalysisView report={dasaJinReport} language={language} />
+      ) : (
+        <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-2xl backdrop-blur-md space-y-6">
       {/* Header Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
         <div>
@@ -637,6 +677,7 @@ export const DasaTimeline: React.FC<DasaTimelineProps> = ({
           );
         })}
       </div>
+      )}
     </div>
   );
 };
