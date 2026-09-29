@@ -323,6 +323,7 @@ export interface CalculatedHoroscope {
   tithiSoonyaReport?: TithiSoonyaReport;
   tithiConceptReport?: TithiConceptReport;
   vadhaiVainasikamReport?: VadhaiVainasikamReport;
+  porulUyirReport?: PorulUyirReport;
   dasaJinReport?: any;
   overallScore: number;
 }
@@ -660,3 +661,80 @@ export interface VadhaiVainasikamReport {
   remediesTa: string[];
   remediesEn: string[];
 }
+
+export interface PorulUyirPlanetClassification {
+  planetEn: string;
+  planetTa: string;
+  role: 'uyir' | 'porul' | 'neutral';
+  housesOwned: number[];
+  placedHouse: number;
+  placedSignTa: string;
+  placedSignEn: string;
+  effectTa: string;
+  effectEn: string;
+}
+
+export interface SixthHouseBadhakaAnalysis {
+  sixthHouseSignId: number;
+  sixthHouseSignTa: string;
+  sixthHouseSignEn: string;
+  sixthHouseLordEn: string;
+  sixthHouseLordTa: string;
+  planetsIn6thHouse: {
+    planetEn: string;
+    planetTa: string;
+    role: 'uyir' | 'porul' | 'badhaka' | 'neutral';
+    impactTa: string;
+    impactEn: string;
+  }[];
+  badhakaSignId: number;
+  badhakaSignTa: string;
+  badhakaSignEn: string;
+  badhakaLordEn: string;
+  badhakaLordTa: string;
+  badhakaPlacedHouse: number;
+  is9thLordIn6th: boolean;
+  fatherAnalysisTa: string;
+  fatherAnalysisEn: string;
+  sixthHouseDebtWarningTa: string;
+  sixthHouseDebtWarningEn: string;
+}
+
+export interface SolsticeAyanaAnalysis {
+  ayana: 'uttarayanam' | 'dakshinayanam';
+  ayanaTa: string;
+  ayanaEn: string;
+  natureTa: string;
+  natureEn: string;
+  focusType: 'uyir' | 'porul';
+  impactTa: string;
+  impactEn: string;
+}
+
+export interface PorulUyirAgePhase {
+  ageRange: string;
+  titleTa: string;
+  titleEn: string;
+  statusIndicator: '++' | '+' | '-' | '--';
+  porulScore: number;
+  uyirScore: number;
+  summaryTa: string;
+  summaryEn: string;
+  keyWarningTa?: string;
+  keyWarningEn?: string;
+}
+
+export interface PorulUyirReport {
+  lagnaNameTa: string;
+  lagnaNameEn: string;
+  uyirPlanets: PorulUyirPlanetClassification[];
+  porulPlanets: PorulUyirPlanetClassification[];
+  sixthHouseBadhaka: SixthHouseBadhakaAnalysis;
+  solsticeAyana: SolsticeAyanaAnalysis;
+  agePhases: PorulUyirAgePhase[];
+  keyAdviceTa: string[];
+  keyAdviceEn: string[];
+  specialRemediesTa: string[];
+  specialRemediesEn: string[];
+}
+

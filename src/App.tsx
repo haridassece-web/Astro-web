@@ -20,13 +20,14 @@ import { VivahaChakraView } from './components/VivahaChakraView';
 import { TithiPalangalView } from './components/TithiPalangalView';
 import { TithiConceptView } from './components/TithiConceptView';
 import { DasaJinAnalysisView } from './components/DasaJinAnalysisView';
+import { PorulUyirView } from './components/PorulUyirView';
 import { ReportGeneratorModal } from './components/ReportGeneratorModal';
 import { ResearchComparisonModal } from './components/ResearchComparisonModal';
 import { AuthModal } from './components/AuthModal';
 
 import {
   Compass, LayoutGrid, Clock, Award, Sparkles, ShieldCheck,
-  Brain, ChevronRight, Layers, Moon
+  Brain, ChevronRight, Layers, Moon, Coins
 } from 'lucide-react';
 
 function getCurrentDateTime() {
@@ -47,7 +48,7 @@ function getCurrentDateTime() {
 export function App() {
   const [language, setLanguage] = useState<Language>('ta');
   const [chartFormat, setChartFormat] = useState<'south' | 'north'>('south');
-  const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'panchanga' | 'dasa' | 'dasajin' | 'transit' | 'ashtakavarga' | 'yogas' | 'predictions' | 'mudakku' | 'tithi' | 'tithiconcept' | 'vivahachakra' | 'remedies'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'charts' | 'panchanga' | 'dasa' | 'dasajin' | 'transit' | 'ashtakavarga' | 'yogas' | 'predictions' | 'mudakku' | 'tithi' | 'tithiconcept' | 'poruluyir' | 'vivahachakra' | 'remedies'>('overview');
 
   const [activeChartId, setActiveChartId] = useState<string>('D1');
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
@@ -382,6 +383,18 @@ export function App() {
           </button>
 
           <button
+            onClick={() => setActiveTab('poruluyir')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+              activeTab === 'poruluyir'
+                ? 'bg-amber-500 text-slate-950 shadow-md font-semibold'
+                : 'text-slate-400 hover:text-slate-200'
+            }`}
+          >
+            <Coins className="w-4 h-4 text-amber-300" />
+            <span>{language === 'ta' ? 'பொருள் - உயிர் & 6-ம் பாவம்' : 'Porul - Uyir & 6th House'}</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab('vivahachakra')}
             className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
               activeTab === 'vivahachakra'
@@ -575,6 +588,10 @@ export function App() {
             vadhaiVainasikam={horoscope.vadhaiVainasikamReport}
             language={language}
           />
+        )}
+
+        {activeTab === 'poruluyir' && horoscope.porulUyirReport && (
+          <PorulUyirView report={horoscope.porulUyirReport} language={language} />
         )}
 
         {activeTab === 'vivahachakra' && (
